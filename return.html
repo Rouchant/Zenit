@@ -1,0 +1,106 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <link rel="icon" type="image/x-icon" href="assets/logo.ico">
+    <style>
+        @font-face {
+            font-family: 'Outfit';
+            src: url('fonts/outfit-300.ttf') format('truetype');
+            font-weight: 300;
+            font-style: normal;
+        }
+        @font-face {
+            font-family: 'Outfit';
+            src: url('fonts/outfit-400.ttf') format('truetype');
+            font-weight: 400;
+            font-style: normal;
+        }
+        @font-face {
+            font-family: 'Outfit';
+            src: url('fonts/outfit-600.ttf') format('truetype');
+            font-weight: 600;
+            font-style: normal;
+        }
+        @font-face {
+            font-family: 'Outfit';
+            src: url('fonts/outfit-700.ttf') format('truetype');
+            font-weight: 700;
+            font-style: normal;
+        }
+
+        :root {
+            --primary: #00f2ff;
+            --secondary: #0072ff;
+            --bg-dark: #0a0a0c;
+        }
+
+        /* Themes matching style.css */
+        body.theme-falabella { --primary: #B9D40D; --secondary: #8da10a; }
+        body.theme-paris { --primary: #009DE0; --secondary: #007bb0; }
+        body.theme-ripley { --primary: #9932cc; --secondary: #7928a1; }
+        body.theme-default { --primary: #00f2ff; --secondary: #0072ff; }
+
+        body {
+            margin: 0;
+            padding: 24px;
+            overflow: hidden;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+            background: transparent;
+            font-family: 'Outfit', sans-serif;
+            user-select: none;
+            box-sizing: border-box;
+        }
+        .return-btn {
+            background: linear-gradient(45deg, var(--secondary), var(--primary));
+            color: #000;
+            border: none;
+            padding: 16px 32px;
+            border-radius: 12px;
+            font-weight: 800;
+            font-size: 1.2rem;
+            cursor: pointer;
+            transition: filter 0.2s ease; /* Avoid transitioning background-image/gradient */
+            -webkit-app-region: no-drag;
+            white-space: nowrap;
+            box-shadow: none;
+            position: relative;
+            z-index: 100;
+            will-change: filter;
+        }
+        .return-btn:hover {
+            transform: none;
+            filter: brightness(1.15) saturate(1.1); /* Subtle but clear indicator */
+        }
+        .drag-area {
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            -webkit-app-region: drag;
+            z-index: -1;
+        }
+    </style>
+</head>
+<body class="theme-default">
+    <div class="drag-area"></div>
+    <button class="return-btn" onclick="window.electronAPI.restoreApp()">Volver a Características</button>
+
+    <script>
+        // Apply theme from URL parameter
+        const urlParams = new URLSearchParams(window.location.search);
+        const store = urlParams.get('store') || 'none';
+        
+        document.body.classList.remove('theme-falabella', 'theme-paris', 'theme-ripley', 'theme-default');
+        if (store === 'none') {
+            document.body.classList.add('theme-default');
+        } else {
+            document.body.classList.add(`theme-${store}`);
+        }
+    </script>
+</body>
+</html>

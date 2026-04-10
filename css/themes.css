@@ -1,0 +1,16 @@
+/* Retail Themes */
+body.theme-falabella { --primary: #B9D40D; --secondary: #8da10a; --primary-rgb: 185, 212, 13; --bg-overlay-start: rgba(185, 212, 13, 0.25); --bg-overlay-end: rgba(5, 8, 2, 0.85); }
+body.theme-paris { --primary: #009DE0; --secondary: #007bb0; --primary-rgb: 0, 157, 224; --bg-overlay-start: rgba(0, 157, 224, 0.25); --bg-overlay-end: rgba(2, 5, 10, 0.85); }
+body.theme-ripley { --primary: #9932cc; --secondary: #7928a1; --primary-rgb: 153, 50, 204; --bg-overlay-start: rgba(153, 50, 204, 0.25); --bg-overlay-end: rgba(5, 2, 8, 0.85); }
+body.theme-default { --primary: #00f2ff; --secondary: #0072ff; --primary-rgb: 0, 242, 255; --bg-overlay-start: rgba(0, 242, 255, 0.2); --bg-overlay-end: rgba(0, 0, 0, 0.85); }
+
+/* Custom elements that adapt to theme */
+.logo span { color: var(--primary); }
+.gen-tag { background: var(--primary); }
+.brand-badge { color: var(--primary); }
+.btn.primary { background: linear-gradient(45deg, var(--secondary), var(--primary)); }
+.view-pc-btn { background: linear-gradient(45deg, var(--secondary), var(--primary)); }
+.restore-btn { color: var(--primary); }
+.restore-btn:hover { background: var(--primary); }
+.toggle-specs-btn:hover { color: var(--primary); }
+.inactivity-info { color: var(--primary); background: rgba(var(--primary-rgb, 0, 242, 255), 0.1); }

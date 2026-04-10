@@ -1,0 +1,64 @@
+.view {
+    position: relative;
+    z-index: 2;
+    display: none;
+    width: 100%;
+    height: 100%;
+    transition: opacity 1s ease-in-out;
+    opacity: 0;
+    will-change: opacity;
+    transform: translateZ(0);
+}
+
+.view.active {
+    display: flex;
+    flex-direction: column;
+    opacity: 1;
+}
+
+/* Info View */
+.landing-video-container {
+    height: 100%;
+    max-height: calc(100vh - 200px);
+    border-radius: 30px;
+    overflow: hidden;
+    position: relative;
+    box-shadow: 0 30px 100px rgba(0, 0, 0, 0.6);
+    border: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+.landing-video-container video {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+}
+
+/* Video View (Promo) */
+#video-view video {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+}
+
+.video-overlay {
+    position: absolute;
+    bottom: 80px;
+    left: 80px;
+    z-index: 3;
+}
+
+.video-caption {
+    font-size: 4rem;
+    font-weight: 700;
+    max-width: 600px;
+    line-height: 1.1;
+    text-shadow: 0 4px 20px rgba(0, 0, 0, 0.5);
+}
+
+@media (max-width: 1024px) {
+    .landing-video-container {
+        order: -1;
+        height: 40vh;
+        min-height: 250px;
+    }
+}

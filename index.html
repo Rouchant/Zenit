@@ -1,0 +1,359 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Zenit</title>
+    <link rel="icon" type="image/x-icon" href="assets/logo.ico">
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+    <div id="app" class="app-container">
+        <!-- Background Video -->
+        <video id="bg-video" autoplay loop muted playsinline poster="assets/images/background.png">
+            <source src="assets/videos/bg.mp4" type="video/mp4">
+        </video>
+        
+        <!-- Background Overlay -->
+        <div class="bg-blur"></div>
+        
+        <!-- Info View -->
+        <div id="info-view" class="view active">
+            <header class="header">
+                <div class="header-branding">
+                    <div class="logo-placeholder" id="header-logo-container"></div>
+                    <div class="logo-separator"></div>
+                    <div class="store-logo-placeholder" id="store-logo-container"></div>
+                </div>
+                <div class="brand-badge" id="display-brand">Cargando...</div>
+            </header>
+
+            <main class="main-content">
+                <div class="specs-column">
+                    <div class="specs-grid">
+                        <div class="spec-card" id="card-processor">
+                            <div class="spec-icon" id="proc-vendor-logo">
+                                <img src="assets/ui/cpu.svg" alt="CPU">
+                            </div>
+                            <div class="spec-info">
+                                <div class="spec-label">Procesador <span id="display-gen" class="gen-tag"></span></div>
+                                <div class="spec-value" id="display-processor">Detectando...</div>
+                                <div class="spec-sub-value" id="display-cores"></div>
+                            </div>
+                        </div>
+                        <div class="spec-card" id="card-ram">
+                            <div class="spec-icon">
+                                <img src="assets/ui/ram.svg" alt="RAM">
+                            </div>
+                            <div class="spec-info">
+                                <div class="spec-label">Memoria RAM <span id="display-ram-type" class="gen-tag"></span></div>
+                                <div class="spec-value" id="display-ram">Detectando...</div>
+                            </div>
+                        </div>
+                        <div class="spec-card" id="card-storage">
+                            <div class="spec-icon">
+                                <img src="assets/ui/storage.svg" alt="SSD">
+                            </div>
+                            <div class="spec-info">
+                                <div class="spec-label">Almacenamiento</div>
+                                <div class="spec-value" id="display-storage">Detectando...</div>
+                            </div>
+                        </div>
+                        <div class="spec-card" id="card-display">
+                            <div class="spec-icon">
+                                <img src="assets/ui/screen.svg" alt="Pantalla">
+                            </div>
+                            <div class="spec-info">
+                                <div class="spec-label">Pantalla</div>
+                                <div class="spec-value" id="display-screen">Detectando...</div>
+                            </div>
+                        </div>
+                        <div class="spec-card" id="card-gpu">
+                            <div class="spec-icon">
+                                <img src="assets/ui/gpu.svg" alt="GPU">
+                            </div>
+                            <div class="spec-info">
+                                <div class="spec-label">Gráficos</div>
+                                <div class="spec-value" id="display-gpu">Detectando...</div>
+                            </div>
+                        </div>
+                        <div class="spec-card" id="card-os">
+                            <div class="spec-icon" id="os-logo">
+                                <img src="assets/ui/windows-11.svg" alt="OS">
+                            </div>
+                            <div class="spec-info">
+                                <div class="spec-label">Sistema Operativo</div>
+                                <div class="spec-value" id="display-os">Detectando...</div>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <button id="view-pc" class="view-pc-btn">Prueba esta PC</button>
+                </div>
+                
+                <div class="landing-video-container">
+                    <video id="landing-video" autoplay loop muted playsinline>
+                        <source src="assets/videos/landing.mp4" type="video/mp4">
+                    </video>
+                    <div id="display-price" class="price-tag"></div>
+                </div>
+            </main>
+
+            <footer class="footer">
+            </footer>
+        </div>
+
+        <!-- Admin Hotspots (Global) -->
+        <div id="settings-hotspot" class="admin-hotspot top-right"></div>
+        <div id="exit-hotspot" class="admin-hotspot bottom-right"></div>
+
+        <!-- Video View -->
+        <div id="video-view" class="view">
+            <video id="promo-video" loop muted>
+                <source src="assets/videos/promo.mp4" type="video/mp4">
+            </video>
+            <div class="video-overlay">
+                <div class="video-caption"></div>
+            </div>
+        </div>
+
+        <!-- Password Modal -->
+        <div id="password-modal" class="modal">
+            <div class="modal-content password-content">
+                <h2>Acceso Restringido</h2>
+                <p>Ingresa el código para editar la configuración.</p>
+                <div class="input-group">
+                    <input type="password" id="admin-password" placeholder="Código..." autofocus>
+                </div>
+                <div id="password-error" class="error-msg" style="display: none;">Código incorrecto. Inténtalo de nuevo.</div>
+                <div class="modal-actions">
+                    <button id="verify-password" class="btn primary">Entrar</button>
+                    <button id="close-password" class="btn secondary">Cancelar</button>
+                </div>
+            </div>
+        </div>
+
+        <!-- Customization Modal -->
+        <div id="custom-modal" class="modal">
+            <div class="modal-content wide-modal">
+                <div class="modal-header-main">
+                    <div class="header-title-row">
+                        <h2>Personalizar Zenit</h2>
+                    </div>
+                </div>
+
+                <div class="modal-body-scroll">
+                    <div class="settings-grid">
+                        <!-- Column 1: Hardware -->
+                        <div class="modal-pane-left">
+                            <div class="hardware-grid">
+                                <div class="input-group">
+                                    <label>Marca</label>
+                                    <div class="input-with-action">
+                                        <input type="text" id="input-brand">
+                                        <button class="restore-btn" data-field="brand" title="Restaurar">↺</button>
+                                    </div>
+                                </div>
+                                <div class="input-group">
+                                    <label>Procesador</label>
+                                    <div class="input-with-action">
+                                        <input type="text" id="input-processor">
+                                        <button class="restore-btn" data-field="processor" title="Restaurar">↺</button>
+                                    </div>
+                                </div>
+                                <div class="input-group">
+                                    <label>RAM (Capacidad)</label>
+                                    <div class="input-with-action">
+                                        <input type="text" id="input-ram">
+                                        <button class="restore-btn" data-field="ram" title="Restaurar">↺</button>
+                                    </div>
+                                </div>
+                                <div class="input-group">
+                                    <label>Tipo RAM (DDR4/5)</label>
+                                    <div class="input-with-action">
+                                        <input type="text" id="input-ram-type">
+                                        <button class="restore-btn" data-field="ramType" title="Restaurar">↺</button>
+                                    </div>
+                                </div>
+                                <div class="input-group">
+                                    <label>Almacenamiento</label>
+                                    <div class="input-with-action">
+                                        <input type="text" id="input-storage">
+                                        <button class="restore-btn" data-field="storage" title="Restaurar">↺</button>
+                                    </div>
+                                </div>
+                                <div class="input-group">
+                                    <label>Gráficos</label>
+                                    <div class="input-with-action">
+                                        <input type="text" id="input-gpu">
+                                        <button class="restore-btn" data-field="gpu" title="Restaurar">↺</button>
+                                    </div>
+                                </div>
+                                <div class="input-group">
+                                    <label>Pantalla</label>
+                                    <div class="input-with-action">
+                                        <input type="text" id="input-screen">
+                                        <button class="restore-btn" data-field="display" title="Restaurar">↺</button>
+                                    </div>
+                                </div>
+                                <div class="input-group">
+                                    <label>Retail</label>
+                                    <select id="input-store" class="custom-select">
+                                        <option value="none">Ninguna</option>
+                                        <option value="falabella">Falabella</option>
+                                        <option value="paris">Paris</option>
+                                        <option value="ripley">Ripley</option>
+                                    </select>
+                                </div>
+                                <div class="input-group">
+                                    <label>Sistema Operativo</label>
+                                    <div class="input-with-action">
+                                        <input type="text" id="input-os">
+                                        <button class="restore-btn" data-field="os" title="Restaurar">↺</button>
+                                    </div>
+                                </div>
+                                <div class="input-group">
+                                    <label>Precio Primario (Oferta)</label>
+                                    <div class="input-with-action">
+                                        <input type="text" id="input-price-primary" placeholder="Ej: $899.990">
+                                    </div>
+                                </div>
+                                <div class="input-group">
+                                    <label>Precio Secundario (Normal)</label>
+                                    <div class="input-with-action">
+                                        <input type="text" id="input-price-secondary" placeholder="Ej: $1.099.990">
+                                    </div>
+                                </div>
+                                <div class="input-group checkbox-group">
+                                    <label>&nbsp;</label>
+                                    <label class="checkbox-container">
+                                        <input type="checkbox" id="input-price-strike">
+                                        <span class="checkmark"></span>
+                                        Tachar precio secundario
+                                    </label>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="modal-pane-divider"></div>
+
+                        <!-- Column 2: Video -->
+                        <div class="modal-pane-right">
+                            <div class="video-settings-grid">
+                                <div class="video-section">
+                                    <h3>Video Inactividad (Ad)</h3>
+                                    <div class="video-control-row">
+                                        <div class="video-control-toggle">
+                                            <label class="video-option-pill">
+                                                <input type="radio" id="video-default" name="video-source" value="default" checked>
+                                                <span class="pill-label">Default</span>
+                                            </label>
+                                            <label class="video-option-pill">
+                                                <input type="radio" id="video-custom" name="video-source" value="custom">
+                                                <span class="pill-label">Personalizado</span>
+                                            </label>
+                                        </div>
+                                        <button id="select-video-btn" class="btn btn-secondary btn-mini" style="display: none;">Seleccionar...</button>
+                                    </div>
+                                    <div id="selected-video-path" class="video-path-label">Sin archivo</div>
+                                </div>
+
+                                <div class="video-section">
+                                    <h3>Video Home (App)</h3>
+                                    <div class="video-control-row">
+                                        <div class="video-control-toggle">
+                                            <label class="video-option-pill">
+                                                <input type="radio" id="landing-video-default" name="landing-video-source" value="default" checked>
+                                                <span class="pill-label">Default</span>
+                                            </label>
+                                            <label class="video-option-pill">
+                                                <input type="radio" id="landing-video-custom" name="landing-video-source" value="custom">
+                                                <span class="pill-label">Personalizado</span>
+                                            </label>
+                                        </div>
+                                        <button id="select-landing-video-btn" class="btn btn-secondary btn-mini" style="display: none;">Seleccionar...</button>
+                                    </div>
+                                    <div id="selected-landing-video-path" class="video-path-label">Sin archivo</div>
+                                </div>
+
+                                <div class="system-section">
+                                    <h3>Opciones de Sistema</h3>
+                                    <div class="system-controls">
+                                        <button id="enable-autostart" class="btn secondary btn-mini">Activar Autostart</button>
+                                        <button id="disable-autostart" class="btn secondary btn-mini">Quitar Autostart</button>
+                                    </div>
+                                    <div id="system-status" class="system-status-msg"></div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="modal-actions">
+                    <button id="save-custom" class="btn primary">Guardar</button>
+                    <button id="close-modal" class="btn secondary">Cerrar</button>
+                </div>
+            </div>
+        </div>
+
+        <div id="specs-modal" class="modal">
+            <div class="modal-content specs-modal-content glass">
+                <div class="modal-header">
+                    <h2>Especificaciones Técnicas</h2>
+                    <button class="close-btn" id="close-specs-modal">&times;</button>
+                </div>
+                <div class="specs-full-grid">
+                    <div class="spec-card">
+                        <div class="spec-icon"><img src="assets/ui/cpu.svg" alt="CPU"></div>
+                        <div class="spec-info">
+                            <div class="spec-label">Procesador</div>
+                            <div class="spec-value" id="modal-cpu">Detectando...</div>
+                        </div>
+                    </div>
+                    <div class="spec-card">
+                        <div class="spec-icon"><img src="assets/ui/ram.svg" alt="RAM"></div>
+                        <div class="spec-info">
+                            <div class="spec-label">RAM</div>
+                            <div class="spec-value" id="modal-ram">Detectando...</div>
+                        </div>
+                    </div>
+                    <div class="spec-card">
+                        <div class="spec-icon"><img src="assets/ui/storage.svg" alt="SSD"></div>
+                        <div class="spec-info">
+                            <div class="spec-label">Disco SSD</div>
+                            <div class="spec-value" id="modal-storage">Detectando...</div>
+                        </div>
+                    </div>
+                    <div class="spec-card">
+                        <div class="spec-icon"><img src="assets/ui/gpu.svg" alt="GPU"></div>
+                        <div class="spec-info">
+                            <div class="spec-label">Gráficos</div>
+                            <div class="spec-value" id="modal-gpu">Detectando...</div>
+                        </div>
+                    </div>
+                    <div class="spec-card">
+                        <div class="spec-icon"><img src="assets/ui/screen.svg" alt="Pantalla"></div>
+                        <div class="spec-info">
+                            <div class="spec-label">Pantalla</div>
+                            <div class="spec-value" id="modal-screen">Detectando...</div>
+                        </div>
+                    </div>
+                    <div class="spec-card">
+                        <div class="spec-icon"><img src="assets/ui/windows-11.svg" alt="OS"></div>
+                        <div class="spec-info">
+                            <div class="spec-label">Sistema Operativo</div>
+                            <div class="spec-value" id="modal-os">Detectando...</div>
+                        </div>
+                    </div>
+                </div>
+                <div class="modal-footer" style="padding-top: 30px; display: flex; justify-content: center;">
+                    <button class="view-pc-btn" style="max-width: 400px;" onclick="document.getElementById('view-pc').click(); document.getElementById('specs-modal').classList.remove('active');">Prueba esta PC</button>
+                </div>
+            </div>
+        </div>
+
+    </div>
+
+    <script src="app.js"></script>
+</body>
+</html>

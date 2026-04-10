@@ -1,0 +1,52 @@
+{
+  "name": "zenit",
+  "version": "1.0.0",
+  "description": "Showcase App for POS Laptops",
+  "author": "Zenit",
+  "main": "main.js",
+  "scripts": {
+    "start": "electron .",
+    "build": "electron-builder --win --x64 --dir",
+    "dist": "electron-builder --win --x64"
+  },
+  "build": {
+    "appId": "com.zenit.app",
+    "productName": "Zenit",
+    "directories": {
+      "output": "dist"
+    },
+    "files": [
+      "**/*",
+      "!dist/*",
+      "!node_modules/*"
+    ],
+    "extraResources": [
+      "get-specs.ps1",
+      "setup-autostart.ps1",
+      "system-setup.ps1",
+      "assets/**"
+    ],
+    "win": {
+      "target": [
+        "nsis"
+      ],
+      "icon": "assets/logo.png"
+    },
+    "nsis": {
+      "oneClick": false,
+      "allowToChangeInstallationDirectory": true,
+      "createDesktopShortcut": true,
+      "createStartMenuShortcut": true,
+      "include": "build/installer.nsh"
+    }
+  },
+  "keywords": [],
+  "license": "ISC",
+  "type": "commonjs",
+  "devDependencies": {
+    "electron": "^41.0.3",
+    "electron-builder": "^26.8.1",
+    "electron-packager": "^17.1.2",
+    "vite": "^8.0.2"
+  }
+}
