@@ -138,8 +138,8 @@ ipcMain.handle('quit-app', () => {
 
 function createReturnWindow() {
     returnWindow = new BrowserWindow({
-        width: 340,
-        height: 140,
+        width: 400,
+        height: 160,
         frame: false,
         transparent: true,
         alwaysOnTop: true,
@@ -171,7 +171,7 @@ function updateAndShowReturnButton(store) {
     const { screen } = require('electron');
     const primaryDisplay = screen.getPrimaryDisplay();
     const { width } = primaryDisplay.workAreaSize;
-    returnWindow.setPosition(width - 360, 40);
+    returnWindow.setPosition(width - 420, 40);
 
     // Send the store info via IPC instead of query params if possible, 
     // but query params are fine for a simple static page. 
