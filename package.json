@@ -1,6 +1,6 @@
 {
   "name": "zenit",
-  "version": "1.0.0",
+  "version": "1.0.1",
   "description": "Showcase App for POS Laptops",
   "author": "Zenit",
   "main": "main.js",
