@@ -18,8 +18,9 @@
 
 /* Info View */
 .landing-video-container {
-    height: 100%;
-    max-height: calc(100vh - 200px);
+    width: 100%;
+    aspect-ratio: 16 / 9;
+    align-self: center;
     border-radius: 30px;
     overflow: hidden;
     position: relative;
@@ -58,7 +59,8 @@
 @media (max-width: 1024px) {
     .landing-video-container {
         order: -1;
-        height: 40vh;
-        min-height: 250px;
+        width: 100%;
+        height: auto;
+        min-height: auto;
     }
 }

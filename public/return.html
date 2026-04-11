@@ -43,7 +43,7 @@
 
         body {
             margin: 0;
-            padding: 24px;
+            padding: 8px; /* Reduced padding */
             overflow: hidden;
             display: flex;
             justify-content: center;
@@ -53,6 +53,7 @@
             font-family: 'Outfit', sans-serif;
             user-select: none;
             box-sizing: border-box;
+            -webkit-app-region: drag; /* Make whole body draggable */
         }
         .return-btn {
             background: linear-gradient(135deg, var(--secondary), var(--primary));
@@ -64,7 +65,7 @@
             font-size: 1.1rem;
             cursor: pointer;
             transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
-            -webkit-app-region: no-drag;
+            -webkit-app-region: no-drag; /* Button is specifically NOT draggable */
             white-space: nowrap;
             display: flex;
             flex-direction: column;
@@ -74,7 +75,6 @@
             position: relative;
             z-index: 100;
             will-change: transform, filter;
-        }
         .return-btn:hover {
             transform: translateY(-2px);
             filter: brightness(1.1);
@@ -85,21 +85,11 @@
         .btn-text {
             line-height: 1.2;
         }
-        .drag-area {
-            position: absolute;
-            top: 0;
-            left: 0;
-            right: 0;
-            bottom: 0;
-            -webkit-app-region: drag;
-            z-index: -1;
-        }
     </style>
 </head>
 <body class="theme-default">
-    <div class="drag-area"></div>
     <button class="return-btn" onclick="window.electronAPI.restoreApp()">
-        <span class="btn-text">Volver a Características</span>
+        <span class="btn-text">Volver a características</span>
         <div class="btn-icon">
             <svg xmlns="http://www.w3.org/2000/svg" width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
                 <rect x="2" y="3" width="20" height="14" rx="2" ry="2"/>
