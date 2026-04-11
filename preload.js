@@ -10,5 +10,7 @@ contextBridge.exposeInMainWorld('electronAPI', {
     checkFileExists: (filePath) => ipcRenderer.invoke('check-file-exists', filePath),
     setupAutostart: () => ipcRenderer.invoke('setup-autostart'),
     removeAutostart: () => ipcRenderer.invoke('remove-autostart'),
+    saveConfig: (configData) => ipcRenderer.invoke('save-config', configData),
+    loadConfig: () => ipcRenderer.invoke('load-config'),
     quitApp: () => ipcRenderer.invoke('quit-app')
 });

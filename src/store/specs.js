@@ -23,7 +23,7 @@ export const useSpecsStore = defineStore('specs', () => {
     document.body.className = `theme-${theme.value}`;
   };
 
-  const saveCustom = (specs) => {
+  const saveCustom = async (specs) => {
     if (!specs) return;
     
     // Infer logic
@@ -48,7 +48,6 @@ export const useSpecsStore = defineStore('specs', () => {
       if (amdMatch) return amdMatch[1] + '000 Series';
 
       if (n.match(/n\d{3}/)) return 'N-Series';
-      
       return '';
     };
 
@@ -56,37 +55,65 @@ export const useSpecsStore = defineStore('specs', () => {
     specs.gen = inferGen(specs.processor);
     if (!specs.os) specs.os = 'Windows 11 Home';
 
-    // Merge to avoid losing non-editable fields like cores/threads
+    // Merge to avoid losing non-editable fields
     currentSpecs.value = { ...currentSpecs.value, ...specs };
+    
+    // Multi-persistence: Store in JS and File
     localStorage.setItem('customSpecs', JSON.stringify(currentSpecs.value));
+    
+    if (window.electronAPI && window.electronAPI.saveConfig) {
+      await window.electronAPI.saveConfig(currentSpecs.value);
+    }
+    
     updateTheme(specs.store);
   };
 
   const loadSpecs = async () => {
     isLoading.value = true;
     try {
+      // 1. Get Physical Backup if exists
+      let backupSpecs = null;
+      if (window.electronAPI && window.electronAPI.loadConfig) {
+        backupSpecs = await window.electronAPI.loadConfig();
+      }
+
+      // 2. Get Auto-detected hardware
       if (window.electronAPI) {
         autoDetectedSpecs.value = await window.electronAPI.getSystemSpecs();
       } else {
         autoDetectedSpecs.value = {
-          brand: 'Asus', processor: 'AMD Ryzen 7', ram: '16GB', storage: '512GB SSD', 
-          gpu: 'Radeon Graphics', display: '1920x1080', os: 'Windows 11', cores: 8, threads: 16
+          brand: 'PC Generico', processor: 'Procesador Demo', ram: '8GB', storage: '256GB SSD', 
+          gpu: 'Graficos', display: '1920x1080', os: 'Windows', cores: 4, threads: 8
         };
       }
 
-      // Fallback for brand
-      const detectedBrand = (autoDetectedSpecs.value.brand || '').toLowerCase();
-      if (!detectedBrand || detectedBrand === 'system manufacturer' || detectedBrand.includes('to be filled')) {
-        autoDetectedSpecs.value.brand = 'Asus';
+      // 3. Merge hierarchy: Auto-detected < LocalStorage < File Backup
+      // This ensures File Backup is the ground truth
+      const localS = JSON.parse(localStorage.getItem('customSpecs')) || {};
+      currentSpecs.value = { 
+        ...autoDetectedSpecs.value, 
+        ...localS,
+        ...(backupSpecs || {}) 
+      };
+      
+      // Default store to 'none' if missing
+      if (!currentSpecs.value.store) {
+        currentSpecs.value.store = 'none';
       }
 
-      currentSpecs.value = { ...autoDetectedSpecs.value, ...(customSpecs.value || {}) };
       updateTheme(currentSpecs.value.store);
     } catch (err) {
       console.error('Failed to load specs:', err);
     } finally {
       isLoading.value = false;
     }
+  };
+
+  const getVideoUrl = (path) => {
+    if (!path) return '';
+    // Use custom protocol to bypass CORS/WebSecurity issues in dev mode
+    const cleanPath = path.replace(/\\/g, '/');
+    return `zenit-file:///${cleanPath}`;
   };
 
   return {
@@ -100,6 +127,7 @@ export const useSpecsStore = defineStore('specs', () => {
     CONFIG,
     saveCustom,
     loadSpecs,
-    updateTheme
+    updateTheme,
+    getVideoUrl
   };
 });

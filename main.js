@@ -1,15 +1,13 @@
-const { app, BrowserWindow, ipcMain, powerSaveBlocker, dialog, globalShortcut } = require('electron');
+const { app, BrowserWindow, ipcMain, powerSaveBlocker, dialog, globalShortcut, protocol } = require('electron');
 const path = require('path');
-const isDev = require('electron-is-dev');
 const fs = require('fs');
 const { exec } = require('child_process');
 
-// Performance Optimizations for Retail Hardware
-app.commandLine.appendSwitch('enable-gpu-rasterization');
-app.commandLine.appendSwitch('enable-zero-copy');
+// Disable hardware acceleration to prevent GPU process crashes on unstable drivers/hardware
+app.disableHardwareAcceleration();
+
+// Performance Optimizations
 app.commandLine.appendSwitch('ignore-gpu-blocklist');
-app.commandLine.appendSwitch('disable-software-rasterizer');
-app.commandLine.appendSwitch('force-gpu-rasterization');
 
 let mainWindow;
 let returnWindow;
@@ -44,12 +42,16 @@ function runSystemSetup() {
 }
 
 function createWindow() {
+    const isDev = !app.isPackaged;
     mainWindow = new BrowserWindow({
-        width: 1920,
-        height: 1080,
-        kiosk: true,
+        width: 1280,
+        height: 720,
+        show: false, // Hidden until ready
+        backgroundColor: '#0a0a0c', // Dark background to match app
+        frame: false,
         alwaysOnTop: true,
         autoHideMenuBar: true,
+        skipTaskbar: true,
         icon: isDev ? path.join(__dirname, 'public', 'assets', 'logo.ico') : path.join(__dirname, 'dist', 'assets', 'logo.ico'),
         webPreferences: {
             nodeIntegration: false,
@@ -58,11 +60,33 @@ function createWindow() {
         }
     });
 
+    // Remove menu bar completely for a clean kiosk look
+    mainWindow.removeMenu();
+    
+    // Ensure it always stays on top of everything
+    mainWindow.setAlwaysOnTop(true, 'screen-saver', { relativeLevel: 10 });
+
     if (isDev) {
         mainWindow.loadURL('http://localhost:5173');
     } else {
         mainWindow.loadFile(path.join(__dirname, 'dist', 'index.html'));
     }
+
+    // Graceful Kiosk activation
+    mainWindow.once('ready-to-show', () => {
+        mainWindow.show();
+        mainWindow.maximize();
+        
+        // Start Kiosk mode with a delay to ensure everything is rendered
+        setTimeout(() => {
+            if (mainWindow && !mainWindow.isDestroyed()) {
+                mainWindow.setKiosk(true);
+                mainWindow.setFullScreen(true);
+                mainWindow.focus();
+                mainWindow.setAlwaysOnTop(true, 'screen-saver', { relativeLevel: 10 });
+            }
+        }, 2000);
+    });
 
     // Prevent sleep (redundant with powercfg but extra safety)
     psBlockerId = powerSaveBlocker.start('prevent-display-sleep');
@@ -83,17 +107,58 @@ function createWindow() {
 }
 
 app.whenReady().then(() => {
+    // Register custom protocol for local files (allows loading custom videos in dev mode)
+    protocol.registerFileProtocol('zenit-file', (request, callback) => {
+        let url = request.url.replace('zenit-file://', '');
+        // On Windows, URLs like /C:/Users... need the leading slash removed
+        if (url.startsWith('/')) {
+            url = url.substring(1);
+        }
+        try {
+            return callback(decodeURIComponent(url));
+        } catch (error) {
+            console.error('Failed to register protocol', error);
+        }
+    });
+
     runSystemSetup();
     createWindow();
     createReturnWindow(); // Pre-create hidden
 
-    // Register Lockdown Shortcuts
-    globalShortcut.register('Alt+Tab', () => {
-        console.log('Alt+Tab blocked');
+    // Register Lockdown Shortcuts safely
+    const safeRegister = (acc, cb) => {
+        try {
+            globalShortcut.register(acc, cb);
+        } catch (e) {
+            console.error(`Failed to register shortcut: ${acc}`, e);
+        }
+    };
+
+    safeRegister('Alt+Tab', () => { console.log('Alt+Tab blocked'); });
+    safeRegister('Alt+F4', () => { console.log('Alt+F4 blocked'); });
+    safeRegister('CommandOrControl+Esc', () => { console.log('Start Menu blocked'); });
+    safeRegister('Alt+Esc', () => { console.log('Alt+Esc blocked'); });
+    
+    ['D', 'R', 'E', 'L', 'X', 'I', 'S'].forEach(key => {
+        safeRegister(`Meta+${key}`, () => { console.log(`Win+${key} blocked`); });
     });
-    globalShortcut.register('Alt+F4', () => {
-        console.log('Alt+F4 blocked');
+
+    // Auto-refocus if blur (lockdown)
+    mainWindow.on('blur', () => {
+        if (!isQuitting) {
+            mainWindow.setAlwaysOnTop(true, 'screen-saver', { relativeLevel: 10 });
+            mainWindow.focus();
+        }
     });
+
+    // Aggressive Focus Lock (Kiosk Guard)
+    // Pulls focus back every 500ms if lost
+    setInterval(() => {
+        if (mainWindow && !mainWindow.isFocused() && !isQuitting) {
+            mainWindow.setAlwaysOnTop(true, 'screen-saver', { relativeLevel: 10 });
+            mainWindow.focus();
+        }
+    }, 500);
 
     app.on('activate', () => {
         if (BrowserWindow.getAllWindows().length === 0) createWindow();
@@ -137,6 +202,7 @@ ipcMain.handle('quit-app', () => {
 });
 
 function createReturnWindow() {
+    const isDev = !app.isPackaged;
     returnWindow = new BrowserWindow({
         width: 400,
         height: 160,
@@ -144,6 +210,7 @@ function createReturnWindow() {
         transparent: true,
         alwaysOnTop: true,
         resizable: false,
+        movable: false,
         show: false, // Start hidden
         skipTaskbar: true,
         icon: isDev ? path.join(__dirname, 'public', 'assets', 'logo.ico') : path.join(__dirname, 'dist', 'assets', 'logo.ico'),
@@ -163,6 +230,7 @@ function createReturnWindow() {
 }
 
 function updateAndShowReturnButton(store) {
+    const isDev = !app.isPackaged;
     if (!returnWindow || returnWindow.isDestroyed()) {
         createReturnWindow();
     }
@@ -252,6 +320,51 @@ ipcMain.handle('check-file-exists', (event, filePath) => {
     return fs.existsSync(filePath);
 });
 
+// Robust File Persistence (for config and specs)
+const configPath = path.join(app.getPath('userData'), 'config.json');
+
+ipcMain.handle('save-config', (event, configData) => {
+    try {
+        fs.writeFileSync(configPath, JSON.stringify(configData, null, 2));
+        return { success: true };
+    } catch (error) {
+        console.error('Failed to save config:', error);
+        return { success: false, error: error.message };
+    }
+});
+
+ipcMain.handle('load-config', () => {
+    try {
+        if (fs.existsSync(configPath)) {
+            const data = fs.readFileSync(configPath, 'utf8');
+            return JSON.parse(data);
+        }
+    } catch (error) {
+        console.error('Failed to load config:', error);
+    }
+    return null;
+});
+
+// Helper for PowerShell with Timeout
+function execPowerShell(command, timeoutMs = 15000) {
+    return new Promise((resolve, reject) => {
+        const child = exec(command, (error, stdout, stderr) => {
+            if (error) {
+                if (error.killed) reject(new Error('Process timed out'));
+                else reject(error);
+            } else {
+                resolve(stdout);
+            }
+        });
+
+        if (timeoutMs > 0) {
+            setTimeout(() => {
+                child.kill();
+            }, timeoutMs);
+        }
+    });
+}
+
 // Autostart Handlers
 ipcMain.handle('setup-autostart', () => {
     return new Promise((resolve, reject) => {
@@ -282,31 +395,22 @@ ipcMain.handle('remove-autostart', () => {
 
 // IPC Handler for System Specs
 ipcMain.handle('get-system-specs', async () => {
-    return new Promise((resolve, reject) => {
-        const isDev = !app.isPackaged;
-        const scriptPath = isDev 
-            ? path.join(__dirname, 'get-specs.ps1') 
-            : path.join(process.resourcesPath, 'get-specs.ps1');
-            
-        exec(`powershell.exe -ExecutionPolicy Bypass -File "${scriptPath}"`, (error, stdout, stderr) => {
-            if (error) {
-                console.error(`Error: ${error.message}`);
-                reject(error);
-                return;
-            }
-            try {
-                const start = stdout.indexOf('{');
-                const end = stdout.lastIndexOf('}');
-                if (start === -1 || end === -1) {
-                    throw new Error('Valid JSON block not found in output');
-                }
-                const cleanJson = stdout.substring(start, end + 1);
-                const specs = JSON.parse(cleanJson);
-                resolve(specs);
-            } catch (e) {
-                console.error('Failed to parse PS output:', stdout);
-                reject(e);
-            }
-        });
-    });
+    const isDev = !app.isPackaged;
+    const scriptPath = isDev 
+        ? path.join(__dirname, 'get-specs.ps1') 
+        : path.join(process.resourcesPath, 'get-specs.ps1');
+        
+    try {
+        const stdout = await execPowerShell(`powershell.exe -ExecutionPolicy Bypass -File "${scriptPath}"`, 12000);
+        const start = stdout.indexOf('{');
+        const end = stdout.lastIndexOf('}');
+        if (start === -1 || end === -1) {
+            throw new Error('Valid JSON block not found in output');
+        }
+        const cleanJson = stdout.substring(start, end + 1);
+        return JSON.parse(cleanJson);
+    } catch (error) {
+        console.error('Spec detection failed or timed out:', error);
+        return null; // Frontend will handle null by loading generic fallbacks
+    }
 });

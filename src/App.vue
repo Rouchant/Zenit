@@ -37,7 +37,7 @@
             loop 
             muted 
             playsinline 
-            :src="store.currentSpecs.landingVideoType === 'custom' ? `file:///${store.currentSpecs.customLandingVideoPath}` : '/assets/videos/landing.mp4'"
+            :src="store.currentSpecs.landingVideoType === 'custom' ? store.getVideoUrl(store.currentSpecs.customLandingVideoPath) : '/assets/videos/landing.mp4'"
             ref="landingVideo"
           >
           </video>
@@ -120,7 +120,13 @@ watch([showPasswordModal, showAdminModal, showSpecsModal], () => {
   store.isModalOpen = showPasswordModal.value || showAdminModal.value || showSpecsModal.value;
 });
 
+let lastReset = 0;
 const resetTimer = () => {
+  const now = Date.now();
+  // Optimization: Throttle events every 300ms to reduce CPU usage
+  if (now - lastReset < 300 && !store.isVideoMode) return;
+  lastReset = now;
+
   clearTimeout(inactivityTimer.value);
   if (store.isVideoMode) store.isVideoMode = false;
   inactivityTimer.value = setTimeout(() => {

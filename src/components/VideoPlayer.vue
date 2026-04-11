@@ -7,7 +7,7 @@ const videoRef = ref(null);
 
 const videoUrl = computed(() => {
   if (store.currentSpecs.videoType === 'custom' && store.currentSpecs.customVideoPath) {
-    return `file:///${store.currentSpecs.customVideoPath}`.replace(/\\/g, '/');
+    return store.getVideoUrl(store.currentSpecs.customVideoPath);
   }
   return '/assets/videos/promo.mp4';
 });
