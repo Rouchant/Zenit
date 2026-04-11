@@ -3,6 +3,10 @@
   "version": "1.0.0",
   "description": "Showcase App for POS Laptops",
   "author": "Zenit",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/Rouchant/Zenit.git"
+  },
   "main": "main.js",
   "scripts": {
     "dev": "vite",
@@ -13,6 +17,11 @@
   "build": {
     "appId": "com.zenit.app",
     "productName": "Zenit",
+    "publish": {
+      "provider": "github",
+      "owner": "Rouchant",
+      "repo": "Zenit"
+    },
     "directories": {
       "output": "dist"
     },
