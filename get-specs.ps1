@@ -2,17 +2,21 @@ $proc = Get-CimInstance -ClassName Win32_Processor | Select-Object -First 1
 $procName = $proc.Name.Trim()
 
 $gen = "Desconocida"
+# Improved CPU Generation/Series Detection
 if ($procName -match "i[3579]-(\d+)") { 
     $gen = "$($Matches[1])a Gen" 
 }
-elseif ($procName -match "Core\s*[3579]\s+?(\d)") { 
-    $gen = "Series $($Matches[1])" 
+elseif ($procName -match "Core\s+[357]\s+(\d)") { 
+    $gen = "Serie $($Matches[1])" 
 }
 elseif ($procName -match "Ultra") { 
     $gen = "Core Ultra" 
 }
-elseif ($procName -match "Ryzen [3579] (\d)") { 
+elseif ($procName -match "Ryzen\s+[3579]\s+(\d)") { 
     $gen = "$($Matches[1])000 Series" 
+}
+elseif ($procName -match "N(\d{3})") {
+    $gen = "N-Series"
 }
 
 $system = Get-CimInstance -ClassName Win32_ComputerSystem | Select-Object -First 1
@@ -28,8 +32,17 @@ if (-not $video) {
 }
 
 $gpu = $video.Name.Trim()
+
+# Resolution detection (Physical focus)
 $h = $video.CurrentHorizontalResolution
 $v = $video.CurrentVerticalResolution
+
+# If horizontal/vertical from VideoController is logical (due to scaling), 
+# we try to parse from VideoModeDescription which usually holds the physical mode
+if ($video.VideoModeDescription -match "(\d{3,4}) x (\d{3,4})") {
+    $h = [int]$Matches[1]
+    $v = [int]$Matches[2]
+}
 
 # Fallback for display if CIM fails
 if (-not $h -or $h -eq 0) {

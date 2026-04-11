@@ -5,6 +5,7 @@
   "author": "Zenit",
   "main": "main.js",
   "scripts": {
+    "dev": "vite",
     "start": "electron .",
     "build": "electron-builder --win --x64 --dir",
     "dist": "electron-builder --win --x64"
@@ -50,5 +51,11 @@
     "electron-builder": "^26.8.1",
     "electron-packager": "^17.1.2",
     "vite": "^8.0.2"
+  },
+  "dependencies": {
+    "@vitejs/plugin-vue": "^6.0.5",
+    "electron-is-dev": "^3.0.1",
+    "pinia": "^3.0.4",
+    "vue": "^3.5.32"
   }
 }

@@ -1,5 +1,6 @@
 const { app, BrowserWindow, ipcMain, powerSaveBlocker, dialog, globalShortcut } = require('electron');
 const path = require('path');
+const isDev = require('electron-is-dev');
 const fs = require('fs');
 const { exec } = require('child_process');
 
@@ -49,7 +50,7 @@ function createWindow() {
         kiosk: true,
         alwaysOnTop: true,
         autoHideMenuBar: true,
-        icon: path.join(__dirname, 'assets', 'logo.ico'),
+        icon: isDev ? path.join(__dirname, 'public', 'assets', 'logo.ico') : path.join(__dirname, 'dist', 'assets', 'logo.ico'),
         webPreferences: {
             nodeIntegration: false,
             contextIsolation: true,
@@ -57,7 +58,11 @@ function createWindow() {
         }
     });
 
-    mainWindow.loadFile('index.html');
+    if (isDev) {
+        mainWindow.loadURL('http://localhost:5173');
+    } else {
+        mainWindow.loadFile(path.join(__dirname, 'dist', 'index.html'));
+    }
 
     // Prevent sleep (redundant with powercfg but extra safety)
     psBlockerId = powerSaveBlocker.start('prevent-display-sleep');
@@ -80,6 +85,7 @@ function createWindow() {
 app.whenReady().then(() => {
     runSystemSetup();
     createWindow();
+    createReturnWindow(); // Pre-create hidden
 
     // Register Lockdown Shortcuts
     globalShortcut.register('Alt+Tab', () => {
@@ -109,7 +115,7 @@ app.on('window-all-closed', () => {
 ipcMain.handle('minimize-app', (event, store) => {
     if (mainWindow) {
         mainWindow.minimize();
-        showReturnButton(store);
+        updateAndShowReturnButton(store);
         
         // Auto-maximize after 5 minutes (300,000 ms)
         setTimeout(() => {
@@ -130,22 +136,18 @@ ipcMain.handle('quit-app', () => {
     app.quit();
 });
 
-function showReturnButton(store) {
-    if (returnWindow && !returnWindow.isDestroyed()) {
-        returnWindow.close();
-        returnWindow = null;
-    }
-    
+function createReturnWindow() {
     returnWindow = new BrowserWindow({
-        width: 320,
-        height: 100,
+        width: 340,
+        height: 140,
         frame: false,
         transparent: true,
         alwaysOnTop: true,
         resizable: false,
+        show: false, // Start hidden
         skipTaskbar: true,
-        icon: path.join(__dirname, 'assets', 'logo.ico'),
-        hasShadow: false, // Prevents invisible border/shadow area
+        icon: isDev ? path.join(__dirname, 'public', 'assets', 'logo.ico') : path.join(__dirname, 'dist', 'assets', 'logo.ico'),
+        hasShadow: false,
         webPreferences: {
             nodeIntegration: false,
             contextIsolation: true,
@@ -153,15 +155,34 @@ function showReturnButton(store) {
         }
     });
 
-    const storeParam = store ? `?store=${store}` : '';
-    returnWindow.loadFile('return.html', { query: { store: store || 'none' } });
+    if (isDev) {
+        returnWindow.loadURL(`http://localhost:5173/return.html`);
+    } else {
+        returnWindow.loadFile(path.join(__dirname, 'dist', 'return.html'));
+    }
+}
+
+function updateAndShowReturnButton(store) {
+    if (!returnWindow || returnWindow.isDestroyed()) {
+        createReturnWindow();
+    }
     
     // Position at top right
     const { screen } = require('electron');
     const primaryDisplay = screen.getPrimaryDisplay();
     const { width } = primaryDisplay.workAreaSize;
-    // Position clearly in the top right, but with some margin
-    returnWindow.setPosition(width - 340, 40);
+    returnWindow.setPosition(width - 360, 40);
+
+    // Send the store info via IPC instead of query params if possible, 
+    // but query params are fine for a simple static page. 
+    // We'll just refresh the URL with the store.
+    if (isDev) {
+        returnWindow.loadURL(`http://localhost:5173/return.html?store=${store || 'none'}`);
+    } else {
+        returnWindow.loadFile(path.join(__dirname, 'dist', 'return.html'), { query: { store: store || 'none' } });
+    }
+    
+    returnWindow.show();
 }
 
 function restoreMainApp() {
@@ -173,8 +194,7 @@ function restoreMainApp() {
         mainWindow.focus();
     }
     if (returnWindow && !returnWindow.isDestroyed()) {
-        returnWindow.close();
-        returnWindow = null;
+        returnWindow.hide();
     }
 }
 

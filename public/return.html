@@ -55,25 +55,35 @@
             box-sizing: border-box;
         }
         .return-btn {
-            background: linear-gradient(45deg, var(--secondary), var(--primary));
+            background: linear-gradient(135deg, var(--secondary), var(--primary));
             color: #000;
             border: none;
-            padding: 16px 32px;
-            border-radius: 12px;
+            padding: 12px 24px;
+            border-radius: 16px;
             font-weight: 800;
-            font-size: 1.2rem;
+            font-size: 1.1rem;
             cursor: pointer;
-            transition: filter 0.2s ease; /* Avoid transitioning background-image/gradient */
+            transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
             -webkit-app-region: no-drag;
             white-space: nowrap;
-            box-shadow: none;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 8px;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.3);
             position: relative;
             z-index: 100;
-            will-change: filter;
+            will-change: transform, filter;
         }
         .return-btn:hover {
-            transform: none;
-            filter: brightness(1.15) saturate(1.1); /* Subtle but clear indicator */
+            transform: translateY(-2px);
+            filter: brightness(1.1);
+        }
+        .btn-icon {
+            opacity: 0.9;
+        }
+        .btn-text {
+            line-height: 1.2;
         }
         .drag-area {
             position: absolute;
@@ -88,7 +98,23 @@
 </head>
 <body class="theme-default">
     <div class="drag-area"></div>
-    <button class="return-btn" onclick="window.electronAPI.restoreApp()">Volver a Características</button>
+    <button class="return-btn" onclick="window.electronAPI.restoreApp()">
+        <span class="btn-text">Volver a Características</span>
+        <div class="btn-icon">
+            <svg xmlns="http://www.w3.org/2000/svg" width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                <rect x="2" y="3" width="20" height="14" rx="2" ry="2"/>
+                <line x1="8" y1="21" x2="16" y2="21"/>
+                <line x1="12" y1="17" x2="12" y2="21"/>
+                <circle cx="12" cy="10" r="3"/>
+                <path d="M12 7v1"/>
+                <path d="M12 12v1"/>
+                <path d="M9.5 8.5 10 9"/>
+                <path d="M14.5 11.5 14 11"/>
+                <path d="M14.5 8.5 14 9"/>
+                <path d="M9.5 11.5 10 11"/>
+            </svg>
+        </div>
+    </button>
 
     <script>
         // Apply theme from URL parameter
