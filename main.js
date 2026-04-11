@@ -1,18 +1,17 @@
+// Disable hardware acceleration to prevent GPU process crashes on unstable drivers/hardware
+// This must be done at the absolute top for compatibility
 const { app, BrowserWindow, ipcMain, powerSaveBlocker, dialog, globalShortcut, protocol } = require('electron');
+app.disableHardwareAcceleration();
+
 const path = require('path');
 const fs = require('fs');
 const { exec } = require('child_process');
-
-// Disable hardware acceleration to prevent GPU process crashes on unstable drivers/hardware
-app.disableHardwareAcceleration();
-
-// Performance Optimizations
-app.commandLine.appendSwitch('ignore-gpu-blocklist');
 
 let mainWindow;
 let returnWindow;
 let psBlockerId;
 let isQuitting = false; // Flag for authorized exit
+let minimizeTimeout; // Timer for auto-restoration
 
 // Single Instance Lock
 const gotTheLock = app.requestSingleInstanceLock();
@@ -68,6 +67,8 @@ function createWindow() {
 
     if (isDev) {
         mainWindow.loadURL('http://localhost:5173');
+        // Open DevTools automatically in development mode
+        // mainWindow.webContents.openDevTools();
     } else {
         mainWindow.loadFile(path.join(__dirname, 'dist', 'index.html'));
     }
@@ -143,22 +144,22 @@ app.whenReady().then(() => {
         safeRegister(`Meta+${key}`, () => { console.log(`Win+${key} blocked`); });
     });
 
-    // Auto-refocus if blur (lockdown)
+    // Auto-refocus if blur (lockdown) - Skip if minimized to prevent focus-fighting
     mainWindow.on('blur', () => {
-        if (!isQuitting) {
+        if (!isQuitting && !mainWindow.isMinimized()) {
             mainWindow.setAlwaysOnTop(true, 'screen-saver', { relativeLevel: 10 });
             mainWindow.focus();
         }
     });
 
-    // Aggressive Focus Lock (Kiosk Guard)
-    // Pulls focus back every 500ms if lost
+    // Optimized Focus Lock (Kiosk Guard)
+    // Throttled to 2500ms and only acts if focus is actually lost and NOT minimized
     setInterval(() => {
-        if (mainWindow && !mainWindow.isFocused() && !isQuitting) {
+        if (mainWindow && !mainWindow.isFocused() && !isQuitting && !mainWindow.isMinimized()) {
             mainWindow.setAlwaysOnTop(true, 'screen-saver', { relativeLevel: 10 });
             mainWindow.focus();
         }
-    }, 500);
+    }, 2500);
 
     app.on('activate', () => {
         if (BrowserWindow.getAllWindows().length === 0) createWindow();
@@ -179,11 +180,14 @@ app.on('window-all-closed', () => {
 // IPC Handler for Minimizing
 ipcMain.handle('minimize-app', (event, store) => {
     if (mainWindow) {
+        // Clear any existing timeout before starting a new one
+        if (minimizeTimeout) clearTimeout(minimizeTimeout);
+
         mainWindow.minimize();
         updateAndShowReturnButton(store);
         
         // Auto-maximize after 5 minutes (300,000 ms)
-        setTimeout(() => {
+        minimizeTimeout = setTimeout(() => {
             if (mainWindow && mainWindow.isMinimized()) {
                 restoreMainApp();
             }
@@ -241,24 +245,37 @@ function updateAndShowReturnButton(store) {
     const { width } = primaryDisplay.workAreaSize;
     returnWindow.setPosition(width - 420, 40);
 
-    // Send the store info via IPC instead of query params if possible, 
-    // but query params are fine for a simple static page. 
-    // We'll just refresh the URL with the store.
-    if (isDev) {
-        returnWindow.loadURL(`http://localhost:5173/return.html?store=${store || 'none'}`);
-    } else {
-        returnWindow.loadFile(path.join(__dirname, 'dist', 'return.html'), { query: { store: store || 'none' } });
+    // Only reload if the store has changed to avoid latency
+    const currentUrl = returnWindow.webContents.getURL();
+    const targetQuery = `store=${store || 'none'}`;
+    
+    if (!currentUrl.includes(targetQuery)) {
+        if (isDev) {
+            returnWindow.loadURL(`http://localhost:5173/return.html?${targetQuery}`);
+        } else {
+            returnWindow.loadFile(path.join(__dirname, 'dist', 'return.html'), { query: { store: store || 'none' } });
+        }
     }
     
     returnWindow.show();
+    returnWindow.setAlwaysOnTop(true, 'screen-saver', { relativeLevel: 11 }); // Slightly above main app
 }
 
 function restoreMainApp() {
+    // Clear auto-maximize timer if manual restore happens
+    if (minimizeTimeout) {
+        clearTimeout(minimizeTimeout);
+        minimizeTimeout = null;
+    }
+
     if (mainWindow) {
-        mainWindow.restore();
+        if (mainWindow.isMinimized()) {
+            mainWindow.restore();
+        }
+        mainWindow.show(); // Ensure it's shown
+        mainWindow.setAlwaysOnTop(true, 'screen-saver', { relativeLevel: 10 });
         mainWindow.maximize();
         mainWindow.setFullScreen(true);
-        mainWindow.setAlwaysOnTop(true, 'screen-saver', { relativeLevel: 1 });
         mainWindow.focus();
     }
     if (returnWindow && !returnWindow.isDestroyed()) {

@@ -32,7 +32,10 @@ onMounted(() => {
       <h2>Acceso Restringido</h2>
       <p>Ingresa el código para editar la configuración.</p>
       <div class="input-group">
+        <label for="admin-password" class="sr-only">Código de acceso</label>
         <input 
+          id="admin-password"
+          name="adminPassword"
           ref="inputRef"
           type="password" 
           v-model="password"

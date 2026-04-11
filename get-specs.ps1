@@ -71,9 +71,15 @@ try {
     if ($roundedGB -eq 0) { $roundedGB = [math]::Round($totalGB) }
     $storage = if ($roundedGB -ge 1024) { "$([math]::Round($roundedGB / 1024, 0))TB SSD" } else { "$($roundedGB)GB SSD" }
 
+    $fullModel = if ($brand -and $model -and $model -ne "PC Desktop" -and $model -ne "System Product Name") { 
+        if ($model.StartsWith($brand)) { $model } else { "$brand $model" }
+    } else { 
+        $brand 
+    }
+
     $obj = [PSCustomObject]@{
-        brand = $brand
-        model = $model
+        brand = $fullModel.Trim()
+        model = "PC Desktop" # Set as generic to avoid duplication in Header.vue
         processor = $procName
         cores = [int]$proc.NumberOfCores
         threads = [int]$proc.NumberOfLogicalProcessors

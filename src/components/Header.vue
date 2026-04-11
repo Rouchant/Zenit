@@ -34,8 +34,7 @@ const storeLogo = computed(() => {
       </div>
     </div>
     <div class="brand-badge" id="display-brand">
-      {{ store.currentSpecs?.brand || 'Cargando...' }} 
-      {{ store.currentSpecs?.model && store.currentSpecs?.model !== 'PC Desktop' ? store.currentSpecs.model : '' }}
+      {{ store.currentSpecs?.brand || 'Cargando...' }}
     </div>
   </header>
 </template>

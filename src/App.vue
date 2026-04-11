@@ -60,9 +60,9 @@
       <footer class="footer"></footer>
     </div>
 
-    <!-- Admin Hotspots -->
-    <div id="settings-hotspot" class="admin-hotspot top-right" @click="openPassword('settings')"></div>
-    <div id="exit-hotspot" class="admin-hotspot bottom-right" @click="openPassword('exit')"></div>
+    <!-- Admin Hotspots (Now require 4 clicks) -->
+    <div id="settings-hotspot" class="admin-hotspot top-right" @click="handleHotspotClick('settings')"></div>
+    <div id="exit-hotspot" class="admin-hotspot bottom-right" @click="handleHotspotClick('exit')"></div>
 
     <!-- Video View (Inactivity) -->
     <div id="video-view" v-show="store.isVideoMode && !store.isLoading" class="view active">
@@ -90,7 +90,7 @@
 </template>
 
 <script setup>
-import { onMounted, onUnmounted, ref, watch } from 'vue';
+import { onMounted, onUnmounted, ref, watch, reactive } from 'vue';
 import { useSpecsStore } from './store/specs';
 
 // Components
@@ -110,6 +110,33 @@ const passwordMode = ref('settings');
 
 const bgVideo = ref(null);
 const landingVideo = ref(null);
+
+// Admin Hotspot Secrets
+const hotspotCounts = reactive({
+  settings: 0,
+  exit: 0
+});
+let hotspotTimeout = null;
+
+const handleHotspotClick = (mode) => {
+  // Clear previous reset timer
+  if (hotspotTimeout) clearTimeout(hotspotTimeout);
+
+  // Increment specific counter
+  hotspotCounts[mode]++;
+
+  // Check if target reached
+  if (hotspotCounts[mode] >= 4) {
+    hotspotCounts[mode] = 0;
+    openPassword(mode);
+  } else {
+    // Set reset timer (2 seconds)
+    hotspotTimeout = setTimeout(() => {
+      hotspotCounts.settings = 0;
+      hotspotCounts.exit = 0;
+    }, 2000);
+  }
+};
 
 watch(() => store.isModalOpen, (isOpen) => {
   if (isOpen) {

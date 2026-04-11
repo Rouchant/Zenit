@@ -57,64 +57,64 @@ const selectVideo = async (type) => {
                         <h3 class="section-title">Configuración de Hardware</h3>
                         <div class="hardware-grid">
                             <div class="input-group">
-                                <label>Modelo</label>
+                                <label for="brand-input">Modelo</label>
                                 <div class="input-with-action">
-                                    <input type="text" v-model="editableSpecs.brand">
+                                    <input id="brand-input" name="brand" type="text" v-model="editableSpecs.brand">
                                     <button class="restore-btn" @click="restoreField('brand')" title="Restaurar">↺</button>
                                 </div>
                             </div>
                             <div class="input-group">
-                                <label>Procesador</label>
+                                <label for="processor-input">Procesador</label>
                                 <div class="input-with-action">
-                                    <input type="text" v-model="editableSpecs.processor">
+                                    <input id="processor-input" name="processor" type="text" v-model="editableSpecs.processor">
                                     <button class="restore-btn" @click="restoreField('processor')" title="Restaurar">↺</button>
                                 </div>
                             </div>
                             <div class="input-group">
-                                <label>RAM (Capacidad)</label>
+                                <label for="ram-input">RAM (Capacidad)</label>
                                 <div class="input-with-action">
-                                    <input type="text" v-model="editableSpecs.ram">
+                                    <input id="ram-input" name="ram" type="text" v-model="editableSpecs.ram">
                                     <button class="restore-btn" @click="restoreField('ram')" title="Restaurar">↺</button>
                                 </div>
                             </div>
                             <div class="input-group">
-                                <label>Tipo RAM (DDR4/5)</label>
+                                <label for="ram-type-input">Tipo RAM (DDR4/5)</label>
                                 <div class="input-with-action">
-                                    <input type="text" v-model="editableSpecs.ramType">
+                                    <input id="ram-type-input" name="ramType" type="text" v-model="editableSpecs.ramType">
                                     <button class="restore-btn" @click="restoreField('ramType')" title="Restaurar">↺</button>
                                 </div>
                             </div>
                             <div class="input-group">
-                                <label>Almacenamiento</label>
+                                <label for="storage-input">Almacenamiento</label>
                                 <div class="input-with-action">
-                                    <input type="text" v-model="editableSpecs.storage">
+                                    <input id="storage-input" name="storage" type="text" v-model="editableSpecs.storage">
                                     <button class="restore-btn" @click="restoreField('storage')" title="Restaurar">↺</button>
                                 </div>
                             </div>
                             <div class="input-group">
-                                <label>Gráficos</label>
+                                <label for="gpu-input">Gráficos</label>
                                 <div class="input-with-action">
-                                    <input type="text" v-model="editableSpecs.gpu">
+                                    <input id="gpu-input" name="gpu" type="text" v-model="editableSpecs.gpu">
                                     <button class="restore-btn" @click="restoreField('gpu')" title="Restaurar">↺</button>
                                 </div>
                             </div>
                             <div class="input-group">
-                                <label>Pantalla</label>
+                                <label for="display-input">Pantalla</label>
                                 <div class="input-with-action">
-                                    <input type="text" v-model="editableSpecs.display">
+                                    <input id="display-input" name="display" type="text" v-model="editableSpecs.display">
                                     <button class="restore-btn" @click="restoreField('display')" title="Restaurar">↺</button>
                                 </div>
                             </div>
                             <div class="input-group">
-                                <label>Sistema Operativo</label>
+                                <label for="os-input">Sistema Operativo</label>
                                 <div class="input-with-action">
-                                    <input type="text" v-model="editableSpecs.os">
+                                    <input id="os-input" name="os" type="text" v-model="editableSpecs.os">
                                     <button class="restore-btn" @click="restoreField('os')" title="Restaurar">↺</button>
                                 </div>
                             </div>
                             <div class="input-group">
-                                <label>Retail / Tienda</label>
-                                <select v-model="editableSpecs.store" class="custom-select">
+                                <label for="store-select">Retail / Tienda</label>
+                                <select id="store-select" name="store" v-model="editableSpecs.store" class="custom-select">
                                     <option value="none">Ninguna</option>
                                     <option value="falabella">Falabella</option>
                                     <option value="paris">Paris</option>
@@ -136,12 +136,12 @@ const selectVideo = async (type) => {
                                 <h4 class="video-section-title">Video Inactividad (Ad)</h4>
                                 <div class="video-control-row">
                                     <div class="video-control-toggle">
-                                        <label class="video-option-pill">
-                                            <input type="radio" value="default" v-model="editableSpecs.videoType">
+                                        <label class="video-option-pill" for="video-type-default">
+                                            <input id="video-type-default" name="videoType" type="radio" value="default" v-model="editableSpecs.videoType">
                                             <span class="pill-label">Original</span>
                                         </label>
-                                        <label class="video-option-pill">
-                                            <input type="radio" value="custom" v-model="editableSpecs.videoType">
+                                        <label class="video-option-pill" for="video-type-custom">
+                                            <input id="video-type-custom" name="videoType" type="radio" value="custom" v-model="editableSpecs.videoType">
                                             <span class="pill-label">Personalizado</span>
                                         </label>
                                     </div>
@@ -158,12 +158,12 @@ const selectVideo = async (type) => {
                                 <h4 class="video-section-title">Video Home (App)</h4>
                                 <div class="video-control-row">
                                     <div class="video-control-toggle">
-                                        <label class="video-option-pill">
-                                            <input type="radio" value="default" v-model="editableSpecs.landingVideoType">
+                                        <label class="video-option-pill" for="landing-video-type-default">
+                                            <input id="landing-video-type-default" name="landingVideoType" type="radio" value="default" v-model="editableSpecs.landingVideoType">
                                             <span class="pill-label">Original</span>
                                         </label>
-                                        <label class="video-option-pill">
-                                            <input type="radio" value="custom" v-model="editableSpecs.landingVideoType">
+                                        <label class="video-option-pill" for="landing-video-type-custom">
+                                            <input id="landing-video-type-custom" name="landingVideoType" type="radio" value="custom" v-model="editableSpecs.landingVideoType">
                                             <span class="pill-label">Personalizado</span>
                                         </label>
                                     </div>
@@ -182,20 +182,20 @@ const selectVideo = async (type) => {
                         <h3 class="section-title">Configuración de Precios</h3>
                         <div class="price-settings-zone">
                             <div class="input-group">
-                                <label>Precio Primario (Oferta)</label>
+                                <label for="price-primary">Precio Primario (Oferta)</label>
                                 <div class="input-with-action">
-                                    <input type="text" v-model="editableSpecs.pricePrimary" placeholder="Ej: $899.990">
+                                    <input id="price-primary" name="pricePrimary" type="text" v-model="editableSpecs.pricePrimary" placeholder="Ej: $899.990">
                                 </div>
                             </div>
                             <div class="input-group">
-                                <label>Precio Secundario (Normal)</label>
+                                <label for="price-secondary">Precio Secundario (Normal)</label>
                                 <div class="input-with-action">
-                                    <input type="text" v-model="editableSpecs.priceSecondary" placeholder="Ej: $1.099.990">
+                                    <input id="price-secondary" name="priceSecondary" type="text" v-model="editableSpecs.priceSecondary" placeholder="Ej: $1.099.990">
                                 </div>
                             </div>
                             <div class="input-group checkbox-group no-label">
-                                <label class="checkbox-container">
-                                    <input type="checkbox" v-model="editableSpecs.priceStrike">
+                                <label for="price-strike-checkbox" class="checkbox-container">
+                                    <input id="price-strike-checkbox" name="priceStrike" type="checkbox" v-model="editableSpecs.priceStrike">
                                     <span class="checkmark"></span>
                                     Tachar precio secundario
                                 </label>
