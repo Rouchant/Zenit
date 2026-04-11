@@ -1,10 +1,15 @@
 <template>
   <div id="app" class="app-container" :style="{ backgroundColor: '#000' }">
     <!-- Loading Screen -->
-    <div v-if="store.isLoading" class="loading-screen">
-      <div class="loader"></div>
-      <p>Detectando spec sistema...</p>
-    </div>
+    <Transition name="fade">
+      <div v-if="store.isLoading" class="loading-screen">
+        <div class="loader-container">
+          <div class="loader"></div>
+          <div class="loader-glow"></div>
+        </div>
+        <p class="loading-text">Cargando especificaciones...</p>
+      </div>
+    </Transition>
 
     <!-- Background Video -->
     <video 
@@ -170,7 +175,7 @@ onUnmounted(() => {
 .loading-screen {
   position: fixed;
   top: 0; left: 0; right: 0; bottom: 0;
-  background: #000;
+  background: radial-gradient(circle at center, #111 0%, #000 100%);
   display: flex;
   flex-direction: column;
   justify-content: center;
@@ -178,17 +183,70 @@ onUnmounted(() => {
   z-index: 9999;
   color: white;
 }
-.loader {
-  border: 4px solid #333;
-  border-top: 4px solid var(--primary, #00f2ff);
-  border-radius: 50%;
-  width: 40px;
-  height: 40px;
-  animation: spin 1s linear infinite;
-  margin-bottom: 20px;
+
+.loader-container {
+  position: relative;
+  width: 60px;
+  height: 60px;
+  margin-bottom: 30px;
 }
+
+.loader {
+  position: absolute;
+  top: 0; left: 0;
+  border: 2px solid rgba(0, 242, 255, 0.1);
+  border-top: 2px solid var(--primary, #00f2ff);
+  border-radius: 50%;
+  width: 100%;
+  height: 100%;
+  animation: spin 1s cubic-bezier(0.5, 0, 0.5, 1) infinite;
+  z-index: 2;
+}
+
+.loader-glow {
+  position: absolute;
+  top: 0; left: 0;
+  width: 100%;
+  height: 100%;
+  border-radius: 50%;
+  background: var(--primary, #00f2ff);
+  filter: blur(15px);
+  opacity: 0.2;
+  animation: pulse 2s ease-in-out infinite;
+}
+
+.loading-text {
+  font-size: 1.1rem;
+  letter-spacing: 2px;
+  text-transform: uppercase;
+  font-weight: 300;
+  color: rgba(255, 255, 255, 0.8);
+  animation: fadePulse 2s ease-in-out infinite;
+}
+
 @keyframes spin {
   0% { transform: rotate(0deg); }
   100% { transform: rotate(360deg); }
+}
+
+@keyframes pulse {
+  0%, 100% { opacity: 0.1; transform: scale(0.8); }
+  50% { opacity: 0.3; transform: scale(1.2); }
+}
+
+@keyframes fadePulse {
+  0%, 100% { opacity: 0.5; }
+  50% { opacity: 1; }
+}
+
+/* Transitions */
+.fade-enter-active,
+.fade-leave-active {
+  transition: opacity 0.8s ease;
+}
+
+.fade-enter-from,
+.fade-leave-to {
+  opacity: 0;
 }
 </style>

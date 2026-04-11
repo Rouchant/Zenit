@@ -22,7 +22,7 @@ const props = defineProps({
       <div class="spec-label">
         {{ label }} <span v-if="tag && tag !== 'Desconocida'" class="gen-tag">{{ tag }}</span>
       </div>
-      <div class="spec-value">{{ value || 'Detectando...' }}</div>
+      <div class="spec-value">{{ value || 'Cargando...' }}</div>
       <div v-if="subValue" class="spec-sub-value">{{ subValue }}</div>
     </div>
   </div>
