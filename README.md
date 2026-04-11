@@ -1,6 +1,6 @@
 # 💻 Zenit - Showcase App (Vue 3 Edition)
 
-![Version](https://img.shields.io/badge/version-2.0.0-blue.svg)
+![Version](https://img.shields.io/badge/version-1.0.0-blue.svg)
 ![Vue 3](https://img.shields.io/badge/framework-Vue%203-42b883.svg)
 ![Vite](https://img.shields.io/badge/build-Vite-646cff.svg)
 ![Electron](https://img.shields.io/badge/platform-Electron-47848F.svg)
