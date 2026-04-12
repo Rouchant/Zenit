@@ -5,7 +5,7 @@ app.disableHardwareAcceleration();
 
 const path = require('path');
 const fs = require('fs');
-const { exec } = require('child_process');
+const { spawn } = require('child_process');
 const { autoUpdater } = require('electron-updater');
 
 // Auto-updater config (only runs in production builds)
@@ -55,10 +55,15 @@ function runSystemSetup() {
         ? path.join(__dirname, 'system-setup.ps1') 
         : path.join(process.resourcesPath, 'system-setup.ps1');
         
-    exec(`powershell.exe -ExecutionPolicy Bypass -File "${scriptPath}"`, (error, stdout, stderr) => {
-        if (error) console.error('System setup error:', error);
-        else console.log('System setup success:', stdout);
-    });
+    const ps = spawn('powershell.exe', [
+        '-NoProfile',
+        '-ExecutionPolicy', 'Bypass',
+        '-File', scriptPath
+    ]);
+
+    ps.stdout.on('data', (data) => console.log('System setup output:', data.toString()));
+    ps.stderr.on('data', (data) => console.error('System setup error:', data.toString()));
+    ps.on('error', (err) => console.error('Failed to start system setup:', err));
 }
 
 function createWindow() {
@@ -317,6 +322,21 @@ function updateAndShowReturnButton(store) {
     returnWindow.setAlwaysOnTop(true, 'screen-saver', { relativeLevel: 11 }); // Slightly above main app
 }
 
+function sendEscapeKey() {
+    // Use PowerShell to simulate Escape key press
+    // This dismisses the Start Menu/Search overlay before we reclaim focus
+    // Using spawn to avoid depletion warnings and shell injection risks
+    const ps = spawn('powershell.exe', [
+        '-NoProfile',
+        '-ExecutionPolicy', 'Bypass',
+        '-Command', 'Add-Type -AssemblyName System.Windows.Forms; [System.Windows.Forms.SendKeys]::SendWait(\'{ESC}\')'
+    ]);
+
+    ps.on('error', (err) => {
+        console.error('[Lockdown] Failed to spawn PowerShell for Escape key:', err);
+    });
+}
+
 function restoreMainApp() {
     // Clear auto-maximize timer if manual restore happens
     if (minimizeTimeout) {
@@ -325,9 +345,12 @@ function restoreMainApp() {
     }
 
     if (mainWindow) {
-        console.log('[Lockdown] Forcing app restoration to foreground');
+        console.log('[Lockdown] Forcing app restoration to foreground (Aggressive)');
         
-        // Force a state refresh to bypass OS priority (Start Menu/VM issues)
+        // Step 1: Clear the path by sending Escape
+        sendEscapeKey();
+
+        // Step 2: Reset window state to force OS to re-evaluate Z-order
         mainWindow.setKiosk(false);
         mainWindow.setAlwaysOnTop(false);
         
@@ -337,7 +360,9 @@ function restoreMainApp() {
         
         mainWindow.show();
         mainWindow.setFocusable(true);
-        mainWindow.setAlwaysOnTop(true, 'screen-saver', { relativeLevel: 20 });
+        
+        // Use a very high relative level to stay above system bars
+        mainWindow.setAlwaysOnTop(true, 'screen-saver', { relativeLevel: 25 });
         mainWindow.maximize();
         mainWindow.setFullScreen(true);
         mainWindow.setKiosk(true);
@@ -346,14 +371,26 @@ function restoreMainApp() {
         mainWindow.moveTop();
         mainWindow.focus();
         
-        // Final focus attempt after a small tick to ensure OS catches up
+        // Step 3: Z-order "Bombardment"
+        // This keeps pushing the window to the top for 3 seconds to win against Taskbar auto-focus
+        let bombardmentCount = 0;
+        const bombardmentInterval = setInterval(() => {
+            if (mainWindow && !mainWindow.isDestroyed()) {
+                mainWindow.setAlwaysOnTop(true, 'screen-saver', { relativeLevel: 25 });
+                mainWindow.moveTop();
+                // Re-focus occasionally during bombardment
+                if (bombardmentCount % 2 === 0) mainWindow.focus();
+            }
+            bombardmentCount++;
+            if (bombardmentCount > 12) clearInterval(bombardmentInterval); // ~3 seconds
+        }, 250);
+        
+        // Final focus attempt after a small tick
         setTimeout(() => {
             if (mainWindow && !mainWindow.isDestroyed()) {
                 mainWindow.focus();
-                // Re-apply always on top just in case
-                mainWindow.setAlwaysOnTop(true, 'screen-saver', { relativeLevel: 20 });
             }
-        }, 150);
+        }, 500);
     }
     if (returnWindow && !returnWindow.isDestroyed()) {
         returnWindow.hide();
@@ -364,7 +401,6 @@ ipcMain.handle('get-video-path', () => {
     return app.getAppPath();
 });
 
-// IPC Handler for Selecting Video
 ipcMain.handle('select-video', async () => {
     const wasAlwaysOnTop = mainWindow.isAlwaysOnTop();
     if (wasAlwaysOnTop) {
@@ -439,39 +475,55 @@ ipcMain.handle('load-config', () => {
     return null;
 });
 
-// Helper for PowerShell with Timeout
+// Helper for PowerShell with Timeout (using spawn)
 function execPowerShell(command, timeoutMs = 15000) {
     return new Promise((resolve, reject) => {
-        const child = exec(command, (error, stdout, stderr) => {
-            if (error) {
-                if (error.killed) reject(new Error('Process timed out'));
-                else reject(error);
+        const ps = spawn('powershell.exe', [
+            '-NoProfile',
+            '-ExecutionPolicy', 'Bypass',
+            '-Command', command
+        ]);
+
+        let stdout = '';
+        let stderr = '';
+
+        ps.stdout.on('data', (data) => { stdout += data.toString(); });
+        ps.stderr.on('data', (data) => { stderr += data.toString(); });
+
+        const timeout = setTimeout(() => {
+            ps.kill();
+            reject(new Error('Process timed out'));
+        }, timeoutMs);
+
+        ps.on('close', (code) => {
+            clearTimeout(timeout);
+            if (code !== 0) {
+                reject(new Error(`PowerShell exited with code ${code}: ${stderr}`));
             } else {
                 resolve(stdout);
             }
         });
 
-        if (timeoutMs > 0) {
-            setTimeout(() => {
-                child.kill();
-            }, timeoutMs);
-        }
+        ps.on('error', (err) => {
+            clearTimeout(timeout);
+            reject(err);
+        });
     });
 }
 
 // Autostart Handlers
-ipcMain.handle('setup-autostart', () => {
-    return new Promise((resolve, reject) => {
-        const isDev = !app.isPackaged;
-        const scriptPath = isDev 
-            ? path.join(__dirname, 'setup-autostart.ps1') 
-            : path.join(process.resourcesPath, 'setup-autostart.ps1');
-            
-        exec(`powershell.exe -ExecutionPolicy Bypass -File "${scriptPath}"`, (error, stdout, stderr) => {
-            if (error) reject(error);
-            else resolve(stdout);
-        });
-    });
+ipcMain.handle('setup-autostart', async () => {
+    const isDev = !app.isPackaged;
+    const scriptPath = isDev 
+        ? path.join(__dirname, 'setup-autostart.ps1') 
+        : path.join(process.resourcesPath, 'setup-autostart.ps1');
+        
+    try {
+        const stdout = await execPowerShell(`& "${scriptPath}"`);
+        return stdout;
+    } catch (err) {
+        throw err;
+    }
 });
 
 ipcMain.handle('remove-autostart', () => {
@@ -495,7 +547,7 @@ ipcMain.handle('get-system-specs', async () => {
         : path.join(process.resourcesPath, 'get-specs.ps1');
         
     try {
-        const stdout = await execPowerShell(`powershell.exe -ExecutionPolicy Bypass -File "${scriptPath}"`, 12000);
+        const stdout = await execPowerShell(`& "${scriptPath}"`, 12000);
         const start = stdout.indexOf('{');
         const end = stdout.lastIndexOf('}');
         if (start === -1 || end === -1) {
