@@ -174,17 +174,17 @@ const resetTimer = () => {
 
   clearTimeout(inactivityTimer.value);
   if (store.isVideoMode) store.isVideoMode = false;
-  inactivityTimer.value = setTimeout(() => {
-    // Step 1: Request focus and clear Start Menu first (The "Cleanup" phase)
+  inactivityTimer.value = setTimeout(async () => {
+    // Step 1: Request focus and clear Start Menu (Await completion from main process)
     if (window.electronAPI && window.electronAPI.restoreApp) {
-      window.electronAPI.restoreApp();
+      await window.electronAPI.restoreApp();
     }
 
-    // Step 2: Wait for PowerShell to execute Esc and the window to reach Z-top
-    // before switching to Video Mode (The "Transition" phase)
+    // Step 2: Once the cleanup is confirmed, switch to Video Mode
+    // We add a minimal 100ms buffer to allow the window draw cycle to complete
     setTimeout(() => {
       store.isVideoMode = true;
-    }, 300);
+    }, 100);
   }, store.CONFIG.INACTIVITY_LIMIT);
 };
 

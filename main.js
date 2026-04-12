@@ -71,11 +71,9 @@ function createWindow() {
     const isFirstLaunch = !fs.existsSync(markerPath) || process.argv.includes('--first-launch');
     
     // DELAY OPTIMIZED: 
-    // - 15s ONLY on the absolute first run (to let the installer close).
-    // - 800ms on all subsequent runs for a snappy experience.
-    const kioskDelay = isFirstLaunch ? 15000 : 8000; 
-    // Wait, let's make it even faster for normal runs.
-    const finalDelay = isFirstLaunch ? 15000 : 1000;
+    // - 10s ONLY on the absolute first run (to let the installer close).
+    // - 1000ms on all subsequent runs for a snappy experience.
+    const finalDelay = isFirstLaunch ? 10000 : 1000;
 
     mainWindow = new BrowserWindow({
         width: 1280,
@@ -267,8 +265,8 @@ ipcMain.handle('minimize-app', (event, store) => {
 });
 
 // IPC Handler for Restoring
-ipcMain.handle('restore-app', () => {
-    restoreMainApp();
+ipcMain.handle('restore-app', async () => {
+    await restoreMainApp();
 });
 
 ipcMain.handle('quit-app', () => {
@@ -333,21 +331,27 @@ function updateAndShowReturnButton(store) {
 }
 
 function sendEscapeKey() {
-    // Use PowerShell to simulate Escape key press
-    // This dismisses the Start Menu/Search overlay before we reclaim focus
-    // Using spawn to avoid depletion warnings and shell injection risks
-    const ps = spawn('powershell.exe', [
-        '-NoProfile',
-        '-ExecutionPolicy', 'Bypass',
-        '-Command', 'Add-Type -AssemblyName System.Windows.Forms; [System.Windows.Forms.SendKeys]::SendWait(\'{ESC}\')'
-    ]);
+    return new Promise((resolve) => {
+        // Use PowerShell to simulate Escape key press
+        // This dismisses the Start Menu/Search overlay before we reclaim focus
+        const ps = spawn('powershell.exe', [
+            '-NoProfile',
+            '-ExecutionPolicy', 'Bypass',
+            '-Command', 'Add-Type -AssemblyName System.Windows.Forms; [System.Windows.Forms.SendKeys]::SendWait(\'{ESC}\')'
+        ]);
 
-    ps.on('error', (err) => {
-        console.error('[Lockdown] Failed to spawn PowerShell for Escape key:', err);
+        ps.on('close', () => resolve());
+        ps.on('error', (err) => {
+            console.error('[Lockdown] Failed to spawn PowerShell for Escape key:', err);
+            resolve(); // Resolve anyway to not hang the app
+        });
+        
+        // Safety timeout to ensure we don't hang if PowerShell fails to close
+        setTimeout(() => resolve(), 2000);
     });
 }
 
-function restoreMainApp() {
+async function restoreMainApp() {
     // Safety check to prevent overlapping restoration cycles
     if (isRestoring || isQuitting) return;
     isRestoring = true;
@@ -359,61 +363,58 @@ function restoreMainApp() {
     }
 
     if (mainWindow) {
-        console.log('[Lockdown] Forcing app restoration to foreground (Aggressive)');
+        console.log('[Lockdown] Forcing app restoration to foreground (Aggressive Sync)');
         
-        // Step 1: Clear the path by sending Escape
-        sendEscapeKey();
+        // Step 1: Clear the path by sending Escape (Awaiting completion)
+        await sendEscapeKey();
 
         // Step 2: Reset window state to force OS to re-evaluate Z-order
-        // We do this after a tiny delay to let the Escape key take effect
-        setTimeout(() => {
-            if (!mainWindow || mainWindow.isDestroyed()) {
-                isRestoring = false;
-                return;
-            }
+        if (!mainWindow || mainWindow.isDestroyed()) {
+            isRestoring = false;
+            return;
+        }
 
-            mainWindow.setKiosk(false);
-            mainWindow.setAlwaysOnTop(false);
-            
-            if (mainWindow.isMinimized()) {
-                mainWindow.restore();
+        mainWindow.setKiosk(false);
+        mainWindow.setAlwaysOnTop(false);
+        
+        if (mainWindow.isMinimized()) {
+            mainWindow.restore();
+        }
+        
+        mainWindow.show();
+        
+        // Use a very high relative level to stay above system bars
+        mainWindow.setAlwaysOnTop(true, 'screen-saver', { relativeLevel: 25 });
+        mainWindow.maximize();
+        mainWindow.setFullScreen(true);
+        mainWindow.setKiosk(true);
+        
+        // Ensure it's absolutely on top
+        mainWindow.moveTop();
+        mainWindow.focus();
+        
+        // Step 3: Z-order "Bombardment"
+        // This keeps pushing the window to the top for 3 seconds
+        let bombardmentCount = 0;
+        const bombardmentInterval = setInterval(() => {
+            if (mainWindow && !mainWindow.isDestroyed()) {
+                mainWindow.setAlwaysOnTop(true, 'screen-saver', { relativeLevel: 25 });
+                mainWindow.moveTop();
+                if (bombardmentCount % 2 === 0) mainWindow.focus();
             }
-            
-            mainWindow.show();
-            
-            // Use a very high relative level to stay above system bars
-            mainWindow.setAlwaysOnTop(true, 'screen-saver', { relativeLevel: 25 });
-            mainWindow.maximize();
-            mainWindow.setFullScreen(true);
-            mainWindow.setKiosk(true);
-            
-            // Ensure it's absolutely on top
-            mainWindow.moveTop();
-            mainWindow.focus();
-            
-            // Step 3: Z-order "Bombardment"
-            // This keeps pushing the window to the top for 3 seconds
-            let bombardmentCount = 0;
-            const bombardmentInterval = setInterval(() => {
-                if (mainWindow && !mainWindow.isDestroyed()) {
-                    mainWindow.setAlwaysOnTop(true, 'screen-saver', { relativeLevel: 25 });
-                    mainWindow.moveTop();
-                    if (bombardmentCount % 2 === 0) mainWindow.focus();
-                }
-                bombardmentCount++;
-                if (bombardmentCount > 12) {
-                    clearInterval(bombardmentInterval);
-                    isRestoring = false; // Open the guard again
-                }
-            }, 250);
-            
-            // Final focus attempt after a small tick
-            setTimeout(() => {
-                if (mainWindow && !mainWindow.isDestroyed()) {
-                    mainWindow.focus();
-                }
-            }, 500);
-        }, 100);
+            bombardmentCount++;
+            if (bombardmentCount > 12) {
+                clearInterval(bombardmentInterval);
+                isRestoring = false; // Open the guard again
+            }
+        }, 250);
+        
+        // Final focus attempt after a small tick
+        setTimeout(() => {
+            if (mainWindow && !mainWindow.isDestroyed()) {
+                mainWindow.focus();
+            }
+        }, 500);
     } else {
         isRestoring = false;
     }
