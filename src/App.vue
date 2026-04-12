@@ -153,6 +153,20 @@ watch([showPasswordModal, showAdminModal, showSpecsModal], () => {
   store.isModalOpen = showPasswordModal.value || showAdminModal.value || showSpecsModal.value;
 });
 
+watch(() => store.isVideoMode, (isNowVideo) => {
+  if (isNowVideo) {
+    // Force all modals to close when entering promo video mode
+    showSpecsModal.value = false;
+    showAdminModal.value = false;
+    showPasswordModal.value = false;
+    
+    // Explicitly request focus restoration to ensure we cover Start Menu/Taskbar
+    if (window.electronAPI && window.electronAPI.restoreApp) {
+      window.electronAPI.restoreApp();
+    }
+  }
+});
+
 let lastReset = 0;
 const resetTimer = () => {
   const now = Date.now();

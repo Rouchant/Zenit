@@ -325,6 +325,8 @@ function restoreMainApp() {
     }
 
     if (mainWindow) {
+        console.log('[Lockdown] Forcing app restoration to foreground');
+        
         // Force a state refresh to bypass OS priority (Start Menu/VM issues)
         mainWindow.setKiosk(false);
         mainWindow.setAlwaysOnTop(false);
@@ -334,18 +336,24 @@ function restoreMainApp() {
         }
         
         mainWindow.show();
-        mainWindow.setAlwaysOnTop(true, 'screen-saver', { relativeLevel: 10 });
+        mainWindow.setFocusable(true);
+        mainWindow.setAlwaysOnTop(true, 'screen-saver', { relativeLevel: 20 });
         mainWindow.maximize();
         mainWindow.setFullScreen(true);
         mainWindow.setKiosk(true);
+        
+        // Ensure it's absolutely on top
+        mainWindow.moveTop();
         mainWindow.focus();
         
-        // Final focus attempt after a small tick
+        // Final focus attempt after a small tick to ensure OS catches up
         setTimeout(() => {
             if (mainWindow && !mainWindow.isDestroyed()) {
                 mainWindow.focus();
+                // Re-apply always on top just in case
+                mainWindow.setAlwaysOnTop(true, 'screen-saver', { relativeLevel: 20 });
             }
-        }, 100);
+        }, 150);
     }
     if (returnWindow && !returnWindow.isDestroyed()) {
         returnWindow.hide();
