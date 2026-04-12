@@ -1,5 +1,5 @@
 // Disable hardware acceleration to prevent GPU process crashes on unstable drivers/hardware
-// This must be done at the absolute top for compatibility
+// This is critical for Kiosk/POS stability on low-end integrated graphics (i3/Ryzen 3)
 const { app, BrowserWindow, ipcMain, powerSaveBlocker, dialog, globalShortcut, protocol } = require('electron');
 app.disableHardwareAcceleration();
 
@@ -50,7 +50,7 @@ function createWindow() {
         frame: false,
         alwaysOnTop: true,
         autoHideMenuBar: true,
-        skipTaskbar: true,
+        skipTaskbar: false, // Make it visible in the taskbar
         icon: isDev ? path.join(__dirname, 'public', 'assets', 'logo.ico') : path.join(__dirname, 'dist', 'assets', 'logo.ico'),
         webPreferences: {
             nodeIntegration: false,
@@ -67,10 +67,10 @@ function createWindow() {
 
     if (isDev) {
         mainWindow.loadURL('http://localhost:5173');
-        // Open DevTools automatically in development mode
+        // Open DevTools automatically in development mode as requested
         // mainWindow.webContents.openDevTools();
     } else {
-        mainWindow.loadFile(path.join(__dirname, 'dist', 'index.html'));
+        mainWindow.loadFile(path.join(__dirname, 'dist_app', 'index.html'));
     }
 
     // Graceful Kiosk activation
@@ -216,7 +216,7 @@ function createReturnWindow() {
         resizable: false,
         movable: false,
         show: false, // Start hidden
-        skipTaskbar: true,
+        skipTaskbar: false, // Make it visible in the taskbar
         icon: isDev ? path.join(__dirname, 'public', 'assets', 'logo.ico') : path.join(__dirname, 'dist', 'assets', 'logo.ico'),
         hasShadow: false,
         webPreferences: {
@@ -229,7 +229,7 @@ function createReturnWindow() {
     if (isDev) {
         returnWindow.loadURL(`http://localhost:5173/return.html`);
     } else {
-        returnWindow.loadFile(path.join(__dirname, 'dist', 'return.html'));
+        returnWindow.loadFile(path.join(__dirname, 'dist_app', 'return.html'));
     }
 }
 
@@ -253,7 +253,7 @@ function updateAndShowReturnButton(store) {
         if (isDev) {
             returnWindow.loadURL(`http://localhost:5173/return.html?${targetQuery}`);
         } else {
-            returnWindow.loadFile(path.join(__dirname, 'dist', 'return.html'), { query: { store: store || 'none' } });
+            returnWindow.loadFile(path.join(__dirname, 'dist_app', 'return.html'), { query: { store: store || 'none' } });
         }
     }
     

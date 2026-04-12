@@ -7,7 +7,7 @@ export default defineConfig({
   base: './',
   root: resolve(__dirname),
   build: {
-    outDir: 'dist',
+    outDir: 'dist_app',
     emptyOutDir: true,
   },
   resolve: {

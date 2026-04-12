@@ -2,7 +2,12 @@
 # 1. Set Brightness to 100%
 Write-Output "Setting brightness to 100%..."
 try {
-    (Get-WmiObject -Namespace root/WMI -Class WmiMonitorBrightnessMethods).WmiSetBrightness(1,100)
+    $monitor = Get-WmiObject -Namespace root/WMI -Class WmiMonitorBrightnessMethods
+    if ($monitor) {
+        $monitor.WmiSetBrightness(1,100)
+    } else {
+        Write-Output "No WMI-compatible monitor found for brightness adjustment."
+    }
 } catch {
     Write-Output "Failed to set brightness (might not be a laptop/supported monitor): $_"
 }
