@@ -181,10 +181,24 @@ app.whenReady().then(() => {
             minimizeTimeout = setTimeout(() => {
                 // Double check we are still out of focus or minimized before restoring
                 if (mainWindow && (!mainWindow.isFocused() || mainWindow.isMinimized())) {
-                    console.log('[Lockdown] Auto-restoring focus after 5m blur/minimize');
+                    console.log('[Lockdown] Auto-restoring focus after 2m blur/minimize');
                     restoreMainApp();
                 }
-            }, 300000); // 5 minutes
+            }, 120000); // 2 minutes
+        }
+    });
+
+    // Backup listener for system-level blur
+    app.on('browser-window-blur', () => {
+        if (mainWindow && !mainWindow.isFocused() && !isQuitting) {
+            // If the window loses focus but the timer isn't set, start it
+            if (!minimizeTimeout) {
+                minimizeTimeout = setTimeout(() => {
+                    if (mainWindow && !mainWindow.isFocused()) {
+                        restoreMainApp();
+                    }
+                }, 120000);
+            }
         }
     });
 
@@ -228,12 +242,12 @@ ipcMain.handle('minimize-app', (event, store) => {
         mainWindow.minimize();
         updateAndShowReturnButton(store);
         
-        // Auto-maximize after 5 minutes (300,000 ms)
+        // Auto-maximize after 2 minutes (120,000 ms)
         minimizeTimeout = setTimeout(() => {
             if (mainWindow && mainWindow.isMinimized()) {
                 restoreMainApp();
             }
-        }, 300000);
+        }, 120000);
     }
 });
 
@@ -311,14 +325,27 @@ function restoreMainApp() {
     }
 
     if (mainWindow) {
+        // Force a state refresh to bypass OS priority (Start Menu/VM issues)
+        mainWindow.setKiosk(false);
+        mainWindow.setAlwaysOnTop(false);
+        
         if (mainWindow.isMinimized()) {
             mainWindow.restore();
         }
-        mainWindow.show(); // Ensure it's shown
+        
+        mainWindow.show();
         mainWindow.setAlwaysOnTop(true, 'screen-saver', { relativeLevel: 10 });
         mainWindow.maximize();
         mainWindow.setFullScreen(true);
+        mainWindow.setKiosk(true);
         mainWindow.focus();
+        
+        // Final focus attempt after a small tick
+        setTimeout(() => {
+            if (mainWindow && !mainWindow.isDestroyed()) {
+                mainWindow.focus();
+            }
+        }, 100);
     }
     if (returnWindow && !returnWindow.isDestroyed()) {
         returnWindow.hide();
