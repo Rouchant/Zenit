@@ -5,7 +5,7 @@ app.disableHardwareAcceleration();
 
 const path = require('path');
 const fs = require('fs');
-const { spawn } = require('child_process');
+const { exec, spawn } = require('child_process');
 const { autoUpdater } = require('electron-updater');
 
 // Auto-updater config (only runs in production builds)
@@ -33,6 +33,7 @@ let returnWindow;
 let psBlockerId;
 let isQuitting = false; // Flag for authorized exit
 let minimizeTimeout; // Timer for auto-restoration (minimized or blurred)
+let isRestoring = false; // Guard to prevent overlapping focus bombardment
 
 // Single Instance Lock
 const gotTheLock = app.requestSingleInstanceLock();
@@ -55,27 +56,26 @@ function runSystemSetup() {
         ? path.join(__dirname, 'system-setup.ps1') 
         : path.join(process.resourcesPath, 'system-setup.ps1');
         
-    const ps = spawn('powershell.exe', [
-        '-NoProfile',
-        '-ExecutionPolicy', 'Bypass',
-        '-File', scriptPath
-    ]);
-
-    ps.stdout.on('data', (data) => console.log('System setup output:', data.toString()));
-    ps.stderr.on('data', (data) => console.error('System setup error:', data.toString()));
-    ps.on('error', (err) => console.error('Failed to start system setup:', err));
+    // Using exec for better stability during the sensitive boot phase
+    exec(`powershell.exe -NoProfile -ExecutionPolicy Bypass -File "${scriptPath}"`, (error, stdout) => {
+        if (error) console.error('System setup error:', error);
+        else if (stdout) console.log('System setup output:', stdout);
+    });
 }
 
 function createWindow() {
     const isDev = !app.isPackaged;
     
-    // Detect if this is a fresh launch right after installation
-    // NSIS passes --squirrel-firstrun or we detect via a temp flag file
-    const isFirstLaunch = process.argv.includes('--first-launch') ||
-        process.argv.some(arg => arg.includes('squirrel'));
+    // Persistent detection: we use a file marker to know if we've ever successfully started before
+    const markerPath = path.join(app.getPath('userData'), '.first-run-done');
+    const isFirstLaunch = !fs.existsSync(markerPath) || process.argv.includes('--first-launch');
     
-    // Delay kiosk activation longer on first launch so NSIS can close cleanly
-    const kioskDelay = isFirstLaunch ? 8000 : 2000;
+    // DELAY OPTIMIZED: 
+    // - 15s ONLY on the absolute first run (to let the installer close).
+    // - 800ms on all subsequent runs for a snappy experience.
+    const kioskDelay = isFirstLaunch ? 15000 : 8000; 
+    // Wait, let's make it even faster for normal runs.
+    const finalDelay = isFirstLaunch ? 15000 : 1000;
 
     mainWindow = new BrowserWindow({
         width: 1280,
@@ -117,8 +117,18 @@ function createWindow() {
                 mainWindow.setFullScreen(true);
                 mainWindow.focus();
                 mainWindow.setAlwaysOnTop(true, 'screen-saver', { relativeLevel: 10 });
+                
+                // Mark first run as completed so subsequent launches are fast
+                try {
+                    const markerPath = path.join(app.getPath('userData'), '.first-run-done');
+                    if (!fs.existsSync(markerPath)) {
+                        fs.writeFileSync(markerPath, 'done');
+                    }
+                } catch (e) {
+                    console.error('Failed to create first-run marker:', e);
+                }
             }
-        }, kioskDelay);
+        }, finalDelay);
     });
 
     // Prevent sleep (redundant with powercfg but extra safety)
@@ -338,6 +348,10 @@ function sendEscapeKey() {
 }
 
 function restoreMainApp() {
+    // Safety check to prevent overlapping restoration cycles
+    if (isRestoring || isQuitting) return;
+    isRestoring = true;
+
     // Clear auto-maximize timer if manual restore happens
     if (minimizeTimeout) {
         clearTimeout(minimizeTimeout);
@@ -351,47 +365,59 @@ function restoreMainApp() {
         sendEscapeKey();
 
         // Step 2: Reset window state to force OS to re-evaluate Z-order
-        mainWindow.setKiosk(false);
-        mainWindow.setAlwaysOnTop(false);
-        
-        if (mainWindow.isMinimized()) {
-            mainWindow.restore();
-        }
-        
-        mainWindow.show();
-        mainWindow.setFocusable(true);
-        
-        // Use a very high relative level to stay above system bars
-        mainWindow.setAlwaysOnTop(true, 'screen-saver', { relativeLevel: 25 });
-        mainWindow.maximize();
-        mainWindow.setFullScreen(true);
-        mainWindow.setKiosk(true);
-        
-        // Ensure it's absolutely on top
-        mainWindow.moveTop();
-        mainWindow.focus();
-        
-        // Step 3: Z-order "Bombardment"
-        // This keeps pushing the window to the top for 3 seconds to win against Taskbar auto-focus
-        let bombardmentCount = 0;
-        const bombardmentInterval = setInterval(() => {
-            if (mainWindow && !mainWindow.isDestroyed()) {
-                mainWindow.setAlwaysOnTop(true, 'screen-saver', { relativeLevel: 25 });
-                mainWindow.moveTop();
-                // Re-focus occasionally during bombardment
-                if (bombardmentCount % 2 === 0) mainWindow.focus();
-            }
-            bombardmentCount++;
-            if (bombardmentCount > 12) clearInterval(bombardmentInterval); // ~3 seconds
-        }, 250);
-        
-        // Final focus attempt after a small tick
+        // We do this after a tiny delay to let the Escape key take effect
         setTimeout(() => {
-            if (mainWindow && !mainWindow.isDestroyed()) {
-                mainWindow.focus();
+            if (!mainWindow || mainWindow.isDestroyed()) {
+                isRestoring = false;
+                return;
             }
-        }, 500);
+
+            mainWindow.setKiosk(false);
+            mainWindow.setAlwaysOnTop(false);
+            
+            if (mainWindow.isMinimized()) {
+                mainWindow.restore();
+            }
+            
+            mainWindow.show();
+            
+            // Use a very high relative level to stay above system bars
+            mainWindow.setAlwaysOnTop(true, 'screen-saver', { relativeLevel: 25 });
+            mainWindow.maximize();
+            mainWindow.setFullScreen(true);
+            mainWindow.setKiosk(true);
+            
+            // Ensure it's absolutely on top
+            mainWindow.moveTop();
+            mainWindow.focus();
+            
+            // Step 3: Z-order "Bombardment"
+            // This keeps pushing the window to the top for 3 seconds
+            let bombardmentCount = 0;
+            const bombardmentInterval = setInterval(() => {
+                if (mainWindow && !mainWindow.isDestroyed()) {
+                    mainWindow.setAlwaysOnTop(true, 'screen-saver', { relativeLevel: 25 });
+                    mainWindow.moveTop();
+                    if (bombardmentCount % 2 === 0) mainWindow.focus();
+                }
+                bombardmentCount++;
+                if (bombardmentCount > 12) {
+                    clearInterval(bombardmentInterval);
+                    isRestoring = false; // Open the guard again
+                }
+            }, 250);
+            
+            // Final focus attempt after a small tick
+            setTimeout(() => {
+                if (mainWindow && !mainWindow.isDestroyed()) {
+                    mainWindow.focus();
+                }
+            }, 500);
+        }, 100);
+    } else {
+        isRestoring = false;
     }
+
     if (returnWindow && !returnWindow.isDestroyed()) {
         returnWindow.hide();
     }
@@ -475,38 +501,14 @@ ipcMain.handle('load-config', () => {
     return null;
 });
 
-// Helper for PowerShell with Timeout (using spawn)
+// Helper for PowerShell with Timeout (using exec for stability)
 function execPowerShell(command, timeoutMs = 15000) {
     return new Promise((resolve, reject) => {
-        const ps = spawn('powershell.exe', [
-            '-NoProfile',
-            '-ExecutionPolicy', 'Bypass',
-            '-Command', command
-        ]);
-
-        let stdout = '';
-        let stderr = '';
-
-        ps.stdout.on('data', (data) => { stdout += data.toString(); });
-        ps.stderr.on('data', (data) => { stderr += data.toString(); });
-
-        const timeout = setTimeout(() => {
-            ps.kill();
-            reject(new Error('Process timed out'));
-        }, timeoutMs);
-
-        ps.on('close', (code) => {
-            clearTimeout(timeout);
-            if (code !== 0) {
-                reject(new Error(`PowerShell exited with code ${code}: ${stderr}`));
-            } else {
-                resolve(stdout);
-            }
-        });
-
-        ps.on('error', (err) => {
-            clearTimeout(timeout);
-            reject(err);
+        // We must explicitly call powershell.exe since exec uses cmd.exe by default
+        const fullCommand = `powershell.exe -NoProfile -ExecutionPolicy Bypass -Command "${command.replace(/"/g, '\"')}"`;
+        exec(fullCommand, { timeout: timeoutMs }, (error, stdout) => {
+            if (error) reject(error);
+            else resolve(stdout);
         });
     });
 }
@@ -519,7 +521,7 @@ ipcMain.handle('setup-autostart', async () => {
         : path.join(process.resourcesPath, 'setup-autostart.ps1');
         
     try {
-        const stdout = await execPowerShell(`& "${scriptPath}"`);
+        const stdout = await execPowerShell(`& '${scriptPath}'`);
         return stdout;
     } catch (err) {
         throw err;
@@ -547,7 +549,7 @@ ipcMain.handle('get-system-specs', async () => {
         : path.join(process.resourcesPath, 'get-specs.ps1');
         
     try {
-        const stdout = await execPowerShell(`& "${scriptPath}"`, 12000);
+        const stdout = await execPowerShell(`& '${scriptPath}'`, 12000);
         const start = stdout.indexOf('{');
         const end = stdout.lastIndexOf('}');
         if (start === -1 || end === -1) {

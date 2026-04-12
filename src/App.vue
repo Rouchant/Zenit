@@ -160,10 +160,8 @@ watch(() => store.isVideoMode, (isNowVideo) => {
     showAdminModal.value = false;
     showPasswordModal.value = false;
     
-    // Explicitly request focus restoration to ensure we cover Start Menu/Taskbar
-    if (window.electronAPI && window.electronAPI.restoreApp) {
-      window.electronAPI.restoreApp();
-    }
+    // Restoration is now handled directly by the inactivity timer
+    // or manually where needed to ensure proper sync with Esc key.
   }
 });
 
@@ -177,7 +175,16 @@ const resetTimer = () => {
   clearTimeout(inactivityTimer.value);
   if (store.isVideoMode) store.isVideoMode = false;
   inactivityTimer.value = setTimeout(() => {
-    store.isVideoMode = true;
+    // Step 1: Request focus and clear Start Menu first (The "Cleanup" phase)
+    if (window.electronAPI && window.electronAPI.restoreApp) {
+      window.electronAPI.restoreApp();
+    }
+
+    // Step 2: Wait for PowerShell to execute Esc and the window to reach Z-top
+    // before switching to Video Mode (The "Transition" phase)
+    setTimeout(() => {
+      store.isVideoMode = true;
+    }, 300);
   }, store.CONFIG.INACTIVITY_LIMIT);
 };
 
