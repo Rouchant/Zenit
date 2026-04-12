@@ -1,92 +1,62 @@
-# 💻 Zenit - Showcase App (Vue 3 Edition)
+# 💻 Zenit - Showcase App (Kiosk Lockdown Edition)
 
-![Version](https://img.shields.io/badge/version-1.0.0-blue.svg)
+![Version](https://img.shields.io/badge/version-1.1.0-blue.svg)
 ![Vue 3](https://img.shields.io/badge/framework-Vue%203-42b883.svg)
-![Vite](https://img.shields.io/badge/build-Vite-646cff.svg)
 ![Electron](https://img.shields.io/badge/platform-Electron-47848F.svg)
-![Windows](https://img.shields.io/badge/OS-Windows%2010%2F11-0078D4.svg)
+![Lockdown](https://img.shields.io/badge/security-Aggressive%20Kiosk-red.svg)
 
-Una solución premium de **Showcase Terminal** diseñada específicamente para equipos de exhibición en puntos de venta (Retail). Esta aplicación transforma cualquier laptop en una vitrina digital interactiva, técnica y visualmente impactante.
-
----
-
-## ✨ Novedades en la Versión 2.0 (Vue 3)
-
-Recientemente migrado a una arquitectura moderna basada en componentes, ofreciendo mayor estabilidad y rendimiento en equipos de entrada.
-
-### 🔍 Telemetría Avanzada
-- **Detección Dinámica**: Scripts de **PowerShell** optimizados para reconocer hardware de última generación (Intel Core 5/Ultra, AMD Ryzen 8000).
-- **Resolución Real**: Detección de dimensiones físicas ignorando el escalado de Windows para una visualización perfecta.
-- **Gestión de Estado**: Integración de **Pinia** para una reactividad instantánea en los specs.
-
-### 🎥 Gestión de Contenido 2.0
-- **Persistencia de Video**: Los videos personalizados se copian automáticamente a una carpeta de sistema protegida para evitar errores por borrado accidental.
-- **Protocolo Zenit-File**: Protocolo de archivos personalizado (`zenit-file://`) que permite cargar contenido local pesado de forma segura y eficiente.
-- **Optimización i3**: Sistema de pausa inteligente para videos de fondo al abrir ventanas de detalles, maximizando la fluidez en hardware de bajos recursos.
-
-### 🎨 Diseño Premium
-- **Vue-Driven Components**: Interfaz modular, limpia y fácil de mantener.
-- **Aspect Ratio 16:9**: Contenedor de video diseñado para mantener proporciones cinematográficas en todo momento.
-- **Transitions Pro**: Botón de retorno instantáneo precargado en segundo plano.
+Una solución premium de **Showcase Terminal** diseñada para equipos de exhibición en puntos de venta (Retail). Esta versión incluye un motor de seguridad de bajo nivel para garantizar que la aplicación se mantenga siempre en primer plano, protegiendo la experiencia del cliente de interferencias del sistema operativo.
 
 ---
 
-## 🛠️ Requisitos del Sistema
+## 🛡️ Gestión de Kiosco "Ultra-Aggressive"
 
-- **S.O.**: Windows 10 o Windows 11 (Recomendado).
-- **Entorno**: [Node.js](https://nodejs.org/) v18 o superior.
-- **PowerShell**: 5.1 o superior.
+Esta versión introduce el sistema de seguridad **Zenit Lockdown 2.0**, diseñado para entornos de alta rotación donde el cliente puede intentar interactuar con Windows.
+
+### 🔒 Control de Foco y Z-Order
+- **Escape Hack**: Simulación inteligente de la tecla `Esc` mediante PowerShell para cerrar automáticamente el Menú Inicio y overlays de búsqueda antes de reclamar el foco.
+- **Z-Order Bombardment**: Ciclos de refresco de profundidad (Z-index) cada 250ms durante las transiciones para ganar la prioridad visual frente a la barra de tareas.
+- **Auto-Restauración**: Regreso forzado a pantalla completa tras 2 minutos de inactividad o pérdida accidental del foco.
+
+### ⚡ Transiciones Sincronizadas
+- **Async Focus Sync**: Coordinación mediante `async/await` entre el proceso de Electron y la interfaz de Vue. El video de promoción solo comienza cuando el sistema confirma que el Menú Inicio ha sido completamente descartado.
+- **Zero-Flicker Transition**: Un búfer de sincronización elimina el parpadeo visual entre el sistema operativo y el reproductor de video.
+
+### 🏗️ Estabilización de Instalación
+- **Intelligent First-Run**: La aplicación detecta si es su primer arranque tras la instalación. Aplica un retraso de seguridad de **10 segundos** para permitir que el instalador (NSIS) cierre sus procesos antes de bloquear la pantalla.
+- **Fast Reboot**: Los arranques posteriores son casi instantáneos (1s), optimizando la operación diaria.
 
 ---
 
-## 🚀 Instalación y Desarrollo
+## 🔍 Telemetría y Contenido
 
-### 1. Clonar e Instalar Dependencias
+- **Detección PowerShell**: Diagnóstico de hardware en tiempo real compatible con Intel Core Ultra y AMD Ryzen series 8000.
+- **Persistencia de Video**: Los videos seleccionados por el administrador se copian y protegen en `%APPDATA%/zenit/custom_videos/`.
+- **Protocolo Zenit-File**: Carga ultra-rápida de archivos locales mediante el protocolo personalizado `zenit-file://`.
+
+---
+
+## 🚀 Comandos Rápidos
+
+### Desarrollo
 ```powershell
 npm install
+npm run dev   # Terminal A
+npm start     # Terminal B
 ```
 
-### 2. Ejecutar en Modo Desarrollo
-Para trabajar con **Hot Module Replacement (HMR)** integral:
-
-**Terminal A (Servidor de Estilos/Lógica):**
+### Distribución
 ```powershell
-npm run dev
-```
-
-**Terminal B (App de Electron):**
-```powershell
-npm start
-```
-
-### 3. Configuración de Contenido
-Los recursos estáticos (videos originales, logos, fuentes) ahora residen en la carpeta `public/`. Los videos personalizados seleccionados por el administrador se guardarán en `%APPDATA%/zenit/custom_videos/`.
-
----
-
-## 📁 Nueva Estructura del Proyecto
-
-- **`src/`**: Código fuente de Vue (Main, Components, Stores, Styles).
-- **`public/`**: Assets estáticos servidos directamente por Vite.
-- **`main.js`**: Proceso principal de Electron (Gestiona ventanas, protocolos e IPC).
-- **`preload.js`**: Puente de seguridad entre Electron y Vue.
-- **`get-specs.ps1`**: El motor de telemetría de hardware en PowerShell.
-
----
-
-## 📦 Compilación y Distribución
-
-```powershell
-# Para generar el bundle optimizado
-npm run build
-
-# Para generar instaladores profesionales (.exe)
+# Generar instalador profesional (.exe)
 npm run dist
 ```
 
 ---
 
-> **Nota para Administradores**: Para editar la información o cambiar videos, usa el "Hotspot" secreto (esquina superior derecha) e ingresa la contraseña.
+## 🛠️ Requisitos
+- Windows 10/11
+- Node.js v18+
+- PowerShell 5.1+ con permisos de ejecución
 
 ---
-Desarrollado con ❤️ por el equipo de **Zenit**.
+Desarrollado con ❤️ para entornos retail de alto rendimiento.
