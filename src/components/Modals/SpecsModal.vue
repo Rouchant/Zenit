@@ -20,42 +20,42 @@ const tryPc = () => {
         </div>
         <div class="specs-full-grid">
             <div class="spec-card">
-                <div class="spec-icon"><img src="assets/ui/cpu.svg" alt="CPU"></div>
+                <div class="spec-icon"><img src="/assets/ui/cpu.svg" alt="CPU"></div>
                 <div class="spec-info">
                     <div class="spec-label">Procesador</div>
                     <div class="spec-value">{{ specs.processor || 'Detectando...' }}</div>
                 </div>
             </div>
             <div class="spec-card">
-                <div class="spec-icon"><img src="assets/ui/ram.svg" alt="RAM"></div>
+                <div class="spec-icon"><img src="/assets/ui/ram.svg" alt="RAM"></div>
                 <div class="spec-info">
                     <div class="spec-label">RAM</div>
                     <div class="spec-value">{{ specs.ram || 'Detectando...' }}</div>
                 </div>
             </div>
             <div class="spec-card">
-                <div class="spec-icon"><img src="assets/ui/storage.svg" alt="SSD"></div>
+                <div class="spec-icon"><img src="/assets/ui/storage.svg" alt="SSD"></div>
                 <div class="spec-info">
                     <div class="spec-label">Disco SSD</div>
                     <div class="spec-value">{{ specs.storage || 'Detectando...' }}</div>
                 </div>
             </div>
             <div class="spec-card">
-                <div class="spec-icon"><img src="assets/ui/gpu.svg" alt="GPU"></div>
+                <div class="spec-icon"><img src="/assets/ui/gpu.svg" alt="GPU"></div>
                 <div class="spec-info">
                     <div class="spec-label">Gráficos</div>
                     <div class="spec-value">{{ specs.gpu || 'Detectando...' }}</div>
                 </div>
             </div>
             <div class="spec-card">
-                <div class="spec-icon"><img src="assets/ui/screen.svg" alt="Pantalla"></div>
+                <div class="spec-icon"><img src="/assets/ui/screen.svg" alt="Pantalla"></div>
                 <div class="spec-info">
                     <div class="spec-label">Pantalla</div>
                     <div class="spec-value">{{ specs.display || 'Detectando...' }}</div>
                 </div>
             </div>
             <div class="spec-card">
-                <div class="spec-icon"><img src="assets/ui/windows-11.svg" alt="OS"></div>
+                <div class="spec-icon"><img src="/assets/ui/windows-11.svg" alt="OS"></div>
                 <div class="spec-info">
                     <div class="spec-label">Sistema Operativo</div>
                     <div class="spec-value">{{ specs.os || 'Detectando...' }}</div>
