@@ -19,10 +19,10 @@
       loop 
       muted 
       playsinline 
-      poster="/assets/images/background.png"
+      poster="assets/images/background.png"
       ref="bgVideo"
     >
-      <source src="/assets/videos/bg.mp4" type="video/mp4">
+      <source src="assets/videos/bg.mp4" type="video/mp4">
     </video>
     
     <!-- Background Overlay -->
@@ -42,7 +42,7 @@
             loop 
             muted 
             playsinline 
-            :src="store.currentSpecs.landingVideoType === 'custom' ? store.getVideoUrl(store.currentSpecs.customLandingVideoPath) : '/assets/videos/landing.mp4'"
+            :src="store.currentSpecs.landingVideoType === 'custom' ? store.getVideoUrl(store.currentSpecs.customLandingVideoPath) : 'assets/videos/landing.mp4'"
             ref="landingVideo"
           >
           </video>

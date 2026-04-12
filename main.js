@@ -6,6 +6,27 @@ app.disableHardwareAcceleration();
 const path = require('path');
 const fs = require('fs');
 const { exec } = require('child_process');
+const { autoUpdater } = require('electron-updater');
+
+// Auto-updater config (only runs in production builds)
+autoUpdater.autoDownload = true;        // Download in background automatically
+autoUpdater.autoInstallOnAppQuit = true; // Install when the app quits
+
+autoUpdater.on('update-available', (info) => {
+    console.log(`[Updater] Nueva versión disponible: ${info.version}`);
+});
+
+autoUpdater.on('update-downloaded', (info) => {
+    console.log(`[Updater] Versión ${info.version} descargada. Se instalará al cerrar la app.`);
+});
+
+autoUpdater.on('update-not-available', () => {
+    console.log('[Updater] La app está actualizada.');
+});
+
+autoUpdater.on('error', (err) => {
+    console.error('[Updater] Error en auto-updater:', err.message);
+});
 
 let mainWindow;
 let returnWindow;
@@ -42,16 +63,25 @@ function runSystemSetup() {
 
 function createWindow() {
     const isDev = !app.isPackaged;
+    
+    // Detect if this is a fresh launch right after installation
+    // NSIS passes --squirrel-firstrun or we detect via a temp flag file
+    const isFirstLaunch = process.argv.includes('--first-launch') ||
+        process.argv.some(arg => arg.includes('squirrel'));
+    
+    // Delay kiosk activation longer on first launch so NSIS can close cleanly
+    const kioskDelay = isFirstLaunch ? 8000 : 2000;
+
     mainWindow = new BrowserWindow({
         width: 1280,
         height: 720,
         show: false, // Hidden until ready
         backgroundColor: '#0a0a0c', // Dark background to match app
         frame: false,
-        alwaysOnTop: true,
+        alwaysOnTop: false, // Start without alwaysOnTop to avoid conflicting with installer
         autoHideMenuBar: true,
         skipTaskbar: false, // Make it visible in the taskbar
-        icon: isDev ? path.join(__dirname, 'public', 'assets', 'logo.ico') : path.join(__dirname, 'dist', 'assets', 'logo.ico'),
+        icon: isDev ? path.join(__dirname, 'public', 'assets', 'logo.ico') : path.join(__dirname, 'dist_app', 'assets', 'logo.ico'),
         webPreferences: {
             nodeIntegration: false,
             contextIsolation: true,
@@ -61,9 +91,6 @@ function createWindow() {
 
     // Remove menu bar completely for a clean kiosk look
     mainWindow.removeMenu();
-    
-    // Ensure it always stays on top of everything
-    mainWindow.setAlwaysOnTop(true, 'screen-saver', { relativeLevel: 10 });
 
     if (isDev) {
         mainWindow.loadURL('http://localhost:5173');
@@ -78,7 +105,7 @@ function createWindow() {
         mainWindow.show();
         mainWindow.maximize();
         
-        // Start Kiosk mode with a delay to ensure everything is rendered
+        // Delay kiosk mode: longer on first launch so installer finishes closing
         setTimeout(() => {
             if (mainWindow && !mainWindow.isDestroyed()) {
                 mainWindow.setKiosk(true);
@@ -86,7 +113,7 @@ function createWindow() {
                 mainWindow.focus();
                 mainWindow.setAlwaysOnTop(true, 'screen-saver', { relativeLevel: 10 });
             }
-        }, 2000);
+        }, kioskDelay);
     });
 
     // Prevent sleep (redundant with powercfg but extra safety)
@@ -164,6 +191,13 @@ app.whenReady().then(() => {
     app.on('activate', () => {
         if (BrowserWindow.getAllWindows().length === 0) createWindow();
     });
+
+    // Check for updates after startup (only in production)
+    if (app.isPackaged) {
+        setTimeout(() => {
+            autoUpdater.checkForUpdatesAndNotify();
+        }, 5000); // 5s delay so the UI loads first
+    }
 });
 
 app.on('will-quit', () => {
@@ -217,7 +251,7 @@ function createReturnWindow() {
         movable: false,
         show: false, // Start hidden
         skipTaskbar: false, // Make it visible in the taskbar
-        icon: isDev ? path.join(__dirname, 'public', 'assets', 'logo.ico') : path.join(__dirname, 'dist', 'assets', 'logo.ico'),
+        icon: isDev ? path.join(__dirname, 'public', 'assets', 'logo.ico') : path.join(__dirname, 'dist_app', 'assets', 'logo.ico'),
         hasShadow: false,
         webPreferences: {
             nodeIntegration: false,
