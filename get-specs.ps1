@@ -60,10 +60,24 @@ try {
     $os = Get-CimInstance -ClassName Win32_OperatingSystem | Select-Object -First 1
     $osName = $os.Caption -replace "Microsoft ", ""
 
+    # RAM Detection (Optimized for VMs)
+    # Win32_PhysicalMemory is often empty in Virtual Machines
     $memSticks = Get-CimInstance -ClassName Win32_PhysicalMemory
-    $ramSize = [math]::Round(($memSticks | Measure-Object -Property Capacity -Sum).Sum / 1GB, 0)
-    $ramTypeRaw = ($memSticks | Select-Object -First 1).SMBIOSMemoryType
-    $ramType = switch ($ramTypeRaw) { 26 { "DDR4" } 34 { "DDR5" } 35 { "LPDDR5" } default { "DDR4" } }
+    $totalRamBytes = $system.TotalPhysicalMemory
+    
+    # Fallback to physical sticks sum if system total is failing
+    if (-not $totalRamBytes) {
+        $totalRamBytes = ($memSticks | Measure-Object -Property Capacity -Sum).Sum
+    }
+
+    $ramSize = [math]::Round($totalRamBytes / 1GB, 0)
+    
+    # Detect RAM type if sticks are present
+    $ramType = "DDR4" # Default fallback
+    if ($memSticks) {
+        $ramTypeRaw = ($memSticks | Select-Object -First 1).SMBIOSMemoryType
+        $ramType = switch ($ramTypeRaw) { 26 { "DDR4" } 34 { "DDR5" } 35 { "LPDDR5" } default { "DDR4" } }
+    }
 
     $drives = Get-CimInstance -ClassName Win32_DiskDrive | Where-Object { $_.MediaType -match 'Fixed' }
     $totalGB = ($drives | Measure-Object -Property Size -Sum).Sum / 1000000000

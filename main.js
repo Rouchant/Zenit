@@ -32,7 +32,7 @@ let mainWindow;
 let returnWindow;
 let psBlockerId;
 let isQuitting = false; // Flag for authorized exit
-let minimizeTimeout; // Timer for auto-restoration
+let minimizeTimeout; // Timer for auto-restoration (minimized or blurred)
 
 // Single Instance Lock
 const gotTheLock = app.requestSingleInstanceLock();
@@ -171,22 +171,30 @@ app.whenReady().then(() => {
         safeRegister(`Meta+${key}`, () => { console.log(`Win+${key} blocked`); });
     });
 
-    // Auto-refocus if blur (lockdown) - Skip if minimized to prevent focus-fighting
+    // Auto-restore logic: If focus is lost (blur), wait 5 minutes and return to focus
+    // This allows temporary use of the OS (Start Menu, etc) but ensures the app returns
     mainWindow.on('blur', () => {
-        if (!isQuitting && !mainWindow.isMinimized()) {
-            mainWindow.setAlwaysOnTop(true, 'screen-saver', { relativeLevel: 10 });
-            mainWindow.focus();
+        if (!isQuitting) {
+            // Clear any existing timer to avoid overlaps
+            if (minimizeTimeout) clearTimeout(minimizeTimeout);
+            
+            minimizeTimeout = setTimeout(() => {
+                // Double check we are still out of focus or minimized before restoring
+                if (mainWindow && (!mainWindow.isFocused() || mainWindow.isMinimized())) {
+                    console.log('[Lockdown] Auto-restoring focus after 5m blur/minimize');
+                    restoreMainApp();
+                }
+            }, 300000); // 5 minutes
         }
     });
 
-    // Optimized Focus Lock (Kiosk Guard)
-    // Throttled to 2500ms and only acts if focus is actually lost and NOT minimized
-    setInterval(() => {
-        if (mainWindow && !mainWindow.isFocused() && !isQuitting && !mainWindow.isMinimized()) {
-            mainWindow.setAlwaysOnTop(true, 'screen-saver', { relativeLevel: 10 });
-            mainWindow.focus();
+    mainWindow.on('focus', () => {
+        // If we regained focus manually, stop the auto-restore timer
+        if (minimizeTimeout) {
+            clearTimeout(minimizeTimeout);
+            minimizeTimeout = null;
         }
-    }, 2500);
+    });
 
     app.on('activate', () => {
         if (BrowserWindow.getAllWindows().length === 0) createWindow();
