@@ -9,7 +9,7 @@ const videoUrl = computed(() => {
   if (store.currentSpecs.videoType === 'custom' && store.currentSpecs.customVideoPath) {
     return store.getVideoUrl(store.currentSpecs.customVideoPath);
   }
-  return '/assets/videos/promo.mp4';
+  return `${import.meta.env.BASE_URL}assets/videos/promo.mp4`;
 });
 
 onMounted(() => {

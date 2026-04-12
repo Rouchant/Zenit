@@ -19,10 +19,10 @@
       loop 
       muted 
       playsinline 
-      poster="/assets/images/background.png"
+      :poster="`${baseUrl}assets/images/background.png`"
       ref="bgVideo"
     >
-      <source src="/assets/videos/bg.mp4" type="video/mp4">
+      <source :src="`${baseUrl}assets/videos/bg.mp4`" type="video/mp4">
     </video>
     
     <!-- Background Overlay -->
@@ -42,7 +42,7 @@
             loop 
             muted 
             playsinline 
-            :src="store.currentSpecs.landingVideoType === 'custom' ? store.getVideoUrl(store.currentSpecs.customLandingVideoPath) : '/assets/videos/landing.mp4'"
+            :src="store.currentSpecs.landingVideoType === 'custom' ? store.getVideoUrl(store.currentSpecs.customLandingVideoPath) : `${baseUrl}assets/videos/landing.mp4`"
             ref="landingVideo"
           >
           </video>
@@ -102,6 +102,7 @@ import PasswordModal from './components/Modals/PasswordModal.vue';
 import SpecsModal from './components/Modals/SpecsModal.vue';
 
 const store = useSpecsStore();
+const baseUrl = import.meta.env.BASE_URL;
 const inactivityTimer = ref(null);
 const showPasswordModal = ref(false);
 const showAdminModal = ref(false);
