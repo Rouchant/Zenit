@@ -131,6 +131,10 @@ export component MainWindow inherits Window {
     in-out property <image> video_frame;
     in-out property <bool> has_video_stream: false;
 
+    // Screen Dimensions for Fullscreen Auto-Scaling
+    in-out property <length> screen_width: 1920px;
+    in-out property <length> screen_height: 1080px;
+
     // Quick Setup Form Fields
     in-out property <string> setup_brand: "";
     in-out property <string> setup_model: "";
@@ -298,19 +302,14 @@ export component MainWindow inherits Window {
             }
         }
 
-        // 3-COLUMN SHOWROOM BODY CONTAINER
-        Rectangle {
+        // 3-COLUMN SHOWROOM BODY
+        HorizontalLayout {
             vertical-stretch: 1;
-
-            HorizontalLayout {
-                width: parent.width;
-                height: parent.height;
-                spacing: 24px;
+            spacing: 24px;
 
             // LEFT COLUMN (Specs 1 to 4)
             Rectangle {
-                width: 320px;
-                horizontal-stretch: 0;
+                width: 340px;
 
                 VerticalLayout {
                     spacing: 12px;
@@ -327,8 +326,7 @@ export component MainWindow inherits Window {
 
             // CENTER HERO (Media & Pricing)
             Rectangle {
-                min-width: 680px;
-                horizontal-stretch: 1;
+                width: max(680px, root.screen_width - 784px);
 
                 VerticalLayout {
                     spacing: 16px;
@@ -541,8 +539,7 @@ export component MainWindow inherits Window {
 
             // RIGHT COLUMN (Specs 5 to 8)
             Rectangle {
-                width: 320px;
-                horizontal-stretch: 0;
+                width: 340px;
 
                 VerticalLayout {
                     spacing: 12px;
@@ -558,7 +555,6 @@ export component MainWindow inherits Window {
             }
         }
     }
-}
 }
 
     // MODAL 1: QUICK SETUP WIZARD (First Launch)

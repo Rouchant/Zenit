@@ -102,11 +102,15 @@ pub fn run() {
             FindWindowA, GetSystemMetrics, SetWindowPos, HWND_TOP, SM_CXSCREEN, SM_CYSCREEN,
             SWP_SHOWWINDOW,
         };
+        let screen_w = GetSystemMetrics(SM_CXSCREEN);
+        let screen_h = GetSystemMetrics(SM_CYSCREEN);
+        println!("[Showroom] Resolucion detectada de pantalla: {}x{}", screen_w, screen_h);
+        main_window.set_screen_width(screen_w as f32);
+        main_window.set_screen_height(screen_h as f32);
+
         let title = b"Showroom PC - Modo Exhibici\xc3\xb3n\0";
         let hwnd = FindWindowA(std::ptr::null(), title.as_ptr());
         if !hwnd.is_null() {
-            let screen_w = GetSystemMetrics(SM_CXSCREEN);
-            let screen_h = GetSystemMetrics(SM_CYSCREEN);
             SetWindowPos(hwnd, HWND_TOP, 0, 0, screen_w, screen_h, SWP_SHOWWINDOW);
         }
     }
