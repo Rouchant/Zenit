@@ -6,18 +6,9 @@ const store = useSpecsStore();
 const baseUrl = import.meta.env.BASE_URL;
 
 const videoSrc = computed(() => {
-  const p = store.appConfig.central_video_path;
+  const p = store.uiState.center_video;
   if (!p) return `${baseUrl}assets/videos/landing.mp4`;
   return toVideoSrc(p);
-});
-
-const hasPricingOrSku = computed(() => {
-  const cfg = store.appConfig;
-  return Boolean(
-    (cfg.price_card && cfg.price_card.trim()) ||
-    (cfg.price_all_methods && cfg.price_all_methods.trim()) ||
-    (cfg.sku && cfg.sku.trim())
-  );
 });
 
 const handleTryPc = () => {
@@ -44,26 +35,26 @@ const handleTryPc = () => {
       </video>
     </div>
 
-    <!-- Bloque Optativo de Precios y SKU -->
-    <div v-if="hasPricingOrSku" class="pricing-sku-container">
+    <!-- Bloque Optativo de Precios y SKU (Calculado por Rust) -->
+    <div v-if="store.uiState.has_pricing" class="pricing-sku-container">
       <div class="pricing-row">
         <!-- Precio con Tarjeta -->
-        <div v-if="store.appConfig.price_card" class="price-box price-card-box">
+        <div v-if="store.uiState.price_card" class="price-box price-card-box">
           <span class="price-title">Precio con Tarjeta</span>
-          <span class="price-amount">{{ store.appConfig.price_card }}</span>
+          <span class="price-amount">{{ store.uiState.price_card }}</span>
         </div>
 
         <!-- Precio Todo Medio de Pago -->
-        <div v-if="store.appConfig.price_all_methods" class="price-box price-all-box">
+        <div v-if="store.uiState.price_all_methods" class="price-box price-all-box">
           <span class="price-title">Todo Medio de Pago</span>
-          <span class="price-amount">{{ store.appConfig.price_all_methods }}</span>
+          <span class="price-amount">{{ store.uiState.price_all_methods }}</span>
         </div>
       </div>
 
       <!-- SKU Identificador -->
-      <div v-if="store.appConfig.sku" class="sku-tag">
+      <div v-if="store.uiState.sku" class="sku-tag">
         <span class="sku-label">SKU:</span>
-        <span class="sku-code">{{ store.appConfig.sku }}</span>
+        <span class="sku-code">{{ store.uiState.sku }}</span>
       </div>
     </div>
 
@@ -128,7 +119,6 @@ const handleTryPc = () => {
   display: block;
 }
 
-/* Pricing and SKU */
 .pricing-sku-container {
   display: flex;
   flex-direction: column;
@@ -196,7 +186,6 @@ const handleTryPc = () => {
   letter-spacing: 0.5px;
 }
 
-/* Button Prueba esta PC */
 .try-pc-container {
   display: flex;
   justify-content: center;

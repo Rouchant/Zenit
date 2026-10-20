@@ -1,63 +1,57 @@
 mod config;
 mod hardware;
+mod inactivity;
+mod state;
 mod vault;
 
 use config::{load_config, save_config, verify_password, AppConfig};
 use hardware::{detect_hardware, SystemSpecs};
-use tauri::{AppHandle, Manager, PhysicalPosition, PhysicalSize};
+use inactivity::get_system_idle_seconds;
+use state::{build_ui_state, ZenitUiState};
+use std::sync::atomic::{AtomicBool, Ordering};
+use tauri::{AppHandle, Emitter, Manager, PhysicalPosition, PhysicalSize};
 use tauri_plugin_global_shortcut::{GlobalShortcutExt, Shortcut};
 use vault::{delete_vault_video, import_video_to_vault, list_vault_videos, VaultVideo};
+
+static IS_IN_TRY_PC_MODE: AtomicBool = AtomicBool::new(false);
+static IS_SCREENSAVER_ACTIVE: AtomicBool = AtomicBool::new(false);
+
+#[tauri::command]
+fn get_zenit_ui_state() -> ZenitUiState {
+    build_ui_state()
+}
 
 #[tauri::command]
 fn get_system_specs() -> SystemSpecs {
     let mut specs = detect_hardware();
     let cfg = load_config();
 
-    // Apply any configured admin overrides
     if let Some(ref brand) = cfg.brand_override {
-        if !brand.trim().is_empty() {
-            specs.brand = brand.clone();
-        }
+        if !brand.trim().is_empty() { specs.brand = brand.clone(); }
     }
     if let Some(ref model) = cfg.model_override {
-        if !model.trim().is_empty() {
-            specs.model = model.clone();
-        }
+        if !model.trim().is_empty() { specs.model = model.clone(); }
     }
     if let Some(ref proc) = cfg.processor_override {
-        if !proc.trim().is_empty() {
-            specs.processor = proc.clone();
-        }
+        if !proc.trim().is_empty() { specs.processor = proc.clone(); }
     }
     if let Some(ref ram) = cfg.ram_override {
-        if !ram.trim().is_empty() {
-            specs.ram = ram.clone();
-        }
+        if !ram.trim().is_empty() { specs.ram = ram.clone(); }
     }
     if let Some(ref storage) = cfg.storage_override {
-        if !storage.trim().is_empty() {
-            specs.storage = storage.clone();
-        }
+        if !storage.trim().is_empty() { specs.storage = storage.clone(); }
     }
     if let Some(ref display) = cfg.display_override {
-        if !display.trim().is_empty() {
-            specs.display = display.clone();
-        }
+        if !display.trim().is_empty() { specs.display = display.clone(); }
     }
     if let Some(ref gpu) = cfg.gpu_override {
-        if !gpu.trim().is_empty() {
-            specs.gpu = gpu.clone();
-        }
+        if !gpu.trim().is_empty() { specs.gpu = gpu.clone(); }
     }
     if let Some(ref os) = cfg.os_override {
-        if !os.trim().is_empty() {
-            specs.os = os.clone();
-        }
+        if !os.trim().is_empty() { specs.os = os.clone(); }
     }
     if let Some(ref battery) = cfg.battery_override {
-        if !battery.trim().is_empty() {
-            specs.battery = battery.clone();
-        }
+        if !battery.trim().is_empty() { specs.battery = battery.clone(); }
     }
 
     specs
@@ -74,8 +68,12 @@ fn get_app_config() -> AppConfig {
 }
 
 #[tauri::command]
-fn save_app_config(config: AppConfig) -> Result<(), String> {
-    save_config(&config)
+fn save_app_config(app: AppHandle, config: AppConfig) -> Result<(), String> {
+    save_config(&config)?;
+    // Broadcast newly computed state to all windows
+    let new_state = build_ui_state();
+    let _ = app.emit("zenit://state-changed", new_state);
+    Ok(())
 }
 
 #[tauri::command]
@@ -85,6 +83,8 @@ fn check_admin_password(password: String) -> bool {
 
 #[tauri::command]
 fn try_pc_minimize(app: AppHandle) -> Result<(), String> {
+    IS_IN_TRY_PC_MODE.store(true, Ordering::SeqCst);
+
     if let Some(main_win) = app.get_webview_window("main") {
         let _ = main_win.minimize();
     }
@@ -95,7 +95,7 @@ fn try_pc_minimize(app: AppHandle) -> Result<(), String> {
             let win_width = 240;
             let win_height = 90;
 
-            // Position at vertical center on right edge (right: 15px from edge, vertically centered)
+            // Position at vertical center on right edge
             let x = (screen_size.width as i32) - win_width - 15;
             let y = ((screen_size.height as i32) - win_height) / 2;
 
@@ -112,6 +112,8 @@ fn try_pc_minimize(app: AppHandle) -> Result<(), String> {
 
 #[tauri::command]
 fn restore_main_window(app: AppHandle) -> Result<(), String> {
+    IS_IN_TRY_PC_MODE.store(false, Ordering::SeqCst);
+
     if let Some(return_win) = app.get_webview_window("return_window") {
         let _ = return_win.hide();
     }
@@ -168,8 +170,6 @@ pub fn run() {
             }
 
             // Global Shortcuts for emergency exit and restart
-            // Ctrl + Shift + Alt + Z -> Exit
-            // Ctrl + Shift + Alt + R -> Restart
             let handle_exit = app.handle().clone();
             let handle_restart = app.handle().clone();
 
@@ -187,9 +187,37 @@ pub fn run() {
                 handle_restart.exit(0);
             });
 
+            // Native Rust Background Inactivity Watcher (Zero JS Overhead)
+            let watcher_handle = app.handle().clone();
+            std::thread::spawn(move || {
+                loop {
+                    std::thread::sleep(std::time::Duration::from_millis(500));
+                    let idle_seconds = get_system_idle_seconds();
+                    let cfg = load_config();
+                    let timeout = cfg.inactivity_timeout_sec;
+
+                    // 1. Screensaver state toggle
+                    let was_screensaver = IS_SCREENSAVER_ACTIVE.load(Ordering::SeqCst);
+                    if !was_screensaver && idle_seconds >= timeout {
+                        IS_SCREENSAVER_ACTIVE.store(true, Ordering::SeqCst);
+                        let _ = watcher_handle.emit("zenit://screensaver-change", true);
+                    } else if was_screensaver && idle_seconds < 2 {
+                        IS_SCREENSAVER_ACTIVE.store(false, Ordering::SeqCst);
+                        let _ = watcher_handle.emit("zenit://screensaver-change", false);
+                    }
+
+                    // 2. Try-PC Auto-restore after 120s of no desktop activity
+                    if IS_IN_TRY_PC_MODE.load(Ordering::SeqCst) && idle_seconds >= 120 {
+                        IS_IN_TRY_PC_MODE.store(false, Ordering::SeqCst);
+                        let _ = restore_main_window(watcher_handle.clone());
+                    }
+                }
+            });
+
             Ok(())
         })
         .invoke_handler(tauri::generate_handler![
+            get_zenit_ui_state,
             get_system_specs,
             get_raw_hardware_specs,
             get_app_config,

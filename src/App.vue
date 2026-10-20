@@ -34,13 +34,13 @@
       <Header />
 
       <main class="main-content">
-        <!-- Columna Izquierda: Especificaciones Principales -->
+        <!-- Columna Izquierda: Especificaciones Principales (Declarativo) -->
         <LeftColumn />
         
-        <!-- Columna Central (La más ancha): Video, Precios Opcionales y Botón Prueba esta PC -->
+        <!-- Columna Central: Video, Precios y Botón (Declarativo) -->
         <CenterColumn />
 
-        <!-- Columna Derecha: Pantalla Hz, GPU, Batería, Modelo y Otros -->
+        <!-- Columna Derecha: Pantalla Hz, GPU, Batería, Modelo y Otros (Declarativo) -->
         <RightColumn />
       </main>
 
@@ -55,7 +55,7 @@
       title="Admin Hotspot (4 clics)"
     ></div>
 
-    <!-- Video View (Salvapantallas por Inactividad) -->
+    <!-- Video View (Salvapantallas controlado nativamente por Rust) -->
     <div id="video-view" v-if="store.isVideoMode && !store.isLoading" class="view active">
        <VideoPlayer />
     </div>
@@ -76,7 +76,7 @@
 </template>
 
 <script setup>
-import { onMounted, onUnmounted, ref, watch, reactive, computed } from 'vue';
+import { onMounted, ref, watch, computed } from 'vue';
 import { useSpecsStore, toVideoSrc } from './store/specs';
 
 // Components
@@ -91,16 +91,14 @@ import PasswordModal from './components/Modals/PasswordModal.vue';
 const store = useSpecsStore();
 const baseUrl = import.meta.env.BASE_URL;
 
-const inactivityTimer = ref(null);
 const showPasswordModal = ref(false);
 const showAdminModal = ref(false);
 const passwordMode = ref('settings');
-
 const bgVideo = ref(null);
 
 const bgVideoSrc = computed(() => {
-  const p = store.appConfig.bg_video_path;
-  if (!p) return `${baseUrl}assets/videos/bg.mp4`;
+  const p = store.uiState.bg_video;
+  if (!p) return `${baseUrl}assets/images/fallback-bg/bg.mp4`;
   return toVideoSrc(p);
 });
 
@@ -118,7 +116,6 @@ const handleHotspotClick = (mode) => {
     passwordMode.value = mode;
     showPasswordModal.value = true;
   } else {
-    // Reset counter if remaining clicks aren't finished in 2.5s
     hotspotTimeout = setTimeout(() => {
       hotspotCount.value = 0;
     }, 2500);
@@ -137,30 +134,6 @@ watch([showPasswordModal, showAdminModal], () => {
   store.isModalOpen = showPasswordModal.value || showAdminModal.value;
 });
 
-// Inactivity Screensaver Logic
-let lastInteraction = 0;
-const resetInactivityTimer = () => {
-  const now = Date.now();
-  if (now - lastInteraction < 200 && !store.isVideoMode) return;
-  lastInteraction = now;
-
-  clearTimeout(inactivityTimer.value);
-
-  // If currently in screensaver video mode, wake up back to showcase
-  if (store.isVideoMode) {
-    store.isVideoMode = false;
-  }
-
-  // Calculate timeout in milliseconds from config
-  const timeoutMs = (store.appConfig.inactivity_timeout_sec || 120) * 1000;
-
-  inactivityTimer.value = setTimeout(() => {
-    if (!store.isModalOpen) {
-      store.isVideoMode = true;
-    }
-  }, timeoutMs);
-};
-
 const onPasswordVerified = () => {
   showPasswordModal.value = false;
   showAdminModal.value = true;
@@ -168,20 +141,6 @@ const onPasswordVerified = () => {
 
 onMounted(async () => {
   await store.loadSpecs();
-  resetInactivityTimer();
-
-  window.addEventListener('mousemove', resetInactivityTimer, { passive: true });
-  window.addEventListener('keydown', resetInactivityTimer, { passive: true });
-  window.addEventListener('mousedown', resetInactivityTimer, { passive: true });
-  window.addEventListener('touchstart', resetInactivityTimer, { passive: true });
-});
-
-onUnmounted(() => {
-  window.removeEventListener('mousemove', resetInactivityTimer);
-  window.removeEventListener('keydown', resetInactivityTimer);
-  window.removeEventListener('mousedown', resetInactivityTimer);
-  window.removeEventListener('touchstart', resetInactivityTimer);
-  clearTimeout(inactivityTimer.value);
 });
 </script>
 

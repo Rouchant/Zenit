@@ -1,5 +1,5 @@
 import { defineStore } from 'pinia';
-import { ref, reactive } from 'vue';
+import { ref } from 'vue';
 
 async function invokeTauri(cmd, args = {}) {
   try {
@@ -9,7 +9,7 @@ async function invokeTauri(cmd, args = {}) {
     const { invoke } = await import('@tauri-apps/api/core');
     return await invoke(cmd, args);
   } catch (err) {
-    console.warn(`[Zenit Native] Error ejecutando comando '${cmd}':`, err);
+    console.warn(`[Zenit Native] Error ejecutando '${cmd}':`, err);
     return null;
   }
 }
@@ -24,134 +24,107 @@ export function toVideoSrc(path) {
       return window.__TAURI__.core.convertFileSrc(path);
     }
   } catch (e) {}
-  const clean = path.replace(/\\/g, '/');
-  return `asset://localhost/${clean}`;
+  return `asset://localhost/${path.replace(/\\/g, '/')}`;
 }
 
 export const useSpecsStore = defineStore('specs', () => {
-  const currentSpecs = ref({
-    brand: 'Laptop Showcase',
-    model: 'Serie Demo',
-    processor: 'Intel Core Ultra 7 155H',
-    cores: 16,
-    threads: 22,
-    gen: 'Core Ultra',
-    vendor: 'Intel',
-    ram: '16 GB',
-    ram_type: 'LPDDR5X',
-    storage: '1TB NVMe SSD',
-    display: '2880 x 1800 (2.8K OLED) @ 120Hz',
-    refresh_rate: 120,
-    gpu: 'Intel Arc Graphics',
-    os: 'Windows 11 Home',
-    battery: '85% (~6h 30m)',
-    battery_percent: 85,
-    is_charging: false,
-    other_specs: 'Wi-Fi 6E / Teclado Retroiluminado / Chasis de Aluminio'
-  });
-
-  const autoDetectedSpecs = ref({});
-  const appConfig = ref({
-    primary_color: '#00f2ff',
-    secondary_color: '#0072ff',
-    accent_color: '#00e5ff',
-    bg_gradient: 'radial-gradient(circle at center, #111422 0%, #06070a 100%)',
-    store_theme: 'default',
-    price_card: '',
-    price_all_methods: '',
-    sku: '',
-    brand_override: null,
-    model_override: null,
-    processor_override: null,
-    ram_override: null,
-    storage_override: null,
-    display_override: null,
-    gpu_override: null,
-    os_override: null,
-    battery_override: null,
-    other_specs: 'Wi-Fi 6E / Bluetooth 5.3 / Teclado en Español',
-    central_video_path: 'assets/videos/landing.mp4',
-    bg_video_path: 'assets/images/fallback-bg/bg.mp4',
-    inactivity_video_path: 'assets/videos/promo.mp4',
+  // Pure declarative UI State delivered pre-computed by Rust
+  const uiState = ref({
+    brand_name: 'Laptop Showcase',
+    brand_logo: null,
+    store_logo: null,
+    left_specs: [],
+    right_specs: [],
+    center_video: 'assets/videos/landing.mp4',
+    bg_video: 'assets/images/fallback-bg/bg.mp4',
+    screensaver_video: 'assets/videos/promo.mp4',
+    price_card: null,
+    price_all_methods: null,
+    sku: null,
+    has_pricing: false,
+    colors: {
+      primary: '#00f2ff',
+      secondary: '#0072ff',
+      accent: '#00e5ff',
+      bg_gradient: 'radial-gradient(circle at center, #111422 0%, #06070a 100%)'
+    },
     inactivity_timeout_sec: 120,
   });
 
+  const rawHardwareSpecs = ref({});
+  const appConfig = ref({});
   const vaultVideos = ref([]);
-  const isVideoMode = ref(false); // Inactivity screensaver
+  const isVideoMode = ref(false); // Controlled natively by Rust
   const isModalOpen = ref(false);
   const isLoading = ref(true);
 
   const applyColors = () => {
     const root = document.documentElement;
-    if (appConfig.value.primary_color) {
-      root.style.setProperty('--primary', appConfig.value.primary_color);
-    }
-    if (appConfig.value.secondary_color) {
-      root.style.setProperty('--secondary', appConfig.value.secondary_color);
-    }
-    if (appConfig.value.accent_color) {
-      root.style.setProperty('--accent', appConfig.value.accent_color);
-    }
-    if (appConfig.value.bg_gradient) {
-      root.style.setProperty('--bg-gradient', appConfig.value.bg_gradient);
-    }
+    const c = uiState.value.colors;
+    if (c.primary) root.style.setProperty('--primary', c.primary);
+    if (c.secondary) root.style.setProperty('--secondary', c.secondary);
+    if (c.accent) root.style.setProperty('--accent', c.accent);
+    if (c.bg_gradient) root.style.setProperty('--bg-gradient', c.bg_gradient);
   };
 
   const loadSpecs = async () => {
     isLoading.value = true;
     try {
-      // 1. Load Config from Rust
+      // 1. Fetch Complete UI State from Smart Rust
+      const state = await invokeTauri('get_zenit_ui_state');
+      if (state) {
+        uiState.value = state;
+        applyColors();
+      }
+
+      // 2. Fetch raw specs and config for the Admin Modal editor
+      const raw = await invokeTauri('get_raw_hardware_specs');
+      if (raw) rawHardwareSpecs.value = raw;
+
       const cfg = await invokeTauri('get_app_config');
-      if (cfg) {
-        appConfig.value = { ...appConfig.value, ...cfg };
-      }
+      if (cfg) appConfig.value = cfg;
 
-      // 2. Load Raw and Active Hardware Specs
-      const detected = await invokeTauri('get_raw_hardware_specs');
-      if (detected) {
-        autoDetectedSpecs.value = detected;
-      }
-
-      const active = await invokeTauri('get_system_specs');
-      if (active) {
-        currentSpecs.value = {
-          ...currentSpecs.value,
-          ...active,
-          other_specs: appConfig.value.other_specs || active.other_specs || currentSpecs.value.other_specs,
-        };
-      }
-
-      // 3. Load Vault Videos
       await loadVault();
 
-      // 4. Apply dynamic colors
-      applyColors();
-    } catch (err) {
-      console.error('Error cargando especificaciones nativas:', err);
+      // 3. Listen to Native Events from Rust
+      try {
+        const { listen } = await import('@tauri-apps/api/event');
+        
+        // Listen to state changes broadcasted by Rust
+        listen('zenit://state-changed', (event) => {
+          if (event.payload) {
+            uiState.value = event.payload;
+            applyColors();
+          }
+        });
+
+        // Listen to native Windows inactivity / screensaver toggle
+        listen('zenit://screensaver-change', (event) => {
+          if (!isModalOpen.value) {
+            isVideoMode.value = Boolean(event.payload);
+          }
+        });
+      } catch (e) {
+        console.warn("Event listener fallback:", e);
+      }
     } finally {
       isLoading.value = false;
     }
   };
 
-  const saveConfig = async (newCfg) => {
-    appConfig.value = { ...appConfig.value, ...newCfg };
-    applyColors();
-    await invokeTauri('save_app_config', { config: appConfig.value });
-    // Reload specs with new overrides
-    const updated = await invokeTauri('get_system_specs');
+  const saveConfig = async (newConfig) => {
+    await invokeTauri('save_app_config', { config: newConfig });
+    // State will be updated via event broadcast from Rust or direct re-fetch
+    const updated = await invokeTauri('get_zenit_ui_state');
     if (updated) {
-      currentSpecs.value = {
-        ...currentSpecs.value,
-        ...updated,
-        other_specs: appConfig.value.other_specs
-      };
+      uiState.value = updated;
+      applyColors();
     }
   };
 
   const verifyPassword = async (pass) => {
     const res = await invokeTauri('check_admin_password', { password: pass });
     if (res !== null) return res;
-    // Client-side fallback: accepts demo and z3n1t (case-insensitive)
     const clean = (pass || '').trim().toLowerCase();
     return clean === 'demo' || clean === 'z3n1t';
   };
@@ -174,9 +147,7 @@ export const useSpecsStore = defineStore('specs', () => {
 
   const loadVault = async () => {
     const list = await invokeTauri('get_vault_videos');
-    if (list) {
-      vaultVideos.value = list;
-    }
+    if (list) vaultVideos.value = list;
   };
 
   const importVideo = async (sourcePath) => {
@@ -196,26 +167,23 @@ export const useSpecsStore = defineStore('specs', () => {
   const pickVideoFile = async () => {
     try {
       const { open } = await import('@tauri-apps/plugin-dialog');
-      const selected = await open({
+      return await open({
         multiple: false,
         filters: [{ name: 'Videos', extensions: ['mp4', 'webm', 'mov', 'mkv'] }]
       });
-      return selected;
     } catch (e) {
-      console.warn("Dialog plugin no disponible:", e);
       return null;
     }
   };
 
   return {
-    currentSpecs,
-    autoDetectedSpecs,
+    uiState,
+    rawHardwareSpecs,
     appConfig,
     vaultVideos,
     isVideoMode,
     isModalOpen,
     isLoading,
-    applyColors,
     loadSpecs,
     saveConfig,
     verifyPassword,

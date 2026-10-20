@@ -3,23 +3,20 @@ import { computed } from 'vue';
 import { useSpecsStore } from '../store/specs';
 
 const store = useSpecsStore();
-
 const baseUrl = import.meta.env.BASE_URL;
 
-const brandLogo = computed(() => {
-  const brand = (store.currentSpecs.brand || '').toLowerCase();
-  const knownBrands = ['asus', 'hp', 'samsung', 'acer', 'lenovo'];
-  const matched = knownBrands.find(b => brand.includes(b));
-  
-  if (matched) return `${baseUrl}assets/logos/${matched}.svg`;
-  return null;
+const brandLogoSrc = computed(() => {
+  if (store.uiState.brand_logo) {
+    return `${baseUrl}${store.uiState.brand_logo}`;
+  }
+  return `${baseUrl}assets/logo.png`;
 });
 
-const storeLogo = computed(() => {
-  const s = (store.currentSpecs.store || 'none').toLowerCase();
-  if (s === 'none') return null;
-  const ext = s === 'paris' ? 'png' : 'svg';
-  return `${baseUrl}assets/logos/${s}.${ext}`;
+const storeLogoSrc = computed(() => {
+  if (store.uiState.store_logo) {
+    return `${baseUrl}${store.uiState.store_logo}`;
+  }
+  return null;
 });
 </script>
 
@@ -27,16 +24,15 @@ const storeLogo = computed(() => {
   <header class="header">
     <div class="header-branding">
       <div class="logo-placeholder" id="header-logo-container">
-        <img v-if="brandLogo" :src="brandLogo" :alt="store.currentSpecs?.brand" :class="{ 'zenit-logo': !brandLogo.includes('logos') }">
-        <img v-else :src="`${baseUrl}assets/logo.png`" alt="Zenit" class="zenit-logo">
+        <img :src="brandLogoSrc" :alt="store.uiState.brand_name" class="zenit-logo">
       </div>
-      <div class="logo-separator" v-if="storeLogo"></div>
-      <div class="store-logo-placeholder" id="store-logo-container" v-if="storeLogo">
-        <img :src="storeLogo" :alt="store.currentSpecs.store">
+      <div class="logo-separator" v-if="storeLogoSrc"></div>
+      <div class="store-logo-placeholder" id="store-logo-container" v-if="storeLogoSrc">
+        <img :src="storeLogoSrc" alt="Store Logo">
       </div>
     </div>
     <div class="brand-badge" id="display-brand">
-      {{ store.currentSpecs?.brand || 'Cargando...' }}
+      {{ store.uiState.brand_name || 'Cargando...' }}
     </div>
   </header>
 </template>
@@ -44,5 +40,6 @@ const storeLogo = computed(() => {
 <style scoped>
 .zenit-logo {
   height: 40px;
+  object-fit: contain;
 }
 </style>

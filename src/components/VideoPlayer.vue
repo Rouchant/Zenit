@@ -7,7 +7,7 @@ const videoRef = ref(null);
 const baseUrl = import.meta.env.BASE_URL;
 
 const videoUrl = computed(() => {
-  const p = store.appConfig.inactivity_video_path;
+  const p = store.uiState.screensaver_video;
   if (!p) return `${baseUrl}assets/videos/promo.mp4`;
   return toVideoSrc(p);
 });
