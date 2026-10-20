@@ -3,122 +3,144 @@
 <head>
     <meta charset="UTF-8">
     <link rel="icon" type="image/x-icon" href="/favicon.ico">
+    <title>Zenit - Ver detalles</title>
     <style>
-        @font-face {
-            font-family: 'Outfit';
-            src: url('fonts/outfit-300.ttf') format('truetype');
-            font-weight: 300;
-            font-style: normal;
-        }
         @font-face {
             font-family: 'Outfit';
             src: url('fonts/outfit-400.ttf') format('truetype');
             font-weight: 400;
-            font-style: normal;
         }
         @font-face {
             font-family: 'Outfit';
             src: url('fonts/outfit-600.ttf') format('truetype');
             font-weight: 600;
-            font-style: normal;
         }
         @font-face {
             font-family: 'Outfit';
             src: url('fonts/outfit-700.ttf') format('truetype');
             font-weight: 700;
-            font-style: normal;
         }
 
         :root {
             --primary: #00f2ff;
             --secondary: #0072ff;
-            --bg-dark: #0a0a0c;
+            --accent: #00e5ff;
         }
-
-        /* Themes matching style.css */
-        body.theme-falabella { --primary: #B9D40D; --secondary: #8da10a; }
-        body.theme-paris { --primary: #009DE0; --secondary: #007bb0; }
-        body.theme-ripley { --primary: #9932cc; --secondary: #7928a1; }
-        body.theme-default { --primary: #00f2ff; --secondary: #0072ff; }
 
         body {
             margin: 0;
-            padding: 8px; /* Reduced padding */
+            padding: 4px;
             overflow: hidden;
             display: flex;
-            justify-content: center;
+            justify-content: flex-end;
             align-items: center;
             height: 100vh;
-            background: transparent;
-            font-family: 'Outfit', sans-serif;
+            background: transparent !important;
+            font-family: 'Outfit', -apple-system, sans-serif;
             user-select: none;
             box-sizing: border-box;
         }
+
         .return-btn {
-            background: linear-gradient(135deg, var(--secondary), var(--primary));
-            color: #000;
-            border: none;
-            padding: 16px 40px;
-            border-radius: 16px;
-            font-weight: 800;
-            font-size: 1.1rem;
+            background: linear-gradient(135deg, rgba(10, 16, 28, 0.92), rgba(20, 30, 48, 0.95));
+            color: #ffffff;
+            border: 1.5px solid var(--primary, #00f2ff);
+            padding: 12px 18px;
+            border-radius: 14px;
             cursor: pointer;
-            transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
-            -webkit-app-region: no-drag; /* Button is specifically NOT draggable */
-            white-space: nowrap;
+            transition: all 0.25s cubic-bezier(0.16, 1, 0.3, 1);
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.6), 0 0 15px rgba(0, 242, 255, 0.3);
+            backdrop-filter: blur(12px);
+            -webkit-backdrop-filter: blur(12px);
+        }
+
+        .return-btn:hover {
+            transform: scale(1.04);
+            border-color: #ffffff;
+            box-shadow: 0 10px 40px rgba(0, 0, 0, 0.8), 0 0 25px rgba(0, 242, 255, 0.5);
+            background: linear-gradient(135deg, var(--secondary, #0072ff), var(--primary, #00f2ff));
+            color: #000;
+        }
+
+        .btn-icon {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            width: 38px;
+            height: 38px;
+            background: rgba(0, 242, 255, 0.15);
+            border-radius: 10px;
+            flex-shrink: 0;
+            transition: background 0.25s ease;
+        }
+
+        .return-btn:hover .btn-icon {
+            background: rgba(0, 0, 0, 0.2);
+        }
+
+        .text-group {
             display: flex;
             flex-direction: column;
-            align-items: center;
-            gap: 8px;
-            box-shadow: 0 4px 15px rgba(0,0,0,0.3);
-            position: relative;
-            z-index: 100;
-            will-change: transform, filter;
+            text-align: left;
         }
-        .return-btn:hover {
-            transform: translateY(-2px);
-            filter: brightness(1.1);
+
+        .title-text {
+            font-weight: 700;
+            font-size: 1.05rem;
+            letter-spacing: 0.5px;
+            line-height: 1.1;
         }
-        .btn-icon {
-            opacity: 0.9;
-        }
-        .btn-text {
-            line-height: 1.2;
+
+        .sub-text {
+            font-size: 0.75rem;
+            opacity: 0.8;
+            margin-top: 3px;
         }
     </style>
 </head>
-<body class="theme-default">
-    <button class="return-btn" onclick="window.electronAPI.restoreApp()">
-        <span class="btn-text">Volver a características</span>
+<body>
+    <button class="return-btn" id="restoreBtn" onclick="restoreApp()">
         <div class="btn-icon">
-            <svg xmlns="http://www.w3.org/2000/svg" width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                <path d="M12 17v4"/>
-                <path d="m14.305 7.53.923-.382"/>
-                <path d="m15.228 4.852-.923-.383"/>
-                <path d="m16.852 3.228-.383-.924"/>
-                <path d="m16.852 8.772-.383.923"/>
-                <path d="m19.148 3.228.383-.924"/>
-                <path d="m19.53 9.696-.382-.924"/>
-                <path d="m20.772 4.852.924-.383"/>
-                <path d="m20.772 7.148.924.383"/>
-<path d="M22 13v2a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h7"/>
-<path d="M8 21h8"/>
-<circle cx="18" cy="6" r="3"/>
+            <svg xmlns="http://www.w3.org/2000/svg" width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+                <circle cx="12" cy="12" r="10"></circle>
+                <line x1="12" y1="16" x2="12" y2="12"></line>
+                <line x1="12" y1="8" x2="12.01" y2="8"></line>
             </svg>
+        </div>
+        <div class="text-group">
+            <span class="title-text">Ver detalles</span>
+            <span class="sub-text">Volver a Zenit</span>
         </div>
     </button>
 
     <script>
-        // Apply theme from URL parameter
-        const urlParams = new URLSearchParams(window.location.search);
-        const store = urlParams.get('store') || 'none';
-        
-        document.body.classList.remove('theme-falabella', 'theme-paris', 'theme-ripley', 'theme-default');
-        if (store === 'none') {
-            document.body.classList.add('theme-default');
-        } else {
-            document.body.classList.add(`theme-${store}`);
+        async function restoreApp() {
+            try {
+                if (window.__TAURI__ && window.__TAURI__.core) {
+                    await window.__TAURI__.core.invoke('restore_main_window');
+                } else if (window.electronAPI && window.electronAPI.restoreApp) {
+                    await window.electronAPI.restoreApp();
+                }
+            } catch (err) {
+                console.error("Error restoring app:", err);
+            }
         }
+
+        // Auto-restore after 2 minutes of test mode
+        let autoRestoreTimer = setTimeout(() => {
+            restoreApp();
+        }, 120000);
+
+        // Reset timer on any mouse move inside the button
+        document.addEventListener('mousemove', () => {
+            clearTimeout(autoRestoreTimer);
+            autoRestoreTimer = setTimeout(() => {
+                restoreApp();
+            }, 120000);
+        });
     </script>
 </body>
 </html>

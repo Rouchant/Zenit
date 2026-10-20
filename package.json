@@ -7,6 +7,9 @@
   "scripts": {
     "dev": "vite",
     "start": "electron .",
+    "tauri": "tauri",
+    "dev:rust": "tauri dev",
+    "build:rust": "tauri build",
     "dev:all": "concurrently \"npm run dev\" \"wait-on http://localhost:5173 && npm run start\"",
     "build:renderer": "vite build",
     "build": "npm run build:renderer && electron-builder --win --x64 --dir",
@@ -55,6 +58,7 @@
   "license": "ISC",
   "type": "commonjs",
   "devDependencies": {
+    "@tauri-apps/cli": "^2.12.3",
     "concurrently": "^9.1.2",
     "electron": "^41.0.3",
     "electron-builder": "^26.8.1",
@@ -63,6 +67,10 @@
     "wait-on": "^8.0.2"
   },
   "dependencies": {
+    "@tauri-apps/api": "^2.12.4",
+    "@tauri-apps/plugin-dialog": "^2.8.3",
+    "@tauri-apps/plugin-fs": "^2.7.1",
+    "@tauri-apps/plugin-global-shortcut": "^2.4.1",
     "@vitejs/plugin-vue": "^6.0.5",
     "electron-is-dev": "^3.0.1",
     "electron-updater": "^6.8.3",

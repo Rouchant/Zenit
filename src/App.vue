@@ -1,5 +1,5 @@
 <template>
-  <div id="app" class="app-container" :style="{ backgroundColor: '#000' }">
+  <div id="app" class="app-container" :style="{ background: 'var(--bg-gradient, #06070a)' }">
     <!-- Loading Screen -->
     <Transition name="fade">
       <div v-if="store.isLoading" class="loading-screen">
@@ -7,69 +7,60 @@
           <div class="loader"></div>
           <div class="loader-glow"></div>
         </div>
-        <p class="loading-text">Cargando especificaciones...</p>
+        <p class="loading-text">Iniciando Zenit Native...</p>
       </div>
     </Transition>
 
     <!-- Background Video -->
     <video 
-      v-show="!store.isLoading"
+      v-show="!store.isLoading && !store.isVideoMode"
       id="bg-video" 
       autoplay 
       loop 
       muted 
       playsinline 
       :poster="`${baseUrl}assets/images/background.png`"
+      :key="bgVideoSrc"
+      :src="bgVideoSrc"
       ref="bgVideo"
     >
-      <source :src="`${baseUrl}assets/videos/bg.mp4`" type="video/mp4">
     </video>
     
-    <!-- Background Overlay -->
+    <!-- Background Gradient & Glassmorphism Blur Overlay -->
     <div class="bg-blur"></div>
     
-    <!-- Info View -->
+    <!-- Info View (Main 3-Column Showcase) -->
     <div id="info-view" v-show="!store.isVideoMode && !store.isLoading" class="view active">
       <Header />
 
       <main class="main-content">
-        <SpecsGrid @open-specs="showSpecsModal = true" />
+        <!-- Columna Izquierda: Especificaciones Principales -->
+        <LeftColumn />
         
-        <div class="landing-video-container">
-          <video 
-            id="landing-video" 
-            autoplay 
-            loop 
-            muted 
-            playsinline 
-            :src="store.currentSpecs.landingVideoType === 'custom' ? store.getVideoUrl(store.currentSpecs.customLandingVideoPath) : `${baseUrl}assets/videos/landing.mp4`"
-            ref="landingVideo"
-          >
-          </video>
-          <div id="display-price" class="price-tag">
-             <div v-if="store.currentSpecs.priceSecondary" class="price-secondary" :class="{ strike: store.currentSpecs.priceStrike }">
-               {{ store.currentSpecs.priceSecondary }}
-             </div>
-             <div v-if="store.currentSpecs.pricePrimary" class="price-primary">
-               {{ store.currentSpecs.pricePrimary }}
-             </div>
-          </div>
-        </div>
+        <!-- Columna Central (La más ancha): Video, Precios Opcionales y Botón Prueba esta PC -->
+        <CenterColumn />
+
+        <!-- Columna Derecha: Pantalla Hz, GPU, Batería, Modelo y Otros -->
+        <RightColumn />
       </main>
 
       <footer class="footer"></footer>
     </div>
 
-    <!-- Admin Hotspots (Now require 4 clicks) -->
-    <div id="settings-hotspot" class="admin-hotspot top-right" @click="handleHotspotClick('settings')"></div>
-    <div id="exit-hotspot" class="admin-hotspot bottom-right" @click="handleHotspotClick('exit')"></div>
+    <!-- Admin Hotspot (4 clics en la esquina superior derecha) -->
+    <div 
+      id="settings-hotspot" 
+      class="admin-hotspot top-right" 
+      @click="handleHotspotClick('settings')"
+      title="Admin Hotspot (4 clics)"
+    ></div>
 
-    <!-- Video View (Inactivity) -->
-    <div id="video-view" v-show="store.isVideoMode && !store.isLoading" class="view active">
-       <VideoPlayer v-if="store.isVideoMode" />
+    <!-- Video View (Salvapantallas por Inactividad) -->
+    <div id="video-view" v-if="store.isVideoMode && !store.isLoading" class="view active">
+       <VideoPlayer />
     </div>
 
-    <!-- Modals -->
+    <!-- Modales -->
     <PasswordModal 
       v-if="showPasswordModal" 
       :mode="passwordMode"
@@ -81,150 +72,124 @@
       v-if="showAdminModal"
       @close="showAdminModal = false"
     />
-
-    <SpecsModal 
-      v-if="showSpecsModal"
-      @close="showSpecsModal = false"
-    />
   </div>
 </template>
 
 <script setup>
-import { onMounted, onUnmounted, ref, watch, reactive } from 'vue';
-import { useSpecsStore } from './store/specs';
+import { onMounted, onUnmounted, ref, watch, reactive, computed } from 'vue';
+import { useSpecsStore, toVideoSrc } from './store/specs';
 
 // Components
 import Header from './components/Header.vue';
-import SpecsGrid from './components/SpecsGrid.vue';
+import LeftColumn from './components/LeftColumn.vue';
+import CenterColumn from './components/CenterColumn.vue';
+import RightColumn from './components/RightColumn.vue';
 import VideoPlayer from './components/VideoPlayer.vue';
 import AdminModal from './components/Modals/AdminModal.vue';
 import PasswordModal from './components/Modals/PasswordModal.vue';
-import SpecsModal from './components/Modals/SpecsModal.vue';
 
 const store = useSpecsStore();
 const baseUrl = import.meta.env.BASE_URL;
+
 const inactivityTimer = ref(null);
 const showPasswordModal = ref(false);
 const showAdminModal = ref(false);
-const showSpecsModal = ref(false);
 const passwordMode = ref('settings');
 
 const bgVideo = ref(null);
-const landingVideo = ref(null);
 
-// Admin Hotspot Secrets
-const hotspotCounts = reactive({
-  settings: 0,
-  exit: 0
+const bgVideoSrc = computed(() => {
+  const p = store.appConfig.bg_video_path;
+  if (!p) return `${baseUrl}assets/videos/bg.mp4`;
+  return toVideoSrc(p);
 });
+
+// Admin Hotspot: 4 Clics en la esquina superior derecha
+const hotspotCount = ref(0);
 let hotspotTimeout = null;
 
 const handleHotspotClick = (mode) => {
-  // Clear previous reset timer
   if (hotspotTimeout) clearTimeout(hotspotTimeout);
 
-  // Increment specific counter
-  hotspotCounts[mode]++;
+  hotspotCount.value++;
 
-  // Check if target reached
-  if (hotspotCounts[mode] >= 4) {
-    hotspotCounts[mode] = 0;
-    openPassword(mode);
+  if (hotspotCount.value >= 4) {
+    hotspotCount.value = 0;
+    passwordMode.value = mode;
+    showPasswordModal.value = true;
   } else {
-    // Set reset timer (2 seconds)
+    // Reset counter if remaining clicks aren't finished in 2.5s
     hotspotTimeout = setTimeout(() => {
-      hotspotCounts.settings = 0;
-      hotspotCounts.exit = 0;
-    }, 2000);
+      hotspotCount.value = 0;
+    }, 2500);
   }
 };
 
 watch(() => store.isModalOpen, (isOpen) => {
   if (isOpen) {
     bgVideo.value?.pause();
-    landingVideo.value?.pause();
   } else {
     bgVideo.value?.play().catch(() => {});
-    landingVideo.value?.play().catch(() => {});
   }
 });
 
-watch([showPasswordModal, showAdminModal, showSpecsModal], () => {
-  store.isModalOpen = showPasswordModal.value || showAdminModal.value || showSpecsModal.value;
+watch([showPasswordModal, showAdminModal], () => {
+  store.isModalOpen = showPasswordModal.value || showAdminModal.value;
 });
 
-watch(() => store.isVideoMode, (isNowVideo) => {
-  if (isNowVideo) {
-    // Force all modals to close when entering promo video mode
-    showSpecsModal.value = false;
-    showAdminModal.value = false;
-    showPasswordModal.value = false;
-    
-    // Restoration is now handled directly by the inactivity timer
-    // or manually where needed to ensure proper sync with Esc key.
-  }
-});
-
-let lastReset = 0;
-const resetTimer = () => {
+// Inactivity Screensaver Logic
+let lastInteraction = 0;
+const resetInactivityTimer = () => {
   const now = Date.now();
-  // Optimization: Throttle events every 300ms to reduce CPU usage
-  if (now - lastReset < 300 && !store.isVideoMode) return;
-  lastReset = now;
+  if (now - lastInteraction < 200 && !store.isVideoMode) return;
+  lastInteraction = now;
 
   clearTimeout(inactivityTimer.value);
-  if (store.isVideoMode) store.isVideoMode = false;
-  inactivityTimer.value = setTimeout(async () => {
-    // Step 1: Request focus and clear Start Menu (Await completion from main process)
-    if (window.electronAPI && window.electronAPI.restoreApp) {
-      await window.electronAPI.restoreApp();
-    }
 
-    // Step 2: Once the cleanup is confirmed, switch to Video Mode
-    // We add a minimal 100ms buffer to allow the window draw cycle to complete
-    setTimeout(() => {
+  // If currently in screensaver video mode, wake up back to showcase
+  if (store.isVideoMode) {
+    store.isVideoMode = false;
+  }
+
+  // Calculate timeout in milliseconds from config
+  const timeoutMs = (store.appConfig.inactivity_timeout_sec || 120) * 1000;
+
+  inactivityTimer.value = setTimeout(() => {
+    if (!store.isModalOpen) {
       store.isVideoMode = true;
-    }, 100);
-  }, store.CONFIG.INACTIVITY_LIMIT);
-};
-
-const openPassword = (mode) => {
-  passwordMode.value = mode;
-  showPasswordModal.value = true;
+    }
+  }, timeoutMs);
 };
 
 const onPasswordVerified = () => {
   showPasswordModal.value = false;
-  if (passwordMode.value === 'exit') {
-    window.electronAPI.quitApp();
-  } else {
-    showAdminModal.value = true;
-  }
+  showAdminModal.value = true;
 };
 
 onMounted(async () => {
   await store.loadSpecs();
-  resetTimer();
+  resetInactivityTimer();
 
-  window.addEventListener('mousemove', resetTimer);
-  window.addEventListener('keydown', resetTimer);
-  window.addEventListener('mousedown', resetTimer);
+  window.addEventListener('mousemove', resetInactivityTimer, { passive: true });
+  window.addEventListener('keydown', resetInactivityTimer, { passive: true });
+  window.addEventListener('mousedown', resetInactivityTimer, { passive: true });
+  window.addEventListener('touchstart', resetInactivityTimer, { passive: true });
 });
 
 onUnmounted(() => {
-  window.removeEventListener('mousemove', resetTimer);
-  window.removeEventListener('keydown', resetTimer);
-  window.removeEventListener('mousedown', resetTimer);
+  window.removeEventListener('mousemove', resetInactivityTimer);
+  window.removeEventListener('keydown', resetInactivityTimer);
+  window.removeEventListener('mousedown', resetInactivityTimer);
+  window.removeEventListener('touchstart', resetInactivityTimer);
   clearTimeout(inactivityTimer.value);
 });
 </script>
 
 <style>
-/* Global styles are imported in main.js */
 .loading-screen {
   position: fixed;
   top: 0; left: 0; right: 0; bottom: 0;
-  background: radial-gradient(circle at center, #111 0%, #000 100%);
+  background: radial-gradient(circle at center, #111422 0%, #06070a 100%);
   display: flex;
   flex-direction: column;
   justify-content: center;
@@ -237,40 +202,37 @@ onUnmounted(() => {
   position: relative;
   width: 60px;
   height: 60px;
-  margin-bottom: 30px;
+  margin-bottom: 24px;
 }
 
 .loader {
   position: absolute;
   top: 0; left: 0;
-  border: 2px solid rgba(0, 242, 255, 0.1);
+  border: 2px solid rgba(0, 242, 255, 0.15);
   border-top: 2px solid var(--primary, #00f2ff);
   border-radius: 50%;
   width: 100%;
   height: 100%;
-  animation: spin 1s cubic-bezier(0.5, 0, 0.5, 1) infinite;
-  z-index: 2;
+  animation: spin 1s linear infinite;
 }
 
 .loader-glow {
   position: absolute;
-  top: 0; left: 0;
-  width: 100%;
-  height: 100%;
+  top: -5px; left: -5px;
+  width: calc(100% + 10px);
+  height: calc(100% + 10px);
   border-radius: 50%;
-  background: var(--primary, #00f2ff);
-  filter: blur(15px);
-  opacity: 0.2;
-  animation: pulse 2s ease-in-out infinite;
+  box-shadow: 0 0 25px var(--primary, #00f2ff);
+  opacity: 0.25;
+  animation: pulse-loader 1.5s ease-in-out infinite alternate;
 }
 
 .loading-text {
-  font-size: 1.1rem;
-  letter-spacing: 2px;
+  font-size: 1.05rem;
+  font-weight: 600;
+  letter-spacing: 1.5px;
+  color: rgba(255, 255, 255, 0.85);
   text-transform: uppercase;
-  font-weight: 300;
-  color: rgba(255, 255, 255, 0.8);
-  animation: fadePulse 2s ease-in-out infinite;
 }
 
 @keyframes spin {
@@ -278,24 +240,19 @@ onUnmounted(() => {
   100% { transform: rotate(360deg); }
 }
 
-@keyframes pulse {
-  0%, 100% { opacity: 0.1; transform: scale(0.8); }
-  50% { opacity: 0.3; transform: scale(1.2); }
+@keyframes pulse-loader {
+  0% { transform: scale(0.95); opacity: 0.15; }
+  100% { transform: scale(1.05); opacity: 0.35; }
 }
 
-@keyframes fadePulse {
-  0%, 100% { opacity: 0.5; }
-  50% { opacity: 1; }
-}
-
-/* Transitions */
-.fade-enter-active,
-.fade-leave-active {
-  transition: opacity 0.8s ease;
-}
-
-.fade-enter-from,
-.fade-leave-to {
-  opacity: 0;
+.admin-hotspot.top-right {
+  position: fixed;
+  top: 0;
+  right: 0;
+  width: 90px;
+  height: 90px;
+  z-index: 10000;
+  cursor: default;
+  background: transparent;
 }
 </style>

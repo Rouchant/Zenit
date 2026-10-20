@@ -10,8 +10,9 @@ const password = ref('');
 const error = ref(false);
 const inputRef = ref(null);
 
-const verify = () => {
-  if (password.value === store.CONFIG.PASSWORD) {
+const verify = async () => {
+  const isOk = await store.verifyPassword(password.value);
+  if (isOk) {
     error.value = false;
     emit('verified');
   } else {
@@ -29,23 +30,23 @@ onMounted(() => {
 <template>
   <div id="password-modal" class="modal active">
     <div class="modal-content password-content">
-      <h2>Acceso Restringido</h2>
-      <p>Ingresa el código para editar la configuración.</p>
+      <h2>Panel de Administración</h2>
+      <p>Ingresa la contraseña para acceder a la configuración (Por defecto: <strong>demo</strong> o clave maestra).</p>
       <div class="input-group">
-        <label for="admin-password" class="sr-only">Código de acceso</label>
+        <label for="admin-password" class="sr-only">Contraseña</label>
         <input 
           id="admin-password"
           name="adminPassword"
           ref="inputRef"
           type="password" 
           v-model="password"
-          placeholder="Código..." 
+          placeholder="Ingresa clave..." 
           @keydown.enter="verify"
         >
       </div>
-      <div v-if="error" class="error-msg">Código incorrecto. Inténtalo de nuevo.</div>
+      <div v-if="error" class="error-msg">Contraseña incorrecta. Inténtalo de nuevo.</div>
       <div class="modal-actions">
-        <button class="btn primary" @click="verify">Entrar</button>
+        <button class="btn primary" @click="verify">Ingresar</button>
         <button class="btn secondary" @click="emit('close')">Cancelar</button>
       </div>
     </div>
