@@ -177,7 +177,29 @@ pub fn build_ui_state() -> ZenitUiState {
     };
     let hz_tag = if specs.refresh_rate > 0 { Some(format!("{}Hz", specs.refresh_rate)) } else { None };
 
+    let model_sub_value = if !specs.brand.is_empty() && !specs.model.is_empty() {
+        Some(format!("Marca: {} • Modelo: {}", specs.brand, specs.model))
+    } else if !specs.brand.is_empty() {
+        Some(format!("Marca: {}", specs.brand))
+    } else {
+        None
+    };
+
+    let brand_tag = if !specs.brand.is_empty() {
+        Some(specs.brand.clone())
+    } else {
+        None
+    };
+
     let mut right_specs = vec![
+        DisplaySpecCard {
+            id: "card-model".to_string(),
+            label: "Marca y Modelo".to_string(),
+            value: full_model,
+            sub_value: model_sub_value,
+            tag: brand_tag,
+            icon: "assets/ui/laptop.svg".to_string(),
+        },
         DisplaySpecCard {
             id: "card-display".to_string(),
             label: "Pantalla".to_string(),
@@ -201,14 +223,6 @@ pub fn build_ui_state() -> ZenitUiState {
             sub_value: Some("Batería de larga duración".to_string()),
             tag: battery_tag,
             icon: "assets/ui/battery.svg".to_string(),
-        },
-        DisplaySpecCard {
-            id: "card-model".to_string(),
-            label: "Modelo".to_string(),
-            value: full_model,
-            sub_value: None,
-            tag: None,
-            icon: "assets/ui/laptop.svg".to_string(),
         },
     ];
 
@@ -269,6 +283,10 @@ mod tests {
         assert_eq!(state.left_specs[1].id, "card-ram");
         assert_eq!(state.left_specs[2].id, "card-storage");
         assert_eq!(state.left_specs[3].id, "card-os");
+
+        // Verify Marca y Modelo card exists in right specs
+        assert_eq!(state.right_specs[0].id, "card-model");
+        assert_eq!(state.right_specs[0].label, "Marca y Modelo");
     }
 
     #[test]

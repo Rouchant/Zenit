@@ -190,13 +190,13 @@ export component MainWindow inherits Window {
         { category: "PROCESADOR", value: "Intel Core i7-13650HX", subvalue: "14 núcleos, 20 hilos", tag: "GEN 13", icon: @image-url("../assets/ui/cpu.svg") },
         { category: "MEMORIA RAM", value: "16 GB DDR5 4800MHz", subvalue: "Expandible a 32 GB", tag: "DDR5", icon: @image-url("../assets/ui/ram.svg") },
         { category: "ALMACENAMIENTO", value: "512 GB SSD NVMe M.2", subvalue: "PCIe 4.0 de alta velocidad", tag: "NVMe", icon: @image-url("../assets/ui/storage.svg") },
-        { category: "GRÁFICOS", value: "NVIDIA GeForce RTX 4060", subvalue: "8 GB GDDR6 dedicados", tag: "RTX", icon: @image-url("../assets/ui/gpu.svg") }
+        { category: "SISTEMA OPERATIVO", value: "Windows 11 Home", subvalue: "64-bit con licencia oficial", tag: "OFICIAL", icon: @image-url("../assets/ui/windows-11.svg") }
     ];
     in-out property <[SpecItem]> right_specs: [
+        { category: "MARCA Y MODELO", value: "ASUS ROG STRIX G16", subvalue: "Marca: ASUS • Modelo: ROG Strix G16", tag: "ASUS", icon: @image-url("../assets/ui/laptop.svg") },
         { category: "PANTALLA", value: "16\" FHD+ 165Hz IPS", subvalue: "100% sRGB, 7ms, G-Sync", tag: "165Hz", icon: @image-url("../assets/ui/screen.svg") },
-        { category: "SISTEMA OPERATIVO", value: "Windows 11 Home", subvalue: "64-bit con licencia oficial", tag: "OFICIAL", icon: @image-url("../assets/ui/windows-11.svg") },
-        { category: "BATERÍA Y CONECTIVIDAD", value: "90Wh / Wi-Fi 6E + BT 5.3", subvalue: "Carga rápida 50% en 30m", tag: "Wi-Fi 6E", icon: @image-url("../assets/ui/battery.svg") },
-        { category: "GARANTÍA", value: "1 Año Oficial", subvalue: "Soporte técnico directo de marca", tag: "OFICIAL", icon: @image-url("../assets/ui/features.svg") }
+        { category: "GRÁFICOS", value: "NVIDIA GeForce RTX 4060", subvalue: "8 GB GDDR6 dedicados", tag: "RTX", icon: @image-url("../assets/ui/gpu.svg") },
+        { category: "BATERÍA Y CONECTIVIDAD", value: "Hasta 8 horas", subvalue: "Batería de larga duración", tag: "Autonomía", icon: @image-url("../assets/ui/battery.svg") }
     ];
 
     // Modals & State
@@ -1133,8 +1133,30 @@ export component MainWindow inherits Window {
 
                     // TAB 1: ESPECIFICACIONES
                     if root.admin_tab_index == 1: VerticalLayout {
-                        spacing: 10px;
+                        spacing: 8px;
                         alignment: center;
+
+                        HorizontalLayout {
+                            spacing: 12px;
+                            VerticalLayout {
+                                spacing: 3px;
+                                Text { text: "Marca del Equipo:"; font-size: 11px; color: #cbd5e1; }
+                                LineEdit {
+                                    text: root.cfg_brand;
+                                    placeholder-text: "Ej: ASUS, Lenovo, HP";
+                                    edited => { root.cfg_brand = self.text; }
+                                }
+                            }
+                            VerticalLayout {
+                                spacing: 3px;
+                                Text { text: "Modelo del Equipo:"; font-size: 11px; color: #cbd5e1; }
+                                LineEdit {
+                                    text: root.cfg_model;
+                                    placeholder-text: "Ej: ROG Strix G16";
+                                    edited => { root.cfg_model = self.text; }
+                                }
+                            }
+                        }
 
                         HorizontalLayout {
                             spacing: 12px;
