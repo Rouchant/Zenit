@@ -56,7 +56,6 @@ impl MpvLibrary {
             std::env::current_dir().unwrap_or_else(|_| PathBuf::from(".")),
             std::env::current_exe().map(|p| p.parent().unwrap_or(Path::new(".")).to_path_buf()).unwrap_or_else(|_| PathBuf::from(".")),
             PathBuf::from("."),
-            PathBuf::from("src-tauri"),
             PathBuf::from("target/debug"),
             PathBuf::from("target/release"),
         ];

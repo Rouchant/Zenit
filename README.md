@@ -1,90 +1,92 @@
-# 💻 Zenit - Retail Showroom Kiosk Architecture
+# 💻 Zenit - Retail Showroom Kiosk (100% Rust Native)
 
-![Platform](https://img.shields.io/badge/platform-Tauri%20v2-blue.svg)
-![Language](https://img.shields.io/badge/core-Rust%20Native-orange.svg)
+![Language](https://img.shields.io/badge/core-Rust%20Native%202024-orange.svg)
+![UI](https://img.shields.io/badge/ui-Slint%20UI%201.18-blueviolet.svg)
+![Video](https://img.shields.io/badge/video-libmpv%20GPU%20Decoded-red.svg)
 ![Architecture](https://img.shields.io/badge/design-Screaming%20Architecture-brightgreen.svg)
-![UI](https://img.shields.io/badge/ui-Glassmorphism%20%26%20DPI%20Immune-cyan.svg)
+![Scale](https://img.shields.io/badge/display-DPI%20Scale%20Immune-cyan.svg)
 
-Zenit es una solución de **Showroom Kiosk Terminal** de alto rendimiento diseñada específicamente para laptops en exhibición en puntos de venta retail (Falabella, Paris, Ripley, ASUS Stores, etc.).
+Zenit es una solución de **Showroom Kiosk Terminal** de ultra alto rendimiento, compilada **100% de forma nativa en Rust** con **Slint UI** y decodificación de video por aceleración GPU mediante **`libmpv`**.
+
+Diseñada para laptops en exhibición en puntos de venta retail (Falabella, Paris, Ripley, ASUS Stores, etc.), sin necesidad de Node.js, npm, WebView2 ni navegadores web en tiempo de ejecución.
 
 ---
 
 ## 🏛️ Screaming Architecture (Estructura Orientada al Dominio)
 
-La arquitectura del proyecto **grita** su propósito comercial antes que las herramientas con las que fue construido:
+La estructura del proyecto **grita** su propósito comercial antes que las herramientas con las que fue construido:
 
-```
-src-tauri/src/
-├── main.rs                   # Entry point con inmunidad a escala y banderas Chromium
-├── lib.rs                    # Orquestador del sistema, IPC handlers y ciclo de vida Tauri
-└── domains/                  # DOMINIOS DEL NEGOCIO (Screaming Architecture)
-    ├── hardware/             # Dominio de Inspección de Hardware
-    │   └── mod.rs            # Win32/WMI directo (CPU, GPU, RAM, SSD, Batería, Hz panel)
-    │
-    ├── showcase/             # Dominio de Vitrina y Presentación Comercial
-    │   ├── state.rs          # Agregador de estado de UI y normalización de specs
-    │   ├── config.rs         # Persistencia en %APPDATA%/Zenit/config.json y credenciales
-    │   └── mod.rs            # Exportación pública del dominio vitrina
-    │
-    ├── kiosk/                # Dominio de Kiosco y Protección de Vitrina
-    │   ├── inactivity.rs     # Watcher nativo Win32 (GetLastInputInfo) con cero overhead JS
-    │   └── mod.rs            # Salvapantallas, Modo Prueba PC y auto-restauración (120s)
-    │
-    └── media/                # Dominio de Contenido Multimedia
-        ├── vault.rs          # Baúl Seguro de Videos (%APPDATA%/Zenit/vault)
-        └── mod.rs            # Aislamiento contra borrados accidentales de usuarios
-```
-
----
-
-## 🖥️ Capa de Presentación ("Front Tonto, Rust Inteligente")
-
-El frontend reside en `public/` y es consumido directamente por Tauri v2 sin servidores Node ni bundlers pesados en tiempo de ejecución:
-
-```
-public/
-├── index.html                # Cuadrícula de 3 columnas (Specs + Hero Video + Precios/CTA)
-├── return.html               # Botón flotante siempre visible en "Modo Prueba de PC"
-├── css/
-│   └── glassmorphism.css     # Design System Glassmorphism con ambient glow e inmunidad DPI
-└── js/
-    └── app.js                # Cliente ligero: renderizado de estado y conexión IPC
+```text
+Zenit/
+├── Cargo.toml               # Manifiesto puro de Rust (Slint, libloading, chrono, windows-sys)
+├── build.rs                 # Compilación Slint nativa (slint_build::compile)
+├── libmpv-2.dll             # Biblioteca nativa de decodificación de video por GPU
+├── assets/                  # Videos MP4 de exhibición, logos vectoriales e iconos
+│   ├── videos/              # landing.mp4, promo.mp4, bg.mp4
+│   └── logos/               # Logos oficiales de fabricantes y retail
+├── icons/                   # Iconos nativos (.ico, .png)
+├── ui/
+│   └── app.slint            # Definición de interfaz declarativa Slint moderna (3 columnas)
+├── src/
+│   ├── main.rs              # Punto de entrada binario nativo (zenit_showroom::run)
+│   ├── lib.rs               # Bucle de eventos, enlace de datos Slint y watcher de inactividad
+│   └── domains/             # DOMINIOS DEL NEGOCIO (Screaming Architecture)
+│       ├── hardware/        # Dominio de Inspección de Hardware
+│       │   └── mod.rs       # Win32/WMI directo (CPU, GPU, RAM, SSD, Batería, Hz panel)
+│       │
+│       ├── showcase/        # Dominio de Vitrina y Presentación Comercial
+│       │   ├── state.rs     # Agregador de estado de UI y normalización de specs
+│       │   ├── config.rs    # Persistencia en %APPDATA%/Zenit/config.json y credenciales
+│       │   └── mod.rs       # Exportación pública del dominio vitrina
+│       │
+│       ├── kiosk/           # Dominio de Kiosco y Protección de Vitrina
+│       │   ├── inactivity.rs# Watcher nativo Win32 (GetLastInputInfo) con cero overhead
+│       │   └── mod.rs       # Salvapantallas, Modo Prueba PC y auto-restauración (120s)
+│       │
+│       └── media/           # Dominio de Contenido Multimedia
+│           ├── mpv.rs       # Controlador libmpv + Slint SharedPixelBuffer GPU rendering
+│           ├── vault.rs     # Baúl Seguro de Videos (%APPDATA%/Zenit/vault)
+│           └── mod.rs       # Aislamiento contra borrados accidentales de usuarios
+└── scripts/
+    └── download-mpv.ps1     # Script de utilidad para libmpv
 ```
 
 ---
 
 ## 🛡️ Capacidades del Sistema
 
-### 1. Inmunidad a Escala de Windows (DPI Scale Immunity)
-- Neutralización automática de escalas 125%, 150%, 175% y 200%.
-- Bloqueo de zoom por rueda (`Ctrl + Wheel`), gestos multitáctiles (pellizco) y atajos de teclado (`Ctrl +/-/0`).
+### 1. 100% Rust Native & Slint UI
+- Cero dependencias de navegadores web, Chromium ni WebView2.
+- Arranque instantáneo (menos de 500 ms) y consumo de memoria inferior a 40 MB.
 
-### 2. Asistente de Configuración Rápida (Primer Inicio)
+### 2. Decodificación de Video por GPU (`libmpv`)
+- Decodificación por hardware (NVDEC, QuickSync, D3D11VA, AMF) sin saturar el CPU.
+- Renderizado directo en fotogramas de Slint (`SharedPixelBuffer<Rgba8Pixel>`) con bucle infinito suave.
+- Fallback visual automático elegante si la DLL de mpv aún no ha sido descargada.
+
+### 3. Asistente de Configuración Rápida (Primer Inicio)
 - Detección automática en el primer arranque (`setup_completed: false`).
 - Permite configurar en menos de 1 minuto: marca y modelo auto-detectados, precios con tarjeta y efectivo, SKU, video central y tienda retail.
 
-### 3. Modo "Prueba esta PC" y Retorno Automático
-- Al hacer clic en "Prueba esta PC", Zenit se minimiza y deja una pequeña barra flotante translúcida en el borde derecho: *"Ver detalles / Volver a Vitrina"*.
-- Si el usuario abandona el equipo por más de 120 segundos sin actividad, Zenit se restaura automáticamente a pantalla completa.
+### 4. Modo "Prueba esta PC" y Retorno Automático
+- Al hacer clic en "PROBAR ESTA PC", Zenit minimiza la ventana para permitir explorar el equipo libremente.
+- Si el usuario abandona el equipo por más de 120 segundos sin actividad, Zenit se restaura automáticamente.
 
-### 4. Baúl Seguro de Videos (Video Vault)
-- Los videos importados se copian y protegen en `%APPDATA%\Zenit\vault\` aislándolos de la carpeta de descargas o temporales.
-
-### 5. Atajos de Emergencia
-- `Ctrl + Shift + Alt + Z`: Cierre forzado de emergencia.
-- `Ctrl + Shift + Alt + R`: Reinicio automático de la aplicación.
+### 5. Atajos de Emergencia y Mantenimiento
 - `4 toques en esquina superior derecha`: Acceso al Panel de Administración protegido por contraseña (`demo` / `z3n1t`).
+- Opciones de salida inmediata a Windows y reinicio de la aplicación desde el panel de control.
 
 ---
 
 ## 🚀 Comandos Rápidos
 
-```bash
-# Desarrollo con recarga automática
-npm run dev
-# o directamente con Tauri
-cargo tauri dev
+```powershell
+# Ejecutar la aplicación en modo desarrollo
+cargo run
 
-# Compilar ejecutable binario de producción
-cargo tauri build
+# Ejecutar las pruebas unitarias de todos los dominios (15 tests)
+cargo test --lib
+
+# Compilar ejecutable binario de producción optimizado
+cargo build --release
 ```

@@ -48,5 +48,5 @@ try {
 } catch {
     Write-Host "Nota: Puedes descargar manualmente 'mpv-dev-x86_64.7z' o 'mpv-2.dll' desde:" -ForegroundColor Yellow
     Write-Host "https://sourceforge.net/projects/mpv-player-windows/files/libmpv/" -ForegroundColor Cyan
-    Write-Host "Y colocar 'mpv-2.dll' en la carpeta 'src-tauri\' o 'target\debug\'." -ForegroundColor White
+    Write-Host "Y colocar 'mpv-2.dll' en la carpeta raíz del proyecto o en 'target\debug\'." -ForegroundColor White
 }
