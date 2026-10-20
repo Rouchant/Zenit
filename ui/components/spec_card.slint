@@ -58,21 +58,29 @@ export component SpecCard inherits Rectangle {
                 }
             }
 
-            if root.tag != "": Rectangle {
-                background: #0369a140;
-                border-radius: 6px;
-                border-width: 1px;
-                border-color: #38bdf840;
-                HorizontalLayout {
-                    padding-left: 6px;
-                    padding-right: 6px;
-                    padding-top: 2px;
-                    padding-bottom: 2px;
-                    Text {
-                        text: root.tag;
-                        font-size: 10px;
-                        font-weight: 700;
-                        color: #38bdf8;
+            if root.tag != "": VerticalLayout {
+                alignment: center;
+
+                Rectangle {
+                    height: 20px;
+                    background: #0369a140;
+                    border-radius: 6px;
+                    border-width: 1px;
+                    border-color: #38bdf840;
+
+                    HorizontalLayout {
+                        padding-left: 8px;
+                        padding-right: 8px;
+                        alignment: center;
+
+                        Text {
+                            text: root.tag;
+                            font-size: 10px;
+                            font-weight: 700;
+                            color: #38bdf8;
+                            vertical-alignment: center;
+                            horizontal-alignment: center;
+                        }
                     }
                 }
             }
