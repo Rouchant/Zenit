@@ -101,11 +101,11 @@ export component AdminView inherits Rectangle {
                         }
 
                         Image {
+                            x: (parent.width - self.width) / 2;
+                            y: (parent.height - self.height) / 2;
                             width: 16px;
                             height: 16px;
                             source: @image-url("../../assets/ui/close.svg");
-                            horizontal-alignment: center;
-                            vertical-alignment: center;
                         }
                     }
                 }
@@ -214,11 +214,11 @@ export component AdminView inherits Rectangle {
                         }
 
                         Image {
+                            x: (parent.width - self.width) / 2;
+                            y: (parent.height - self.height) / 2;
                             width: 16px;
                             height: 16px;
                             source: @image-url("../../assets/ui/close.svg");
-                            horizontal-alignment: center;
-                            vertical-alignment: center;
                         }
                     }
                 }
@@ -398,12 +398,14 @@ export component AdminView inherits Rectangle {
                                 HorizontalLayout {
                                     alignment: center;
                                     spacing: 8px;
-                                    Image {
-                                        source: @image-url("../../assets/ui/reset.svg");
-                                        width: 14px;
-                                        height: 14px;
-                                        colorize: #38bdf8;
-                                        vertical-alignment: center;
+                                    VerticalLayout {
+                                        alignment: center;
+                                        Image {
+                                            source: @image-url("../../assets/ui/reset.svg");
+                                            width: 14px;
+                                            height: 14px;
+                                            colorize: #38bdf8;
+                                        }
                                     }
                                     Text { text: "Valores por defecto"; font-size: 12px; font-weight: 600; color: #f1f5f9; vertical-alignment: center; }
                                 }
@@ -552,12 +554,14 @@ export component AdminView inherits Rectangle {
                                 HorizontalLayout {
                                     alignment: center;
                                     spacing: 8px;
-                                    Image {
-                                        source: @image-url("../../assets/ui/reset.svg");
-                                        width: 14px;
-                                        height: 14px;
-                                        colorize: #38bdf8;
-                                        vertical-alignment: center;
+                                    VerticalLayout {
+                                        alignment: center;
+                                        Image {
+                                            source: @image-url("../../assets/ui/reset.svg");
+                                            width: 14px;
+                                            height: 14px;
+                                            colorize: #38bdf8;
+                                        }
                                     }
                                     Text { text: "Valores por defecto"; font-size: 12px; font-weight: 600; color: #f1f5f9; vertical-alignment: center; }
                                 }
@@ -813,12 +817,14 @@ export component AdminView inherits Rectangle {
                                     HorizontalLayout {
                                         alignment: center;
                                         spacing: 6px;
-                                        Image {
-                                            source: @image-url("../../assets/ui/reset.svg");
-                                            width: 14px;
-                                            height: 14px;
-                                            colorize: #38bdf8;
-                                            vertical-alignment: center;
+                                        VerticalLayout {
+                                            alignment: center;
+                                            Image {
+                                                source: @image-url("../../assets/ui/reset.svg");
+                                                width: 14px;
+                                                height: 14px;
+                                                colorize: #38bdf8;
+                                            }
                                         }
                                         Text { text: "Valores por defecto"; font-size: 12px; font-weight: 600; color: #f1f5f9; vertical-alignment: center; }
                                     }
@@ -1035,12 +1041,14 @@ export component AdminView inherits Rectangle {
                             HorizontalLayout {
                                 alignment: center;
                                 spacing: 8px;
-                                Image {
-                                    source: @image-url("../../assets/ui/reset.svg");
-                                    width: 16px;
-                                    height: 16px;
-                                    colorize: #38bdf8;
-                                    vertical-alignment: center;
+                                VerticalLayout {
+                                    alignment: center;
+                                    Image {
+                                        source: @image-url("../../assets/ui/reset.svg");
+                                        width: 16px;
+                                        height: 16px;
+                                        colorize: #38bdf8;
+                                    }
                                 }
                                 Text { text: "Valores por defecto (Restablecer Todo a Fábrica)"; font-size: 14px; font-weight: 700; color: #f1f5f9; vertical-alignment: center; }
                             }

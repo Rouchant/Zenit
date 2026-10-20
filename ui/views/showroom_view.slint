@@ -423,11 +423,13 @@ export component ShowroomView inherits Rectangle {
                                     spacing: 14px;
 
                                     // Store Logo or Name Badge
-                                    if root.store_logo.width > 0: Image {
-                                        source: root.store_logo;
-                                        height: 32px;
-                                        image-fit: contain;
-                                        vertical-alignment: center;
+                                    if root.store_logo.width > 0: VerticalLayout {
+                                        alignment: center;
+                                        Image {
+                                            source: root.store_logo;
+                                            height: 32px;
+                                            image-fit: contain;
+                                        }
                                     }
                                     if root.store_logo.width <= 0 && root.retail_name != "": VerticalLayout {
                                         alignment: center;
