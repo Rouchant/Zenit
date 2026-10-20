@@ -1,0 +1,36 @@
+[package]
+name = "zenit-showroom"
+version = "1.0.0"
+description = "Zenit PC Showroom - 100% Rust Native with Slint UI & libmpv"
+authors = ["Zenit"]
+edition = "2024"
+rust-version = "1.90"
+
+[lib]
+name = "zenit_showroom"
+path = "src/lib.rs"
+
+[[bin]]
+name = "zenit-showroom"
+path = "src/main.rs"
+
+[build-dependencies]
+slint-build = "1.18.1"
+
+[dependencies]
+slint = "1.18.1"
+chrono = "0.4"
+libloading = "0.8"
+serde = { version = "1.0", features = ["derive"] }
+serde_json = "1.0"
+log = "0.4"
+sysinfo = "0.33"
+windows-sys = { version = "0.59", features = [
+    "Win32_Graphics_Gdi",
+    "Win32_System_Power",
+    "Win32_System_SystemInformation",
+    "Win32_System_Registry",
+    "Win32_UI_WindowsAndMessaging",
+    "Win32_UI_Input_KeyboardAndMouse",
+    "Win32_Foundation"
+] }

@@ -5,8 +5,8 @@ Write-Host "=========================================" -ForegroundColor Cyan
 Write-Host "  Zenit Showroom - Descargador de libmpv" -ForegroundColor Cyan
 Write-Host "=========================================" -ForegroundColor Cyan
 
-$destDir = "$PSScriptRoot\..\src-tauri"
-$targetDebugDir = "$PSScriptRoot\..\src-tauri\target\debug"
+$destDir = "$PSScriptRoot\.."
+$targetDebugDir = "$PSScriptRoot\..\target\debug"
 
 if (-not (Test-Path $destDir)) {
     New-Item -ItemType Directory -Path $destDir -Force | Out-Null
