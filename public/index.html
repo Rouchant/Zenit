@@ -98,6 +98,121 @@
       </div>
     </div>
 
+    <!-- Quick Setup Wizard Modal (Primer Inicio) -->
+    <div id="quickSetupModal" class="modal-backdrop">
+      <div class="glass-modal-card setup-wizard-dialog">
+        <!-- Wizard Header -->
+        <div class="wizard-header">
+          <div class="wizard-icon-box">
+            <svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+              <polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"/>
+            </svg>
+          </div>
+          <div>
+            <h2>Configuración Rápida de Vitrina</h2>
+            <p>Configura este equipo en 1 minuto para dejarlo listo en la tienda.</p>
+          </div>
+        </div>
+
+        <div class="wizard-body">
+          <!-- Step 1: Modelo y Marca -->
+          <div class="wizard-section">
+            <div class="wizard-section-title">
+              <span class="wizard-step-num">1</span>
+              <span>Identificación del Equipo</span>
+              <button class="btn-glass btn-sm" onclick="autoDetectQuickSetup()">⚡ Auto-detectar</button>
+            </div>
+            <div class="wizard-grid-2">
+              <div>
+                <label style="font-size: 0.78rem; color: var(--text-muted);">Marca</label>
+                <input id="setup_brand" type="text" class="glass-input-sm" placeholder="Ej: ASUS, HP, Lenovo...">
+              </div>
+              <div>
+                <label style="font-size: 0.78rem; color: var(--text-muted);">Modelo del Laptop</label>
+                <input id="setup_model" type="text" class="glass-input-sm" placeholder="Ej: Zenbook 14 OLED / Pavilion...">
+              </div>
+            </div>
+          </div>
+
+          <!-- Step 2: Precios y SKU -->
+          <div class="wizard-section">
+            <div class="wizard-section-title">
+              <span class="wizard-step-num">2</span>
+              <span>Precios y SKU (Opcionales)</span>
+            </div>
+            <div class="wizard-grid-3">
+              <div>
+                <label style="font-size: 0.78rem; color: var(--text-muted);">Precio Tarjeta</label>
+                <input id="setup_price_card" type="text" class="glass-input-sm" placeholder="Ej: $599.990">
+              </div>
+              <div>
+                <label style="font-size: 0.78rem; color: var(--text-muted);">Todo Medio de Pago</label>
+                <input id="setup_price_all" type="text" class="glass-input-sm" placeholder="Ej: $649.990">
+              </div>
+              <div>
+                <label style="font-size: 0.78rem; color: var(--text-muted);">Código SKU</label>
+                <input id="setup_sku" type="text" class="glass-input-sm" placeholder="Ej: SKU-892184">
+              </div>
+            </div>
+          </div>
+
+          <!-- Step 3: Video Central y Tienda -->
+          <div class="wizard-section">
+            <div class="wizard-section-title">
+              <span class="wizard-step-num">3</span>
+              <span>Video Central & Tienda</span>
+            </div>
+            <div class="wizard-grid-2">
+              <div>
+                <label style="font-size: 0.78rem; color: var(--text-muted);">Video Central de Vitrina</label>
+                <div style="display: flex; gap: 6px;">
+                  <input id="setup_central_video" type="text" class="glass-input-sm" placeholder="Ruta del video o default" value="assets/videos/landing.mp4">
+                  <button class="btn-glass btn-sm" onclick="browseQuickSetupVideo()">Examinar...</button>
+                </div>
+              </div>
+              <div>
+                <label style="font-size: 0.78rem; color: var(--text-muted);">Logo de Tienda (Retail)</label>
+                <select id="setup_store" class="glass-input-sm" style="text-align: left; background: #0b1120;">
+                  <option value="default">Sin tienda específica</option>
+                  <option value="falabella">Falabella</option>
+                  <option value="paris">Paris</option>
+                  <option value="ripley">Ripley</option>
+                </select>
+              </div>
+            </div>
+          </div>
+
+          <!-- Step 4: Color Temático Rápido -->
+          <div class="wizard-section">
+            <div class="wizard-section-title">
+              <span class="wizard-step-num">4</span>
+              <span>Color de Vitrina</span>
+            </div>
+            <div class="wizard-color-presets">
+              <button type="button" class="wizard-color-btn active" data-color="#00f2ff" onclick="selectWizardColor('#00f2ff', '#0072ff', '#00e5ff', this)">
+                <span class="color-dot" style="background: #00f2ff;"></span> Cyber Cyan
+              </button>
+              <button type="button" class="wizard-color-btn" data-color="#a855f7" onclick="selectWizardColor('#a855f7', '#6366f1', '#ec4899', this)">
+                <span class="color-dot" style="background: #a855f7;"></span> Neon Violet
+              </button>
+              <button type="button" class="wizard-color-btn" data-color="#10b981" onclick="selectWizardColor('#10b981', '#059669', '#34d399', this)">
+                <span class="color-dot" style="background: #10b981;"></span> ROG Emerald
+              </button>
+              <button type="button" class="wizard-color-btn" data-color="#f59e0b" onclick="selectWizardColor('#f59e0b', '#d97706', '#fbbf24', this)">
+                <span class="color-dot" style="background: #f59e0b;"></span> Sunset Gold
+              </button>
+            </div>
+          </div>
+        </div>
+
+        <!-- Wizard Footer -->
+        <div class="wizard-footer">
+          <button class="btn-glass" onclick="skipQuickSetup()">Omitir y Usar Predeterminados</button>
+          <button class="btn-glass btn-primary" onclick="submitQuickSetup()">🚀 Finalizar y Activar Vitrina</button>
+        </div>
+      </div>
+    </div>
+
     <!-- Password Modal -->
     <div id="passwordModal" class="modal-backdrop">
       <div class="glass-modal-card password-dialog">
@@ -117,10 +232,13 @@
       <div class="glass-modal-card admin-dialog">
         <div class="admin-header">
           <div>
-            <div style="font-size: 0.7rem; font-weight: 800; letter-spacing: 2px; color: var(--primary); text-transform: uppercase;">ZENIT NATIVE</div>
+            <div style="font-size: 0.7rem; font-weight: 800; letter-spacing: 2px; color: var(--primary); text-transform: uppercase;">PANEL DE CONTROL</div>
             <h2 style="font-size: 1.3rem;">Configuración de Vitrina</h2>
           </div>
-          <button style="background: transparent; border: none; color: #fff; font-size: 1.8rem; cursor: pointer;" onclick="closeAdminModal()">&times;</button>
+          <div style="display: flex; align-items: center; gap: 12px;">
+            <button class="btn-glass btn-sm" onclick="closeAdminModal(); openQuickSetup();">⚡ Asistente Rápido</button>
+            <button style="background: transparent; border: none; color: #fff; font-size: 1.8rem; cursor: pointer; line-height: 1;" onclick="closeAdminModal()">&times;</button>
+          </div>
         </div>
 
         <div class="admin-tabs">

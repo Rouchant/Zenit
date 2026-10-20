@@ -200,6 +200,119 @@ function setScreensaver(active) {
   }
 }
 
+// Quick Setup Wizard (Primer Inicio)
+let wizardColors = {
+  primary: '#00f2ff',
+  secondary: '#0072ff',
+  accent: '#00e5ff'
+};
+
+window.openQuickSetup = async function() {
+  const modal = document.getElementById('quickSetupModal');
+  if (!modal) return;
+
+  const cfg = await invoke('get_app_config');
+  currentConfig = cfg;
+  const rawHw = await invoke('get_raw_hardware_specs');
+  rawHardware = rawHw;
+
+  if (cfg) {
+    setVal('setup_brand', cfg.brand_override || (rawHw ? rawHw.brand : ''));
+    setVal('setup_model', cfg.model_override || (rawHw ? rawHw.model : ''));
+    setVal('setup_price_card', cfg.price_card || '');
+    setVal('setup_price_all', cfg.price_all_methods || '');
+    setVal('setup_sku', cfg.sku || '');
+    setVal('setup_central_video', cfg.central_video_path || 'assets/videos/landing.mp4');
+    setVal('setup_store', cfg.store_theme || 'default');
+
+    wizardColors.primary = cfg.primary_color || '#00f2ff';
+    wizardColors.secondary = cfg.secondary_color || '#0072ff';
+    wizardColors.accent = cfg.accent_color || '#00e5ff';
+  }
+
+  modal.classList.add('active');
+};
+
+window.closeQuickSetup = function() {
+  const modal = document.getElementById('quickSetupModal');
+  if (modal) modal.classList.remove('active');
+};
+
+window.autoDetectQuickSetup = async function() {
+  const rawHw = await invoke('get_raw_hardware_specs');
+  if (rawHw) {
+    setVal('setup_brand', rawHw.brand || '');
+    setVal('setup_model', rawHw.model || '');
+    showToast(`⚡ Detectado: ${rawHw.brand} ${rawHw.model}`);
+  }
+};
+
+window.browseQuickSetupVideo = async function() {
+  try {
+    if (window.__TAURI__ && window.__TAURI__.dialog) {
+      const selected = await window.__TAURI__.dialog.open({
+        multiple: false,
+        filters: [{ name: 'Videos', extensions: ['mp4', 'webm', 'mov', 'mkv'] }]
+      });
+      if (selected) {
+        showToast('⏳ Importando video al baúl...');
+        const vaultRes = await invoke('import_video', { sourcePath: selected });
+        if (vaultRes) {
+          setVal('setup_central_video', vaultRes.path);
+          showToast('✓ Video listo para vitrina');
+        }
+      }
+    }
+  } catch (e) {
+    console.error("Quick setup dialog error:", e);
+  }
+};
+
+window.selectWizardColor = function(prim, sec, acc, btnEl) {
+  wizardColors.primary = prim;
+  wizardColors.secondary = sec;
+  wizardColors.accent = acc;
+
+  document.querySelectorAll('.wizard-color-btn').forEach(b => b.classList.remove('active'));
+  if (btnEl) btnEl.classList.add('active');
+
+  const root = document.documentElement;
+  root.style.setProperty('--primary', prim);
+  root.style.setProperty('--secondary', sec);
+  root.style.setProperty('--accent', acc);
+};
+
+window.submitQuickSetup = async function() {
+  if (!currentConfig) currentConfig = await invoke('get_app_config') || {};
+
+  const updatedConfig = {
+    ...currentConfig,
+    brand_override: getVal('setup_brand') || null,
+    model_override: getVal('setup_model') || null,
+    price_card: getVal('setup_price_card') || '',
+    price_all_methods: getVal('setup_price_all') || '',
+    sku: getVal('setup_sku') || '',
+    central_video_path: getVal('setup_central_video') || 'assets/videos/landing.mp4',
+    store_theme: getVal('setup_store') || 'default',
+    primary_color: wizardColors.primary,
+    secondary_color: wizardColors.secondary,
+    accent_color: wizardColors.accent,
+    setup_completed: true,
+  };
+
+  await invoke('complete_quick_setup', { config: updatedConfig });
+  closeQuickSetup();
+  showToast('🚀 Vitrina configurada y activada con éxito');
+};
+
+window.skipQuickSetup = async function() {
+  if (!currentConfig) currentConfig = await invoke('get_app_config') || {};
+  currentConfig.setup_completed = true;
+  await invoke('complete_quick_setup', { config: currentConfig });
+  closeQuickSetup();
+  showToast('✓ Vitrina iniciada con valores predeterminados');
+};
+
 // Global Actions
 window.tryPc = async function() {
   await invoke('try_pc_minimize');
@@ -560,7 +673,12 @@ window.addEventListener('DOMContentLoaded', async () => {
 
   // Load initial UI state from Rust
   const state = await invoke('get_zenit_ui_state');
-  if (state) renderUI(state);
+  if (state) {
+    renderUI(state);
+    if (state.is_first_run) {
+      setTimeout(() => openQuickSetup(), 250);
+    }
+  }
 
   // Listen to events from Rust
   try {

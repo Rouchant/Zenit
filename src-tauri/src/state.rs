@@ -36,6 +36,7 @@ pub struct ZenitUiState {
     pub has_pricing: bool,
     pub colors: ThemeColors,
     pub inactivity_timeout_sec: u64,
+    pub is_first_run: bool,
 }
 
 pub fn build_ui_state() -> ZenitUiState {
@@ -228,5 +229,6 @@ pub fn build_ui_state() -> ZenitUiState {
             bg_gradient: cfg.bg_gradient,
         },
         inactivity_timeout_sec: cfg.inactivity_timeout_sec,
+        is_first_run: !cfg.setup_completed,
     }
 }

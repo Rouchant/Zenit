@@ -33,6 +33,10 @@ pub struct AppConfig {
     pub bg_video_path: String,
     pub inactivity_video_path: String,
     pub inactivity_timeout_sec: u64,
+
+    // First Run Setup
+    #[serde(default)]
+    pub setup_completed: bool,
 }
 
 impl Default for AppConfig {
@@ -63,6 +67,8 @@ impl Default for AppConfig {
             bg_video_path: "assets/images/fallback-bg/bg.mp4".to_string(),
             inactivity_video_path: "assets/videos/promo.mp4".to_string(),
             inactivity_timeout_sec: 120,
+
+            setup_completed: false,
         }
     }
 }

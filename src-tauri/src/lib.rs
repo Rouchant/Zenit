@@ -96,6 +96,15 @@ fn save_app_config(app: AppHandle, config: AppConfig) -> Result<(), String> {
 }
 
 #[tauri::command]
+fn complete_quick_setup(app: AppHandle, mut config: AppConfig) -> Result<(), String> {
+    config.setup_completed = true;
+    save_config(&config)?;
+    let new_state = build_ui_state();
+    let _ = app.emit("zenit://state-changed", new_state);
+    Ok(())
+}
+
+#[tauri::command]
 fn check_admin_password(password: String) -> bool {
     verify_password(&password)
 }
@@ -250,6 +259,7 @@ pub fn run() {
             get_raw_hardware_specs,
             get_app_config,
             save_app_config,
+            complete_quick_setup,
             check_admin_password,
             try_pc_minimize,
             restore_main_window,
