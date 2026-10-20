@@ -72,10 +72,32 @@ pub fn build_ui_state() -> ZenitUiState {
         let b = battery.trim();
         if !b.is_empty() {
             if let Ok(num) = b.parse::<f32>() {
-                specs.battery = format!("Hasta {} horas", num);
+                if num >= 20.0 {
+                    specs.battery = format!("Batería {} Wh", num.round() as u64);
+                } else {
+                    specs.battery = format!("Hasta {} horas", num);
+                }
+            } else if b.to_lowercase().contains("wh") {
+                if b.to_lowercase().starts_with("bater") {
+                    specs.battery = b.to_string();
+                } else {
+                    specs.battery = format!("Batería {}", b);
+                }
             } else if b.chars().all(|c| c.is_ascii_digit() || c == '.' || c == ',') {
-                specs.battery = format!("Hasta {} horas", b);
-            } else if !b.to_lowercase().contains("hora") && !b.to_lowercase().contains("hrs") && !b.to_lowercase().contains("h") {
+                if let Ok(num) = b.replace(',', ".").parse::<f32>() {
+                    if num >= 20.0 {
+                        specs.battery = format!("Batería {} Wh", num.round() as u64);
+                    } else {
+                        specs.battery = format!("Hasta {} horas", num);
+                    }
+                } else {
+                    specs.battery = format!("Hasta {} horas", b);
+                }
+            } else if !b.to_lowercase().contains("hora")
+                && !b.to_lowercase().contains("hrs")
+                && !b.to_lowercase().contains("h")
+                && !b.to_lowercase().contains("bater")
+            {
                 specs.battery = format!("Hasta {} horas", b);
             } else {
                 specs.battery = b.to_string();
@@ -161,7 +183,9 @@ pub fn build_ui_state() -> ZenitUiState {
         specs.brand.clone()
     };
 
-    let battery_tag = if specs.battery.to_lowercase().contains("hora") {
+    let battery_tag = if specs.battery.to_lowercase().contains("wh") {
+        Some("Autonomía".to_string())
+    } else if specs.battery.to_lowercase().contains("hora") {
         Some("Autonomía".to_string())
     } else if specs.is_charging {
         Some("Cargando".to_string())
@@ -316,6 +340,6 @@ mod tests {
         assert_eq!(model_card.label, "Marca y Modelo");
         assert!(!model_card.value.is_empty());
         assert!(!battery_card.value.is_empty());
-        assert!(battery_card.value.to_lowercase().contains("hora"));
+        assert!(battery_card.value.to_lowercase().contains("hora") || battery_card.value.to_lowercase().contains("wh"));
     }
 }

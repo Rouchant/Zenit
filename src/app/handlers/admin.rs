@@ -164,12 +164,31 @@ pub fn setup_admin_handlers(
                 if !battery.trim().is_empty() {
                     let b = battery.trim();
                     let formatted = if let Ok(num) = b.parse::<f32>() {
-                        format!("Hasta {} horas", num)
+                        if num >= 20.0 {
+                            format!("Batería {} Wh", num.round() as u64)
+                        } else {
+                            format!("Hasta {} horas", num)
+                        }
+                    } else if b.to_lowercase().contains("wh") {
+                        if b.to_lowercase().starts_with("bater") {
+                            b.to_string()
+                        } else {
+                            format!("Batería {}", b)
+                        }
                     } else if b.chars().all(|c| c.is_ascii_digit() || c == '.' || c == ',') {
-                        format!("Hasta {} horas", b)
+                        if let Ok(num) = b.replace(',', ".").parse::<f32>() {
+                            if num >= 20.0 {
+                                format!("Batería {} Wh", num.round() as u64)
+                            } else {
+                                format!("Hasta {} horas", num)
+                            }
+                        } else {
+                            format!("Batería {}", b)
+                        }
                     } else if !b.to_lowercase().contains("hora")
                         && !b.to_lowercase().contains("hrs")
                         && !b.to_lowercase().contains("h")
+                        && !b.to_lowercase().contains("bater")
                     {
                         format!("Hasta {} horas", b)
                     } else {
