@@ -208,6 +208,16 @@ pub fn build_ui_state() -> ZenitUiState {
         None
     };
 
+    let others_text = if !cfg.other_specs.trim().is_empty()
+        && cfg.other_specs != "Wi-Fi 6 / Bluetooth 5.3 / Teclado en Español"
+    {
+        cfg.other_specs.clone()
+    } else if !specs.others.trim().is_empty() {
+        specs.others.clone()
+    } else {
+        cfg.other_specs.clone()
+    };
+
     let mut right_specs = vec![
         DisplaySpecCard {
             id: "card-model".to_string(),
@@ -235,20 +245,20 @@ pub fn build_ui_state() -> ZenitUiState {
         },
         DisplaySpecCard {
             id: "card-battery".to_string(),
-            label: "Batería".to_string(),
+            label: "Batería y Conectividad".to_string(),
             value: specs.battery.clone(),
-            sub_value: Some("Batería de larga duración".to_string()),
+            sub_value: Some(others_text.clone()),
             tag: battery_tag,
             icon: "assets/ui/battery.svg".to_string(),
         },
     ];
 
     // Campo "Otros"
-    if !cfg.other_specs.trim().is_empty() {
+    if !others_text.trim().is_empty() {
         right_specs.push(DisplaySpecCard {
             id: "card-others".to_string(),
             label: "Otros".to_string(),
-            value: cfg.other_specs.clone(),
+            value: others_text,
             sub_value: None,
             tag: None,
             icon: "assets/ui/features.svg".to_string(),

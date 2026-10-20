@@ -87,6 +87,9 @@ pub fn setup_admin_handlers(
             } else {
                 ui.set_cfg_battery(hw.battery.into());
             }
+            if !hw.others.is_empty() {
+                ui.set_cfg_others(hw.others.into());
+            }
         }
     });
 
@@ -322,7 +325,12 @@ pub fn setup_admin_handlers(
             } else {
                 "Hasta 8 horas".into()
             });
-            ui.set_cfg_others("Wi-Fi 6 / Bluetooth 5.3 / Teclado en Español".into());
+            let others_val = if !hw.others.is_empty() {
+                hw.others.clone()
+            } else {
+                "Wi-Fi 6 / Bluetooth 5.3 / Teclado en Español".to_string()
+            };
+            ui.set_cfg_others(others_val.into());
         }
     });
 

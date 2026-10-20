@@ -216,8 +216,14 @@ pub fn populate_ui_state(window: &MainWindow) {
     });
     window.set_cfg_battery(battery_val.into());
 
-    let others_val = if cfg.other_specs.trim().is_empty() {
-        "Wi-Fi 6 / Bluetooth 5.3 / Teclado en Español".to_string()
+    let others_val = if cfg.other_specs.trim().is_empty()
+        || cfg.other_specs == "Wi-Fi 6 / Bluetooth 5.3 / Teclado en Español"
+    {
+        if !hw.others.is_empty() {
+            hw.others.clone()
+        } else {
+            cfg.other_specs.clone()
+        }
     } else {
         cfg.other_specs.clone()
     };
