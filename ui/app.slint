@@ -282,35 +282,40 @@ export component MainWindow inherits Window {
     callback pick_inactivity_2_clicked();
     callback pick_inactivity_3_clicked();
 
-    // Root Fullscreen Showroom Surface
+    // Root Fullscreen Showroom Surface with High-Tech Dark Gradient
     Rectangle {
         width: 100%;
         height: 100%;
-        background: #070a13;
+        background: @linear-gradient(155deg, #050811 0%, #0a1224 35%, #070e1c 70%, #03050a 100%);
 
-        // Fullscreen Background Video Stream (bg.mp4)
-        if root.has_bg_video: Image {
-            width: 100%;
-            height: 100%;
-            source: root.bg_video_frame;
-            image-fit: cover;
+        // Top-Left Ambient Cyan Aura
+        Rectangle {
+            width: 700px;
+            height: 700px;
+            x: -200px;
+            y: -200px;
+            border-radius: 350px;
+            background: @linear-gradient(135deg, #0284c71e 0%, #00000000 75%);
         }
 
-        // Tint overlay so specs cards, text and central video stay crisp & legible
-        if root.has_bg_video: Rectangle {
-            width: 100%;
-            height: 100%;
-            background: #070a13d9;
-        }
-
-        // Background Ambient Glow Gradients
+        // Bottom-Right Ambient Azure Aura
         Rectangle {
             width: 800px;
             height: 800px;
+            x: parent.width - 500px;
+            y: parent.height - 450px;
+            border-radius: 400px;
+            background: @linear-gradient(315deg, #38bdf818 0%, #00000000 75%);
+        }
+
+        // Center Ambient Depth Aura behind Showcase Cards and Central Video
+        Rectangle {
+            width: 960px;
+            height: 700px;
             x: (parent.width - self.width) / 2;
             y: (parent.height - self.height) / 2;
-            border-radius: 400px;
-            background: #0284c710;
+            border-radius: 350px;
+            background: @linear-gradient(180deg, #0284c70d 0%, #00000000 85%);
         }
 
         // MAIN CONTENT

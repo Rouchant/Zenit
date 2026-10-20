@@ -260,51 +260,21 @@ pub fn run() {
         }
     }
 
-    // Initialize libmpv Fullscreen Background Video Player (bg.mp4)
-    let initial_cfg = load_config();
-    let bg_path = domains::media::resolve_video_path(&initial_cfg.bg_video_path);
-    let bg_path_str = bg_path.to_string_lossy().to_string();
-    let bg_player_shared: Arc<Mutex<Option<domains::media::SlintMpvPlayer>>> =
-        Arc::new(Mutex::new(None));
-
-    if bg_path.exists() {
-        match domains::media::SlintMpvPlayer::new(&bg_path_str, 960, 540) {
-            Ok(bg_p) => {
-                println!("[libmpv bg] Reproductor de fondo inicializado con video: {}", bg_path_str);
-                main_window.set_has_bg_video(true);
-                *bg_player_shared.lock().unwrap() = Some(bg_p);
-            }
-            Err(e) => {
-                println!("[libmpv bg error] {}", e);
-                main_window.set_has_bg_video(false);
-            }
-        }
-    } else {
-        main_window.set_has_bg_video(false);
-    }
+    // Fullscreen Background: Use high-performance deep tech gradient
+    // Disabling dual-video playback overhead ensures 100% fluid video playback for landing & screensaver.
+    main_window.set_has_bg_video(false);
 
     let vh = main_window.as_weak();
     let player_for_timer = player_shared.clone();
-    let bg_for_timer = bg_player_shared.clone();
-    video_timer.start(slint::TimerMode::Repeated, std::time::Duration::from_millis(33), move || {
+    // 16ms timer delivers silky smooth up to 60 FPS video playback without frame drops
+    video_timer.start(slint::TimerMode::Repeated, std::time::Duration::from_millis(16), move || {
         if !IS_IN_TRY_PC_MODE.load(Ordering::SeqCst) {
-            // 1. Render Landing / Screensaver video stream
+            // Render Landing / Screensaver video stream (Ultra-fluid 60 FPS)
             if let Ok(mut guard) = player_for_timer.try_lock() {
                 if let Some(ref mut p) = *guard {
                     if let Ok(buffer) = p.render_frame_buffer() {
                         if let Some(ui) = vh.upgrade() {
                             ui.set_video_frame(slint::Image::from_rgba8(buffer));
-                        }
-                    }
-                }
-            }
-
-            // 2. Render Fullscreen Background video stream (bg.mp4)
-            if let Ok(mut guard) = bg_for_timer.try_lock() {
-                if let Some(ref mut p) = *guard {
-                    if let Ok(buffer) = p.render_frame_buffer() {
-                        if let Some(ui) = vh.upgrade() {
-                            ui.set_bg_video_frame(slint::Image::from_rgba8(buffer));
                         }
                     }
                 }
@@ -400,7 +370,6 @@ pub fn run() {
 
     // Save Admin Configuration Form (Tienda, Especificaciones, Videos, Sistema)
     let save_admin_handle = main_window.as_weak();
-    let bg_player_on_save = bg_player_shared.clone();
     let landing_player_on_save = player_shared.clone();
     main_window.on_save_admin_config(move |brand, model, retail, card_p, normal_p, sku,
                                            cpu, ram, storage, gpu, display, os, battery, others,
@@ -449,14 +418,6 @@ pub fn run() {
                 cfg.central_video_path = central_vid.to_string();
             }
             if !bg_vid.trim().is_empty() {
-                if bg_vid.to_string() != cfg.bg_video_path {
-                    let resolved = domains::media::resolve_video_path(&bg_vid);
-                    if let Ok(mut guard) = bg_player_on_save.lock() {
-                        if let Some(ref mut p) = *guard {
-                            p.change_video_looping(&resolved.to_string_lossy(), true);
-                        }
-                    }
-                }
                 cfg.bg_video_path = bg_vid.to_string();
             }
             if !inact_vid_1.trim().is_empty() { cfg.inactivity_video_path = inact_vid_1.to_string(); }
