@@ -43,14 +43,21 @@ pub fn setup_try_pc_handlers(
     });
 
     // 2. Try PC Mode Clicked on Main Window
+    let try_pc_mw_handle = main_window.as_weak();
     let try_pc_fb_handle = floating_btn.as_weak();
     main_window.on_try_pc_clicked(move || {
+        println!("[TryPC] Botón 'Probar esta PC' activado. Minimizando showroom...");
         IS_IN_TRY_PC_MODE.store(true, Ordering::SeqCst);
+
+        if let Some(mw) = try_pc_mw_handle.upgrade() {
+            let _ = mw.hide();
+        }
+
+        minimize_main_window();
+
         if let Some(fb) = try_pc_fb_handle.upgrade() {
             let _ = fb.show();
             position_floating_button();
         }
-
-        minimize_main_window();
     });
 }

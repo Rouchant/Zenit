@@ -9,9 +9,9 @@ use windows_sys::Win32::Foundation::{HWND, LPARAM};
 use windows_sys::Win32::System::Threading::GetCurrentThreadId;
 #[cfg(target_os = "windows")]
 use windows_sys::Win32::UI::WindowsAndMessaging::{
-    EnumThreadWindows, FindWindowA, GetSystemMetrics, SetForegroundWindow, SetWindowPos, ShowWindow,
-    HWND_TOP, HWND_TOPMOST, SM_CXSCREEN, SM_CYSCREEN, SWP_SHOWWINDOW, SW_HIDE, SW_MINIMIZE,
-    SW_RESTORE, SW_SHOW,
+    EnumThreadWindows, GetParent, GetSystemMetrics, SetForegroundWindow, SetWindowPos,
+    ShowWindow, HWND_TOP, HWND_TOPMOST, SM_CXSCREEN, SM_CYSCREEN, SWP_SHOWWINDOW, SW_HIDE,
+    SW_MINIMIZE, SW_RESTORE, SW_SHOW,
 };
 
 pub fn init_main_window(window: &MainWindow) {
@@ -21,8 +21,9 @@ pub fn init_main_window(window: &MainWindow) {
     #[cfg(target_os = "windows")]
     unsafe {
         unsafe extern "system" fn enum_main_win(hwnd: HWND, _: LPARAM) -> i32 {
-            if MAIN_HWND.load(Ordering::SeqCst) == 0 {
+            if unsafe { GetParent(hwnd) }.is_null() {
                 MAIN_HWND.store(hwnd as isize, Ordering::SeqCst);
+                return 0; // Found main showroom window
             }
             1
         }
@@ -72,18 +73,33 @@ pub fn restore_main_window() {
 pub fn position_floating_button() {
     #[cfg(target_os = "windows")]
     unsafe {
-        let btn_title = b"Zenit - Ver Detalles\0";
-        let btn_hwnd = FindWindowA(std::ptr::null(), btn_title.as_ptr());
-        if !btn_hwnd.is_null() {
-            FLOATING_HWND.store(btn_hwnd as isize, Ordering::SeqCst);
+        let main_hwnd = MAIN_HWND.load(Ordering::SeqCst) as HWND;
+        let mut floating_hwnd = FLOATING_HWND.load(Ordering::SeqCst) as HWND;
+
+        if floating_hwnd.is_null() {
+            unsafe extern "system" fn enum_btn(hwnd: HWND, lparam: LPARAM) -> i32 {
+                let main_hwnd = lparam as HWND;
+                if hwnd != main_hwnd && unsafe { GetParent(hwnd) }.is_null() {
+                    FLOATING_HWND.store(hwnd as isize, Ordering::SeqCst);
+                    return 0; // Found floating button window
+                }
+                1
+            }
+
+            let thread_id = GetCurrentThreadId();
+            EnumThreadWindows(thread_id, Some(enum_btn), main_hwnd as LPARAM);
+            floating_hwnd = FLOATING_HWND.load(Ordering::SeqCst) as HWND;
+        }
+
+        if !floating_hwnd.is_null() {
             let screen_w = GetSystemMetrics(SM_CXSCREEN);
             let screen_h = GetSystemMetrics(SM_CYSCREEN);
             let w = 220;
             let h = 60;
             let x = screen_w - w - 40;
             let y = screen_h - h - 60;
-            SetWindowPos(btn_hwnd, HWND_TOPMOST, x, y, w, h, SWP_SHOWWINDOW);
-            SetForegroundWindow(btn_hwnd);
+            SetWindowPos(floating_hwnd, HWND_TOPMOST, x, y, w, h, SWP_SHOWWINDOW);
+            SetForegroundWindow(floating_hwnd);
         }
     }
 }
