@@ -198,4 +198,24 @@ mod tests {
         assert_eq!(deserialized.sku, "SKU-990");
         assert!(deserialized.setup_completed);
     }
+
+    #[test]
+    fn test_inactivity_video_list_slots() {
+        let mut cfg = AppConfig::default();
+        cfg.inactivity_video_path = "assets/videos/promo.mp4".to_string();
+        cfg.inactivity_video_path_2 = "assets/videos/promo2.mp4".to_string();
+        cfg.inactivity_video_path_3 = "".to_string();
+
+        let list = cfg.get_inactivity_video_list();
+        assert_eq!(list.len(), 2, "Only non-empty slots should be included");
+        assert_eq!(list[0], "assets/videos/promo.mp4");
+        assert_eq!(list[1], "assets/videos/promo2.mp4");
+    }
+
+    #[test]
+    fn test_store_and_pricing_defaults() {
+        let cfg = AppConfig::default();
+        assert_eq!(cfg.store_theme, "default");
+        assert!(cfg.inactivity_timeout_sec >= 30, "Timeout should be at least 30s");
+    }
 }

@@ -372,4 +372,13 @@ mod tests {
         let specs = detect_hardware();
         assert!(specs.ram.contains("GB"), "RAM description should contain GB");
     }
+
+    #[test]
+    fn test_brand_and_model_cleanup() {
+        let specs = detect_hardware();
+        assert!(!specs.brand.to_lowercase().contains("to be filled"), "Brand must not contain raw OEM placeholder");
+        assert!(!specs.model.to_lowercase().contains("to be filled"), "Model must not contain raw OEM placeholder");
+        assert!(!specs.brand.is_empty(), "Brand should not be empty");
+        assert!(!specs.model.is_empty(), "Model should not be empty");
+    }
 }

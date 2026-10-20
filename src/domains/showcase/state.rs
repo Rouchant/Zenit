@@ -296,4 +296,26 @@ mod tests {
         let state = build_ui_state();
         assert_eq!(state.is_first_run, !cfg.setup_completed);
     }
+
+    #[test]
+    fn test_icons_cpu_and_software_os() {
+        let state = build_ui_state();
+        let cpu_card = state.left_specs.iter().find(|s| s.id == "card-processor").expect("CPU card must exist");
+        let os_card = state.left_specs.iter().find(|s| s.id == "card-os").expect("OS card must exist");
+
+        assert_eq!(cpu_card.icon, "assets/ui/cpu.svg", "CPU must use cpu.svg");
+        assert_eq!(os_card.icon, "assets/ui/software.svg", "OS must use software.svg");
+    }
+
+    #[test]
+    fn test_brand_model_and_battery() {
+        let state = build_ui_state();
+        let model_card = state.right_specs.iter().find(|s| s.id == "card-model").expect("Model card must exist");
+        let battery_card = state.right_specs.iter().find(|s| s.id == "card-battery").expect("Battery card must exist");
+
+        assert_eq!(model_card.label, "Marca y Modelo");
+        assert!(!model_card.value.is_empty());
+        assert!(!battery_card.value.is_empty());
+        assert!(battery_card.value.to_lowercase().contains("hora"));
+    }
 }
