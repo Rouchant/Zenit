@@ -56,23 +56,28 @@ Zenit/
 ## 🛡️ Capacidades del Sistema
 
 ### 1. 100% Rust Native & Slint UI
+
 - Cero dependencias de navegadores web, Chromium ni WebView2.
 - Arranque instantáneo (menos de 500 ms) y consumo de memoria inferior a 40 MB.
 
 ### 2. Decodificación de Video por GPU (`libmpv`)
+
 - Decodificación por hardware (NVDEC, QuickSync, D3D11VA, AMF) sin saturar el CPU.
 - Renderizado directo en fotogramas de Slint (`SharedPixelBuffer<Rgba8Pixel>`) con bucle infinito suave.
 - Fallback visual automático elegante si la DLL de mpv aún no ha sido descargada.
 
 ### 3. Asistente de Configuración Rápida (Primer Inicio)
+
 - Detección automática en el primer arranque (`setup_completed: false`).
 - Permite configurar en menos de 1 minuto: marca y modelo auto-detectados, precios con tarjeta y efectivo, SKU, video central y tienda retail.
 
 ### 4. Modo "Prueba esta PC" y Retorno Automático
+
 - Al hacer clic en "PROBAR ESTA PC", Zenit minimiza la ventana para permitir explorar el equipo libremente.
 - Si el usuario abandona el equipo por más de 120 segundos sin actividad, Zenit se restaura automáticamente.
 
 ### 5. Atajos de Emergencia y Mantenimiento
+
 - `4 toques en esquina superior derecha`: Acceso al Panel de Administración protegido por contraseña (`demo` / `z3n1t`).
 - Opciones de salida inmediata a Windows y reinicio de la aplicación desde el panel de control.
 
