@@ -332,11 +332,12 @@ export component MainWindow inherits Window {
                         width: parent.width;
                         height: parent.height;
                         source: root.video_frame;
-                        image-fit: contain;
+                        image-fit: cover;
                     }
 
                     VerticalLayout {
-                        alignment: center;
+                        alignment: root.has_video_stream ? end : center;
+                        padding-bottom: root.has_video_stream ? 24px : 0px;
                         spacing: 20px;
                         padding-left: 30px;
                         padding-right: 30px;

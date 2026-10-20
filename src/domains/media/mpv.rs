@@ -23,6 +23,7 @@ pub struct MpvRenderParam {
 type MpvCreateFn = unsafe extern "C" fn() -> *mut c_void;
 type MpvInitializeFn = unsafe extern "C" fn(*mut c_void) -> c_int;
 type MpvDestroyFn = unsafe extern "C" fn(*mut c_void);
+type MpvCommandFn = unsafe extern "C" fn(*mut c_void, *const *const c_char) -> c_int;
 type MpvCommandStringFn = unsafe extern "C" fn(*mut c_void, *const c_char) -> c_int;
 type MpvSetOptionStringFn = unsafe extern "C" fn(*mut c_void, *const c_char, *const c_char) -> c_int;
 type MpvRenderContextCreateFn = unsafe extern "C" fn(*mut *mut c_void, *mut c_void, *mut MpvRenderParam) -> c_int;
@@ -34,6 +35,7 @@ pub struct MpvLibrary {
     pub mpv_create: MpvCreateFn,
     pub mpv_initialize: MpvInitializeFn,
     pub mpv_destroy: MpvDestroyFn,
+    pub mpv_command: MpvCommandFn,
     pub mpv_command_string: MpvCommandStringFn,
     pub mpv_set_option_string: MpvSetOptionStringFn,
     pub mpv_render_context_create: MpvRenderContextCreateFn,
@@ -44,10 +46,10 @@ pub struct MpvLibrary {
 impl MpvLibrary {
     pub fn load() -> Result<Self, String> {
         let candidates = [
-            "mpv-2.dll",
             "libmpv-2.dll",
-            "mpv-1.dll",
+            "mpv-2.dll",
             "libmpv-1.dll",
+            "mpv-1.dll",
             "mpv.dll",
         ];
 
@@ -88,13 +90,14 @@ impl MpvLibrary {
         }
 
         let lib = library.ok_or_else(|| {
-            "libmpv no encontrado. Coloca mpv-2.dll o libmpv-2.dll en la carpeta de la aplicación.".to_string()
+            "libmpv no encontrado. Coloca libmpv-2.dll o mpv-2.dll en la carpeta de la aplicación.".to_string()
         })?;
 
         unsafe {
             let mpv_create: Symbol<MpvCreateFn> = lib.get(b"mpv_create\0").map_err(|e| e.to_string())?;
             let mpv_initialize: Symbol<MpvInitializeFn> = lib.get(b"mpv_initialize\0").map_err(|e| e.to_string())?;
             let mpv_destroy: Symbol<MpvDestroyFn> = lib.get(b"mpv_destroy\0").map_err(|e| e.to_string())?;
+            let mpv_command: Symbol<MpvCommandFn> = lib.get(b"mpv_command\0").map_err(|e| e.to_string())?;
             let mpv_command_string: Symbol<MpvCommandStringFn> = lib.get(b"mpv_command_string\0").map_err(|e| e.to_string())?;
             let mpv_set_option_string: Symbol<MpvSetOptionStringFn> = lib.get(b"mpv_set_option_string\0").map_err(|e| e.to_string())?;
             let mpv_render_context_create: Symbol<MpvRenderContextCreateFn> = lib.get(b"mpv_render_context_create\0").map_err(|e| e.to_string())?;
@@ -105,6 +108,7 @@ impl MpvLibrary {
                 mpv_create: *mpv_create,
                 mpv_initialize: *mpv_initialize,
                 mpv_destroy: *mpv_destroy,
+                mpv_command: *mpv_command,
                 mpv_command_string: *mpv_command_string,
                 mpv_set_option_string: *mpv_set_option_string,
                 mpv_render_context_create: *mpv_render_context_create,
@@ -156,6 +160,10 @@ impl SlintMpvPlayer {
             let opt_libmpv = CString::new("libmpv").unwrap();
             (lib.mpv_set_option_string)(mpv, opt_vo.as_ptr(), opt_libmpv.as_ptr());
 
+            let opt_osc = CString::new("osc").unwrap();
+            let opt_no = CString::new("no").unwrap();
+            (lib.mpv_set_option_string)(mpv, opt_osc.as_ptr(), opt_no.as_ptr());
+
             if (lib.mpv_initialize)(mpv) < 0 {
                 (lib.mpv_destroy)(mpv);
                 return Err("Fallo al inicializar mpv".to_string());
@@ -181,12 +189,24 @@ impl SlintMpvPlayer {
                 return Err(format!("Fallo al crear mpv_render_context: {}", res));
             }
 
-            // Load Video
-            let load_cmd = format!("loadfile \"{}\" replace", video_path.replace('\\', "/"));
-            let cmd_cstr = CString::new(load_cmd).unwrap();
-            (lib.mpv_command_string)(mpv, cmd_cstr.as_ptr());
+            // Load Video using mpv_command array for robust path handling
+            let c_cmd = CString::new("loadfile").unwrap();
+            let c_path = CString::new(video_path.replace('\\', "/")).unwrap();
+            let c_mode = CString::new("replace").unwrap();
+            let cmd_args: [*const c_char; 4] = [
+                c_cmd.as_ptr(),
+                c_path.as_ptr(),
+                c_mode.as_ptr(),
+                std::ptr::null(),
+            ];
+            (lib.mpv_command)(mpv, cmd_args.as_ptr());
 
-            let pixel_buffer = SharedPixelBuffer::<Rgba8Pixel>::new(width, height);
+            let mut pixel_buffer = SharedPixelBuffer::<Rgba8Pixel>::new(width, height);
+            // Pre-fill alpha = 255 for opaque rendering
+            for chunk in pixel_buffer.make_mut_bytes().chunks_exact_mut(4) {
+                chunk[3] = 255;
+            }
+
             let stride = (width * 4) as usize;
 
             Ok(Self {
@@ -197,7 +217,7 @@ impl SlintMpvPlayer {
                 _height: height,
                 size_param: [width as i32, height as i32],
                 stride,
-                format_cstr: CString::new("rgba").unwrap(),
+                format_cstr: CString::new("rgb0").unwrap(),
                 _api_type_cstr: api_type_cstr,
                 pixel_buffer,
                 is_playing: Arc::new(AtomicBool::new(true)),
@@ -206,44 +226,8 @@ impl SlintMpvPlayer {
     }
 
     pub fn render_frame(&mut self) -> Result<Image, String> {
-        if !self.is_playing.load(Ordering::SeqCst) {
-            return Ok(Image::from_rgba8(self.pixel_buffer.clone()));
-        }
-
-        unsafe {
-            let raw_bytes = self.pixel_buffer.make_mut_bytes();
-            let mut stride_val = self.stride;
-
-            let mut render_params = [
-                MpvRenderParam {
-                    param_type: MPV_RENDER_PARAM_SW_SIZE,
-                    data: self.size_param.as_mut_ptr() as *mut c_void,
-                },
-                MpvRenderParam {
-                    param_type: MPV_RENDER_PARAM_SW_FORMAT,
-                    data: self.format_cstr.as_ptr() as *mut c_void,
-                },
-                MpvRenderParam {
-                    param_type: MPV_RENDER_PARAM_SW_STRIDE,
-                    data: &mut stride_val as *mut usize as *mut c_void,
-                },
-                MpvRenderParam {
-                    param_type: MPV_RENDER_PARAM_SW_POINTER,
-                    data: raw_bytes.as_mut_ptr() as *mut c_void,
-                },
-                MpvRenderParam {
-                    param_type: MPV_RENDER_PARAM_INVALID,
-                    data: std::ptr::null_mut(),
-                },
-            ];
-
-            let res = (self.lib.mpv_render_context_render)(self.render_ctx, render_params.as_mut_ptr());
-            if res < 0 {
-                return Err(format!("Error rendering mpv frame: {}", res));
-            }
-
-            Ok(Image::from_rgba8(self.pixel_buffer.clone()))
-        }
+        let buf = self.render_frame_buffer()?;
+        Ok(Image::from_rgba8(buf))
     }
 
     pub fn render_frame_buffer(&mut self) -> Result<SharedPixelBuffer<Rgba8Pixel>, String> {
@@ -283,15 +267,29 @@ impl SlintMpvPlayer {
                 return Err(format!("Error rendering mpv frame: {}", res));
             }
 
+            // In rgb0: ensure byte 3 (alpha) is 255 so Slint renders 100% opaque video!
+            for chunk in raw_bytes.chunks_exact_mut(4) {
+                chunk[3] = 255;
+            }
+
             Ok(self.pixel_buffer.clone())
         }
     }
 
     pub fn change_video(&mut self, video_path: &str) {
-        let load_cmd = format!("loadfile \"{}\" replace", video_path.replace('\\', "/"));
-        if let Ok(cmd_cstr) = CString::new(load_cmd) {
+        if let (Ok(c_cmd), Ok(c_path), Ok(c_mode)) = (
+            CString::new("loadfile"),
+            CString::new(video_path.replace('\\', "/")),
+            CString::new("replace"),
+        ) {
+            let cmd_args: [*const c_char; 4] = [
+                c_cmd.as_ptr(),
+                c_path.as_ptr(),
+                c_mode.as_ptr(),
+                std::ptr::null(),
+            ];
             unsafe {
-                (self.lib.mpv_command_string)(self.mpv, cmd_cstr.as_ptr());
+                (self.lib.mpv_command)(self.mpv, cmd_args.as_ptr());
             }
         }
     }
@@ -328,19 +326,24 @@ impl Drop for SlintMpvPlayer {
 
 pub fn resolve_showroom_video_path() -> PathBuf {
     let candidate_paths = [
-        PathBuf::from("public/assets/videos/landing.mp4"),
-        PathBuf::from("dist_app/assets/videos/landing.mp4"),
-        PathBuf::from("src/resources/videos/assets/generic/prom.mp4"),
         PathBuf::from("assets/videos/landing.mp4"),
+        PathBuf::from("assets/videos/promo.mp4"),
+        PathBuf::from("assets/videos/bg.mp4"),
     ];
 
+    let base = std::env::current_dir().unwrap_or_else(|_| PathBuf::from("."));
+
     for path in &candidate_paths {
+        let full = base.join(path);
+        if full.exists() {
+            return full;
+        }
         if path.exists() {
             return path.clone();
         }
     }
 
-    PathBuf::from("public/assets/videos/landing.mp4")
+    base.join("assets/videos/landing.mp4")
 }
 
 #[cfg(test)]
@@ -355,9 +358,7 @@ mod tests {
 
     #[test]
     fn test_mpv_library_load_fails_gracefully_without_panic() {
-        // When running on a machine without mpv-2.dll, load() returns Err
         let res = MpvLibrary::load();
-        // Should not panic, returns either Ok (if dll is present) or Err (if missing)
         match res {
             Ok(_) => println!("mpv library found on host!"),
             Err(e) => assert!(e.contains("libmpv no encontrado") || e.contains("Fallo")),

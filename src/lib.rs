@@ -115,9 +115,14 @@ pub fn run() {
             video_timer.start(slint::TimerMode::Repeated, std::time::Duration::from_millis(33), move || {
                 if !IS_IN_TRY_PC_MODE.load(Ordering::SeqCst) {
                     if let Ok(mut p) = player_rc.try_borrow_mut() {
-                        if let Ok(buffer) = p.render_frame_buffer() {
-                            if let Some(ui) = vh.upgrade() {
-                                ui.set_video_frame(slint::Image::from_rgba8(buffer));
+                        match p.render_frame_buffer() {
+                            Ok(buffer) => {
+                                if let Some(ui) = vh.upgrade() {
+                                    ui.set_video_frame(slint::Image::from_rgba8(buffer));
+                                }
+                            }
+                            Err(e) => {
+                                eprintln!("[libmpv render error] {}", e);
                             }
                         }
                     }
