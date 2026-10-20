@@ -64,7 +64,7 @@ impl Default for AppConfig {
             other_specs: "Wi-Fi 6 / Bluetooth 5.3 / Teclado en Español".to_string(),
 
             central_video_path: "assets/videos/landing.mp4".to_string(),
-            bg_video_path: "assets/images/fallback-bg/bg.mp4".to_string(),
+            bg_video_path: "assets/videos/bg.mp4".to_string(),
             inactivity_video_path: "assets/videos/promo2.mp4".to_string(),
             inactivity_timeout_sec: 120,
 
@@ -87,8 +87,16 @@ pub fn load_config() -> AppConfig {
     if path.exists() {
         if let Ok(content) = fs::read_to_string(&path) {
             if let Ok(mut cfg) = serde_json::from_str::<AppConfig>(&content) {
+                let mut modified = false;
                 if cfg.inactivity_video_path == "assets/videos/promo.mp4" {
                     cfg.inactivity_video_path = "assets/videos/promo2.mp4".to_string();
+                    modified = true;
+                }
+                if cfg.bg_video_path == "assets/images/fallback-bg/bg.mp4" || cfg.bg_video_path.is_empty() {
+                    cfg.bg_video_path = "assets/videos/bg.mp4".to_string();
+                    modified = true;
+                }
+                if modified {
                     let _ = save_config(&cfg);
                 }
                 return cfg;
@@ -145,6 +153,7 @@ mod tests {
         let cfg = AppConfig::default();
         assert_eq!(cfg.primary_color, "#00f2ff");
         assert_eq!(cfg.store_theme, "default");
+        assert_eq!(cfg.bg_video_path, "assets/videos/bg.mp4");
         assert_eq!(cfg.inactivity_video_path, "assets/videos/promo2.mp4");
         assert_eq!(cfg.inactivity_timeout_sec, 120);
         assert!(!cfg.setup_completed);
