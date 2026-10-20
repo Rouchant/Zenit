@@ -291,10 +291,16 @@ impl SlintMpvPlayer {
     }
 
     pub fn change_video_looping(&mut self, video_path: &str, looping: bool) {
-        let opt_loop = CString::new("loop-file").unwrap();
-        let loop_val = CString::new(if looping { "inf" } else { "no" }).unwrap();
+        let loop_cmd = CString::new(if looping {
+            "set loop-file inf"
+        } else {
+            "set loop-file no"
+        }).unwrap();
+        let keep_cmd = CString::new("set keep-open yes").unwrap();
+
         unsafe {
-            (self.lib.mpv_set_option_string)(self.mpv, opt_loop.as_ptr(), loop_val.as_ptr());
+            (self.lib.mpv_command_string)(self.mpv, loop_cmd.as_ptr());
+            (self.lib.mpv_command_string)(self.mpv, keep_cmd.as_ptr());
         }
 
         if let (Ok(c_cmd), Ok(c_path), Ok(c_mode)) = (
@@ -331,9 +337,17 @@ impl SlintMpvPlayer {
     }
 
     pub fn is_eof(&self) -> bool {
-        self.get_property_string("eof-reached")
-            .map(|val| val == "yes")
-            .unwrap_or(false)
+        if let Some(val) = self.get_property_string("eof-reached") {
+            if val == "yes" {
+                return true;
+            }
+        }
+        if let Some(val) = self.get_property_string("idle-active") {
+            if val == "yes" {
+                return true;
+            }
+        }
+        false
     }
 
     pub fn get_duration(&self) -> Option<f64> {

@@ -20,7 +20,7 @@ pub fn spawn_inactivity_watcher(
     let last_dismiss_watcher = get_last_dismiss_tracker();
 
     std::thread::spawn(move || {
-        let mut inactivity_slot = 0usize;
+        let mut playlist_slot = 0usize;
         let mut screensaver_start_time = Instant::now();
 
         loop {
@@ -42,12 +42,11 @@ pub fn spawn_inactivity_watcher(
                 IS_IN_TRY_PC_MODE.store(false, Ordering::SeqCst);
                 IS_SCREENSAVER_ACTIVE.store(true, Ordering::SeqCst);
                 screensaver_start_time = Instant::now();
+                playlist_slot = 0;
 
                 let video_list = cfg.get_inactivity_video_list();
                 if !video_list.is_empty() {
-                    let selected_rel_path = &video_list[inactivity_slot % video_list.len()];
-                    inactivity_slot = inactivity_slot.wrapping_add(1);
-                    let promo_video = crate::domains::media::resolve_video_path(selected_rel_path);
+                    let promo_video = crate::domains::media::resolve_video_path(&video_list[0]);
                     if promo_video.exists() {
                         if let Ok(mut guard) = player_watcher.lock() {
                             if let Some(ref mut p) = *guard {
@@ -76,11 +75,10 @@ pub fn spawn_inactivity_watcher(
             // 2. On Main Window (Not in Try-PC, Not in Screensaver): Trigger Inactivity Screensaver
             if !in_try_pc && !was_screensaver {
                 if idle_seconds >= timeout && time_since_dismiss >= timeout {
+                    playlist_slot = 0;
                     let video_list = cfg.get_inactivity_video_list();
                     if !video_list.is_empty() {
-                        let selected_rel_path = &video_list[inactivity_slot % video_list.len()];
-                        inactivity_slot = inactivity_slot.wrapping_add(1);
-                        let promo_video = crate::domains::media::resolve_video_path(selected_rel_path);
+                        let promo_video = crate::domains::media::resolve_video_path(&video_list[0]);
                         if promo_video.exists() {
                             if let Ok(mut guard) = player_watcher.lock() {
                                 if let Some(ref mut p) = *guard {
@@ -101,24 +99,9 @@ pub fn spawn_inactivity_watcher(
                     });
                 }
             } else if was_screensaver {
-                // 3. Currently in Screensaver: Dismiss if user interacts OR if inactivity video finishes
-                let mut video_finished = false;
-                if screensaver_start_time.elapsed().as_secs() >= 2 {
-                    if let Ok(guard) = player_watcher.lock() {
-                        if let Some(ref p) = *guard {
-                            video_finished = p.is_eof();
-                            if !video_finished {
-                                if let (Some(pos), Some(dur)) = (p.get_time_pos(), p.get_duration()) {
-                                    if dur > 1.0 && pos >= dur - 0.5 {
-                                        video_finished = true;
-                                    }
-                                }
-                            }
-                        }
-                    }
-                }
-
-                if idle_seconds < 2 || video_finished {
+                // 3. Currently in Screensaver:
+                // A) Dismiss immediately if user interacts (< 2s idle)
+                if idle_seconds < 2 {
                     IS_SCREENSAVER_ACTIVE.store(false, Ordering::SeqCst);
                     if let Ok(mut t) = last_dismiss_watcher.lock() {
                         *t = Instant::now();
@@ -137,6 +120,61 @@ pub fn spawn_inactivity_watcher(
                             ui.set_is_screensaver_active(false);
                         }
                     });
+                    continue;
+                }
+
+                // B) Check if current inactivity video finished
+                let mut video_finished = false;
+                if screensaver_start_time.elapsed().as_millis() >= 1200 {
+                    if let Ok(guard) = player_watcher.lock() {
+                        if let Some(ref p) = *guard {
+                            if p.is_eof() {
+                                video_finished = true;
+                            } else if let (Some(pos), Some(dur)) = (p.get_time_pos(), p.get_duration()) {
+                                if dur > 1.0 && pos >= dur - 0.4 {
+                                    video_finished = true;
+                                }
+                            }
+                        }
+                    }
+                }
+
+                if video_finished {
+                    let video_list = cfg.get_inactivity_video_list();
+                    if playlist_slot + 1 < video_list.len() {
+                        // Play next video in the inactivity playlist
+                        playlist_slot += 1;
+                        let next_rel = &video_list[playlist_slot];
+                        let promo_video = crate::domains::media::resolve_video_path(next_rel);
+                        if promo_video.exists() {
+                            if let Ok(mut guard) = player_watcher.lock() {
+                                if let Some(ref mut p) = *guard {
+                                    p.change_video_looping(&promo_video.to_string_lossy(), false);
+                                }
+                            }
+                        }
+                        screensaver_start_time = Instant::now();
+                    } else {
+                        // All inactivity videos completed: return to main showroom window!
+                        IS_SCREENSAVER_ACTIVE.store(false, Ordering::SeqCst);
+                        if let Ok(mut t) = last_dismiss_watcher.lock() {
+                            *t = Instant::now();
+                        }
+
+                        let landing_video = crate::domains::media::resolve_showroom_video_path();
+                        if let Ok(mut guard) = player_watcher.lock() {
+                            if let Some(ref mut p) = *guard {
+                                p.change_video_looping(&landing_video.to_string_lossy(), true);
+                            }
+                        }
+
+                        let wh = watcher_handle.clone();
+                        let _ = slint::invoke_from_event_loop(move || {
+                            if let Some(ui) = wh.upgrade() {
+                                ui.set_is_screensaver_active(false);
+                            }
+                        });
+                    }
                 }
             }
         }
