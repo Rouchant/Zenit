@@ -153,8 +153,8 @@ impl SlintMpvPlayer {
             (lib.mpv_set_option_string)(mpv, opt_hwdec.as_ptr(), opt_auto.as_ptr());
 
             let opt_vo = CString::new("vo").unwrap();
-            let opt_null = CString::new("null").unwrap();
-            (lib.mpv_set_option_string)(mpv, opt_vo.as_ptr(), opt_null.as_ptr());
+            let opt_libmpv = CString::new("libmpv").unwrap();
+            (lib.mpv_set_option_string)(mpv, opt_vo.as_ptr(), opt_libmpv.as_ptr());
 
             if (lib.mpv_initialize)(mpv) < 0 {
                 (lib.mpv_destroy)(mpv);
