@@ -346,6 +346,19 @@ pub fn resolve_showroom_video_path() -> PathBuf {
     base.join("assets/videos/landing.mp4")
 }
 
+pub fn resolve_video_path(configured_path: &str) -> PathBuf {
+    let candidate = PathBuf::from(configured_path);
+    let base = std::env::current_dir().unwrap_or_else(|_| PathBuf::from("."));
+    let full = base.join(&candidate);
+    if full.exists() {
+        return full;
+    }
+    if candidate.exists() {
+        return candidate;
+    }
+    base.join(configured_path)
+}
+
 #[cfg(test)]
 mod tests {
     use super::*;

@@ -925,19 +925,29 @@ export component MainWindow inherits Window {
         }
     }
 
-    // MODAL 3: SCREENSAVER OVERLAY
+    // MODAL 3: SCREENSAVER OVERLAY (PANTALLA COMPLETA DE VIDEO)
     if root.is_screensaver_active: Rectangle {
         width: 100%;
         height: 100%;
-        background: #030712f2;
+        background: #000000;
 
+        // Video a Pantalla Completa
+        if root.has_video_stream: Image {
+            width: 100%;
+            height: 100%;
+            source: root.video_frame;
+            image-fit: cover;
+        }
+
+        // Cualquier toque en pantalla desactiva el salvapantallas
         TouchArea {
             clicked => {
                 root.dismiss_screensaver();
             }
         }
 
-        VerticalLayout {
+        // Fallback cuando no hay stream de video disponible
+        if !root.has_video_stream: VerticalLayout {
             alignment: center;
             spacing: 24px;
 
@@ -971,6 +981,47 @@ export component MainWindow inherits Window {
                 font-weight: 600;
                 color: #38bdf8;
                 horizontal-alignment: center;
+            }
+        }
+
+        // Indicador interactivo sutil inferior
+        if root.has_video_stream: VerticalLayout {
+            alignment: end;
+            padding-bottom: 32px;
+
+            HorizontalLayout {
+                alignment: center;
+
+                Rectangle {
+                    background: #030712b3;
+                    border-radius: 20px;
+                    border-width: 1px;
+                    border-color: #38bdf840;
+                    drop-shadow-blur: 16px;
+                    drop-shadow-color: #00000080;
+                    height: 40px;
+
+                    HorizontalLayout {
+                        padding-left: 20px;
+                        padding-right: 20px;
+                        spacing: 10px;
+                        alignment: center;
+
+                        Text {
+                            text: "✨";
+                            font-size: 14px;
+                            vertical-alignment: center;
+                        }
+
+                        Text {
+                            text: "Toca la pantalla o presiona cualquier tecla para interactuar";
+                            font-size: 14px;
+                            font-weight: 700;
+                            color: #ffffff;
+                            vertical-alignment: center;
+                        }
+                    }
+                }
             }
         }
     }
