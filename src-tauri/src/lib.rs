@@ -16,6 +16,25 @@ use vault::{delete_vault_video, import_video_to_vault, list_vault_videos, VaultV
 static IS_IN_TRY_PC_MODE: AtomicBool = AtomicBool::new(false);
 static IS_SCREENSAVER_ACTIVE: AtomicBool = AtomicBool::new(false);
 
+#[derive(Debug, Clone, serde::Serialize, serde::Deserialize)]
+pub struct InactivityStatus {
+    pub idle_seconds: u64,
+    pub timeout_seconds: u64,
+    pub is_screensaver: bool,
+    pub is_in_try_pc_mode: bool,
+}
+
+#[tauri::command]
+fn get_inactivity_status() -> InactivityStatus {
+    let cfg = load_config();
+    InactivityStatus {
+        idle_seconds: get_system_idle_seconds(),
+        timeout_seconds: cfg.inactivity_timeout_sec,
+        is_screensaver: IS_SCREENSAVER_ACTIVE.load(Ordering::SeqCst),
+        is_in_try_pc_mode: IS_IN_TRY_PC_MODE.load(Ordering::SeqCst),
+    }
+}
+
 #[tauri::command]
 fn get_zenit_ui_state() -> ZenitUiState {
     build_ui_state()
@@ -218,6 +237,7 @@ pub fn run() {
         })
         .invoke_handler(tauri::generate_handler![
             get_zenit_ui_state,
+            get_inactivity_status,
             get_system_specs,
             get_raw_hardware_specs,
             get_app_config,
