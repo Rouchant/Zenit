@@ -6,14 +6,19 @@ use domains::showcase::{build_ui_state, load_config, save_config, verify_passwor
 use slint::{ComponentHandle, ModelRc, VecModel};
 use std::cell::RefCell;
 use std::rc::Rc;
-use std::sync::atomic::{AtomicBool, Ordering};
+use std::sync::atomic::{AtomicBool, AtomicIsize, Ordering};
 use std::sync::{Arc, Mutex};
 use std::time::Instant;
+
+#[cfg(target_os = "windows")]
+use windows_sys::Win32::Foundation::HWND;
 
 slint::include_modules!();
 
 static IS_IN_TRY_PC_MODE: AtomicBool = AtomicBool::new(false);
 static IS_SCREENSAVER_ACTIVE: AtomicBool = AtomicBool::new(false);
+static MAIN_HWND: AtomicIsize = AtomicIsize::new(0);
+static FLOATING_HWND: AtomicIsize = AtomicIsize::new(0);
 
 fn populate_vault_videos(window: &MainWindow) {
     domains::media::vault::seed_vault_defaults();
@@ -217,18 +222,30 @@ pub fn run() {
 
     #[cfg(target_os = "windows")]
     unsafe {
+        use windows_sys::Win32::Foundation::LPARAM;
+        use windows_sys::Win32::System::Threading::GetCurrentThreadId;
         use windows_sys::Win32::UI::WindowsAndMessaging::{
-            FindWindowW, GetSystemMetrics, SetWindowPos, HWND_TOP, SM_CXSCREEN, SM_CYSCREEN,
+            EnumThreadWindows, GetSystemMetrics, SetWindowPos, HWND_TOP, SM_CXSCREEN, SM_CYSCREEN,
             SWP_SHOWWINDOW,
         };
+
+        unsafe extern "system" fn enum_main_win(hwnd: HWND, _: LPARAM) -> i32 {
+            if MAIN_HWND.load(Ordering::SeqCst) == 0 {
+                MAIN_HWND.store(hwnd as isize, Ordering::SeqCst);
+            }
+            1
+        }
+
+        let thread_id = GetCurrentThreadId();
+        EnumThreadWindows(thread_id, Some(enum_main_win), 0);
+
+        let hwnd = MAIN_HWND.load(Ordering::SeqCst) as HWND;
         let screen_w = GetSystemMetrics(SM_CXSCREEN);
         let screen_h = GetSystemMetrics(SM_CYSCREEN);
-        println!("[Showroom] Resolucion detectada de pantalla: {}x{}", screen_w, screen_h);
+        println!("[Showroom] Resolucion detectada de pantalla: {}x{}, HWND: {:?}", screen_w, screen_h, hwnd);
         main_window.set_screen_width(screen_w as f32);
         main_window.set_screen_height(screen_h as f32);
 
-        let title: Vec<u16> = "Showroom PC - Modo Exhibición".encode_utf16().chain(std::iter::once(0)).collect();
-        let hwnd = FindWindowW(std::ptr::null(), title.as_ptr());
         if !hwnd.is_null() {
             SetWindowPos(hwnd, HWND_TOP, 0, 0, screen_w, screen_h, SWP_SHOWWINDOW);
         }
@@ -627,32 +644,50 @@ pub fn run() {
     let floating_btn = Rc::new(FloatingDetailsButton::new().expect("Failed to initialize FloatingDetailsButton"));
     let restore_mw_handle = main_window.as_weak();
     let restore_fb_handle = floating_btn.as_weak();
+    let player_restore = player_shared.clone();
 
     floating_btn.on_restore_clicked(move || {
         IS_IN_TRY_PC_MODE.store(false, Ordering::SeqCst);
-        if let Some(fb) = restore_fb_handle.upgrade() {
-            let _ = fb.hide();
+        let landing_video = domains::media::resolve_showroom_video_path();
+        if let Ok(mut guard) = player_restore.lock() {
+            if let Some(ref mut p) = *guard {
+                p.change_video_looping(&landing_video.to_string_lossy(), true);
+            }
         }
-        if let Some(mw) = restore_mw_handle.upgrade() {
-            let _ = mw.show();
-            mw.window().set_fullscreen(true);
+
+        let mwh = restore_mw_handle.clone();
+        let fbh = restore_fb_handle.clone();
+        let _ = slint::invoke_from_event_loop(move || {
+            if let Some(mw) = mwh.upgrade() {
+                let _ = mw.show();
+                mw.window().set_fullscreen(true);
+                mw.set_is_screensaver_active(false);
+            }
+
             #[cfg(target_os = "windows")]
             unsafe {
                 use windows_sys::Win32::UI::WindowsAndMessaging::{
-                    FindWindowW, SetForegroundWindow, ShowWindow, SW_RESTORE,
+                    GetSystemMetrics, SetForegroundWindow, SetWindowPos, ShowWindow, HWND_TOP,
+                    SM_CXSCREEN, SM_CYSCREEN, SWP_SHOWWINDOW, SW_RESTORE, SW_SHOW,
                 };
-                let title: Vec<u16> = "Showroom PC - Modo Exhibición".encode_utf16().chain(std::iter::once(0)).collect();
-                let hwnd = FindWindowW(std::ptr::null(), title.as_ptr());
-                if !hwnd.is_null() {
-                    ShowWindow(hwnd, SW_RESTORE);
-                    SetForegroundWindow(hwnd);
+                let main_hwnd = MAIN_HWND.load(Ordering::SeqCst) as HWND;
+                if !main_hwnd.is_null() {
+                    ShowWindow(main_hwnd, SW_SHOW);
+                    ShowWindow(main_hwnd, SW_RESTORE);
+                    let screen_w = GetSystemMetrics(SM_CXSCREEN);
+                    let screen_h = GetSystemMetrics(SM_CYSCREEN);
+                    SetWindowPos(main_hwnd, HWND_TOP, 0, 0, screen_w, screen_h, SWP_SHOWWINDOW);
+                    SetForegroundWindow(main_hwnd);
                 }
             }
-        }
+
+            if let Some(fb) = fbh.upgrade() {
+                let _ = fb.hide();
+            }
+        });
     });
 
     // Try PC Mode
-    let try_pc_mw_handle = main_window.as_weak();
     let try_pc_fb_handle = floating_btn.as_weak();
     main_window.on_try_pc_clicked(move || {
         IS_IN_TRY_PC_MODE.store(true, Ordering::SeqCst);
@@ -661,12 +696,13 @@ pub fn run() {
             #[cfg(target_os = "windows")]
             unsafe {
                 use windows_sys::Win32::UI::WindowsAndMessaging::{
-                    FindWindowA, GetSystemMetrics, SetWindowPos, HWND_TOPMOST, SM_CXSCREEN,
-                    SM_CYSCREEN, SWP_SHOWWINDOW,
+                    FindWindowA, GetSystemMetrics, SetForegroundWindow, SetWindowPos, HWND_TOPMOST,
+                    SM_CXSCREEN, SM_CYSCREEN, SWP_SHOWWINDOW,
                 };
                 let btn_title = b"Zenit - Ver Detalles\0";
                 let btn_hwnd = FindWindowA(std::ptr::null(), btn_title.as_ptr());
                 if !btn_hwnd.is_null() {
+                    FLOATING_HWND.store(btn_hwnd as isize, Ordering::SeqCst);
                     let screen_w = GetSystemMetrics(SM_CXSCREEN);
                     let screen_h = GetSystemMetrics(SM_CYSCREEN);
                     let w = 220;
@@ -674,20 +710,18 @@ pub fn run() {
                     let x = screen_w - w - 40;
                     let y = screen_h - h - 60;
                     SetWindowPos(btn_hwnd, HWND_TOPMOST, x, y, w, h, SWP_SHOWWINDOW);
+                    SetForegroundWindow(btn_hwnd);
                 }
             }
         }
 
-        if let Some(ui) = try_pc_mw_handle.upgrade() {
-            let _ = ui.hide();
-            #[cfg(target_os = "windows")]
-            unsafe {
-                use windows_sys::Win32::UI::WindowsAndMessaging::{FindWindowW, ShowWindow, SW_MINIMIZE};
-                let title: Vec<u16> = "Showroom PC - Modo Exhibición".encode_utf16().chain(std::iter::once(0)).collect();
-                let hwnd = FindWindowW(std::ptr::null(), title.as_ptr());
-                if !hwnd.is_null() {
-                    ShowWindow(hwnd, SW_MINIMIZE);
-                }
+        #[cfg(target_os = "windows")]
+        unsafe {
+            use windows_sys::Win32::UI::WindowsAndMessaging::{ShowWindow, SW_HIDE, SW_MINIMIZE};
+            let main_hwnd = MAIN_HWND.load(Ordering::SeqCst) as HWND;
+            if !main_hwnd.is_null() {
+                ShowWindow(main_hwnd, SW_MINIMIZE);
+                ShowWindow(main_hwnd, SW_HIDE);
             }
         }
     });
@@ -747,10 +781,62 @@ pub fn run() {
                 .unwrap_or(u64::MAX);
 
             let was_screensaver = IS_SCREENSAVER_ACTIVE.load(Ordering::SeqCst);
+            let in_try_pc = IS_IN_TRY_PC_MODE.load(Ordering::SeqCst);
 
-            // 1. Screensaver state toggle
-            if !was_screensaver {
-                // Must be idle >= timeout AND at least timeout seconds since last dismiss/finish
+            // 1. In Try-PC Mode and Idle >= Timeout: Auto-restore Main Window AND trigger Inactivity Screensaver
+            if in_try_pc && idle_seconds >= timeout {
+                IS_IN_TRY_PC_MODE.store(false, Ordering::SeqCst);
+                IS_SCREENSAVER_ACTIVE.store(true, Ordering::SeqCst);
+                screensaver_start_time = std::time::Instant::now();
+
+                let video_list = cfg.get_inactivity_video_list();
+                if !video_list.is_empty() {
+                    let selected_rel_path = &video_list[inactivity_slot % video_list.len()];
+                    inactivity_slot = inactivity_slot.wrapping_add(1);
+                    let promo_video = domains::media::resolve_video_path(selected_rel_path);
+                    if promo_video.exists() {
+                        if let Ok(mut guard) = player_watcher.lock() {
+                            if let Some(ref mut p) = *guard {
+                                p.change_video_looping(&promo_video.to_string_lossy(), false);
+                            }
+                        }
+                    }
+                }
+
+                let wh = watcher_handle.clone();
+                let fbh = watcher_fb_handle.clone();
+                let _ = slint::invoke_from_event_loop(move || {
+                    if let Some(fb) = fbh.upgrade() {
+                        let _ = fb.hide();
+                    }
+                    if let Some(ui) = wh.upgrade() {
+                        let _ = ui.show();
+                        ui.window().set_fullscreen(true);
+                        ui.set_is_screensaver_active(true);
+                        #[cfg(target_os = "windows")]
+                        unsafe {
+                            use windows_sys::Win32::UI::WindowsAndMessaging::{
+                                GetSystemMetrics, SetForegroundWindow, SetWindowPos, ShowWindow,
+                                HWND_TOP, SM_CXSCREEN, SM_CYSCREEN, SWP_SHOWWINDOW, SW_RESTORE,
+                                SW_SHOW,
+                            };
+                            let main_hwnd = MAIN_HWND.load(Ordering::SeqCst) as HWND;
+                            if !main_hwnd.is_null() {
+                                ShowWindow(main_hwnd, SW_SHOW);
+                                ShowWindow(main_hwnd, SW_RESTORE);
+                                let screen_w = GetSystemMetrics(SM_CXSCREEN);
+                                let screen_h = GetSystemMetrics(SM_CYSCREEN);
+                                SetWindowPos(main_hwnd, HWND_TOP, 0, 0, screen_w, screen_h, SWP_SHOWWINDOW);
+                                SetForegroundWindow(main_hwnd);
+                            }
+                        }
+                    }
+                });
+                continue;
+            }
+
+            // 2. On Main Window (Not in Try-PC, Not in Screensaver): Trigger Inactivity Screensaver
+            if !in_try_pc && !was_screensaver {
                 if idle_seconds >= timeout && time_since_dismiss >= timeout {
                     let video_list = cfg.get_inactivity_video_list();
                     if !video_list.is_empty() {
@@ -760,7 +846,6 @@ pub fn run() {
                         if promo_video.exists() {
                             if let Ok(mut guard) = player_watcher.lock() {
                                 if let Some(ref mut p) = *guard {
-                                    // Play once without looping
                                     p.change_video_looping(&promo_video.to_string_lossy(), false);
                                 }
                             }
@@ -777,14 +862,20 @@ pub fn run() {
                         }
                     });
                 }
-            } else {
-                // Currently in screensaver:
-                // Dismiss if user interacts (idle_seconds < 2) OR video finished playing once (is_eof)
+            } else if was_screensaver {
+                // 3. Currently in Screensaver: Dismiss if user interacts OR if inactivity video finishes
                 let mut video_finished = false;
                 if screensaver_start_time.elapsed().as_secs() >= 2 {
                     if let Ok(guard) = player_watcher.lock() {
                         if let Some(ref p) = *guard {
                             video_finished = p.is_eof();
+                            if !video_finished {
+                                if let (Some(pos), Some(dur)) = (p.get_time_pos(), p.get_duration()) {
+                                    if dur > 1.0 && pos >= dur - 0.5 {
+                                        video_finished = true;
+                                    }
+                                }
+                            }
                         }
                     }
                 }
@@ -809,41 +900,6 @@ pub fn run() {
                         }
                     });
                 }
-            }
-
-            // 2. Try-PC Auto-restore after 120s of no desktop activity
-            if IS_IN_TRY_PC_MODE.load(Ordering::SeqCst) && idle_seconds >= 120 {
-                IS_IN_TRY_PC_MODE.store(false, Ordering::SeqCst);
-                let landing_video = domains::media::resolve_showroom_video_path();
-                if let Ok(mut guard) = player_watcher.lock() {
-                    if let Some(ref mut p) = *guard {
-                        p.change_video_looping(&landing_video.to_string_lossy(), true);
-                    }
-                }
-                let wh = watcher_handle.clone();
-                let fbh = watcher_fb_handle.clone();
-                let _ = slint::invoke_from_event_loop(move || {
-                    if let Some(fb) = fbh.upgrade() {
-                        let _ = fb.hide();
-                    }
-                    if let Some(ui) = wh.upgrade() {
-                        let _ = ui.show();
-                        ui.window().set_fullscreen(true);
-                        ui.set_is_screensaver_active(false);
-                        #[cfg(target_os = "windows")]
-                        unsafe {
-                            use windows_sys::Win32::UI::WindowsAndMessaging::{
-                                FindWindowW, SetForegroundWindow, ShowWindow, SW_RESTORE,
-                            };
-                            let title: Vec<u16> = "Showroom PC - Modo Exhibición".encode_utf16().chain(std::iter::once(0)).collect();
-                            let hwnd = FindWindowW(std::ptr::null(), title.as_ptr());
-                            if !hwnd.is_null() {
-                                ShowWindow(hwnd, SW_RESTORE);
-                                SetForegroundWindow(hwnd);
-                            }
-                        }
-                    }
-                });
             }
         }
     });
