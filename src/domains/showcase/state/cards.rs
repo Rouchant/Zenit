@@ -124,9 +124,9 @@ pub fn build_right_specs(specs: &SystemSpecs, cfg: &AppConfig) -> Vec<DisplaySpe
         },
         DisplaySpecCard {
             id: "card-battery".to_string(),
-            label: "Batería y Conectividad".to_string(),
+            label: "Batería".to_string(),
             value: specs.battery.clone(),
-            sub_value: Some(others_text.clone()),
+            sub_value: Some("Batería de larga duración".to_string()),
             tag: battery_tag,
             icon: "assets/ui/battery.svg".to_string(),
         },
@@ -135,7 +135,7 @@ pub fn build_right_specs(specs: &SystemSpecs, cfg: &AppConfig) -> Vec<DisplaySpe
     if !others_text.trim().is_empty() {
         right_specs.push(DisplaySpecCard {
             id: "card-others".to_string(),
-            label: "Otros".to_string(),
+            label: "Otros y Conectividad".to_string(),
             value: others_text,
             sub_value: None,
             tag: None,

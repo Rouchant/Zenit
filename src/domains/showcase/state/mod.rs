@@ -114,8 +114,13 @@ mod tests {
         let battery_card = state.right_specs.iter().find(|s| s.id == "card-battery").expect("Battery card must exist");
 
         assert_eq!(model_card.label, "Marca y Modelo");
+        assert_eq!(battery_card.label, "Batería");
         assert!(!model_card.value.is_empty());
         assert!(!battery_card.value.is_empty());
         assert!(battery_card.value.to_lowercase().contains("hora") || battery_card.value.to_lowercase().contains("wh"));
+
+        if let Some(others_card) = state.right_specs.iter().find(|s| s.id == "card-others") {
+            assert_eq!(others_card.label, "Otros y Conectividad");
+        }
     }
 }
