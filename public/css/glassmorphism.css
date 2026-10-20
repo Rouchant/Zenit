@@ -44,15 +44,24 @@
   margin: 0;
   padding: 0;
   user-select: none;
+  -webkit-user-select: none;
 }
 
-html, body {
+html {
+  -webkit-text-size-adjust: 100%;
+  text-size-adjust: 100%;
+  touch-action: pan-x pan-y;
+}
+
+body {
   width: 100vw;
   height: 100vh;
   overflow: hidden;
   font-family: 'Outfit', -apple-system, sans-serif;
   color: var(--text-main);
   background: #030712;
+  touch-action: pan-x pan-y;
+  -webkit-touch-callout: none;
 }
 
 /* Background Layers */
@@ -262,6 +271,7 @@ html, body {
   position: relative;
   width: 100%;
   max-width: 660px;
+  max-height: 40vh;
   aspect-ratio: 16 / 9;
   border-radius: 20px;
   overflow: hidden;

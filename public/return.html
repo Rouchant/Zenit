@@ -2,6 +2,7 @@
 <html lang="es">
 <head>
     <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, minimum-scale=1.0, user-scalable=no, shrink-to-fit=no">
     <link rel="icon" type="image/x-icon" href="/favicon.ico">
     <title>Zenit - Ver detalles</title>
     <style>
@@ -141,6 +142,22 @@
                 restoreApp();
             }, 120000);
         });
+
+        // Scale immunity & Zoom Prevention
+        function enforceScaleImmunity() {
+            const dpr = window.devicePixelRatio || 1;
+            if (Math.abs(dpr - 1) > 0.05) {
+                document.documentElement.style.zoom = 1 / dpr;
+            }
+        }
+        enforceScaleImmunity();
+        window.addEventListener('resize', enforceScaleImmunity);
+        window.addEventListener('wheel', (e) => { if (e.ctrlKey) e.preventDefault(); }, { passive: false });
+        window.addEventListener('keydown', (e) => {
+            if ((e.ctrlKey || e.metaKey) && ['+', '-', '=', '_', '0'].includes(e.key)) e.preventDefault();
+        });
+        document.addEventListener('touchstart', (e) => { if (e.touches.length > 1) e.preventDefault(); }, { passive: false });
+        document.addEventListener('gesturestart', (e) => e.preventDefault());
     </script>
 </body>
 </html>

@@ -408,8 +408,63 @@ function renderVaultList() {
   `).join('');
 }
 
+// Display Scale & Zoom Immunity System
+function enforceScaleImmunity() {
+  const dpr = window.devicePixelRatio || 1;
+  let targetZoom = 1;
+
+  // 1. Compensate for Windows DPI scaling (125%, 150%, 175%, 200%)
+  if (Math.abs(dpr - 1) > 0.05) {
+    targetZoom = 1 / dpr;
+  }
+
+  // 2. Low-resolution / compact screen auto-fit (e.g. 768p displays or small test windows)
+  // Ensures 1080p glassmorphism layout never clips or overflows
+  const effectiveHeight = window.innerHeight * (targetZoom !== 1 ? dpr : 1);
+  if (effectiveHeight < 860 && effectiveHeight > 350) {
+    const fitFactor = Math.min(1, effectiveHeight / 880);
+    targetZoom = targetZoom * fitFactor;
+  }
+
+  document.documentElement.style.zoom = targetZoom;
+}
+
+// Block accidental user zooming (Ctrl+Wheel, Ctrl + +/-, touch pinch)
+function preventAccidentalZoom() {
+  window.addEventListener('wheel', (e) => {
+    if (e.ctrlKey) {
+      e.preventDefault();
+    }
+  }, { passive: false });
+
+  window.addEventListener('keydown', (e) => {
+    if ((e.ctrlKey || e.metaKey) && (
+      e.key === '+' || e.key === '-' || e.key === '=' || e.key === '_' || e.key === '0' ||
+      e.code === 'NumpadAdd' || e.code === 'NumpadSubtract' || e.code === 'Equal' || e.code === 'Minus'
+    )) {
+      e.preventDefault();
+    }
+  });
+
+  // Block multi-touch gestures (pinch to zoom)
+  document.addEventListener('touchstart', (e) => {
+    if (e.touches.length > 1) {
+      e.preventDefault();
+    }
+  }, { passive: false });
+
+  document.addEventListener('gesturestart', (e) => e.preventDefault());
+  document.addEventListener('gesturechange', (e) => e.preventDefault());
+  document.addEventListener('gestureend', (e) => e.preventDefault());
+}
+
 // App Initialization
 window.addEventListener('DOMContentLoaded', async () => {
+  // Apply scale immunity & block zoom
+  enforceScaleImmunity();
+  preventAccidentalZoom();
+  window.addEventListener('resize', enforceScaleImmunity);
+
   // Load initial UI state from Rust
   const state = await invoke('get_zenit_ui_state');
   if (state) renderUI(state);

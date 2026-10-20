@@ -176,6 +176,14 @@ fn remove_vault_video(filename: String) -> Result<(), String> {
 }
 
 pub fn run() {
+    // Enforce 1:1 display scale immunity and disable zoom gestures/hotkeys in WebView2
+    unsafe {
+        std::env::set_var(
+            "WEBVIEW2_ADDITIONAL_BROWSER_ARGUMENTS",
+            "--force-device-scale-factor=1 --disable-pinch --disable-features=msWebview2ZoomHotkeys",
+        );
+    }
+
     tauri::Builder::default()
         .plugin(tauri_plugin_log::Builder::default().build())
         .plugin(tauri_plugin_dialog::init())
