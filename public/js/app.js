@@ -180,14 +180,25 @@ window.tryPc = async function() {
   await invoke('try_pc_minimize');
 };
 
-window.handleHotspot = function() {
+let lastHotspotTouch = 0;
+window.handleHotspot = function(e) {
+  if (e) {
+    if (e.type === 'touchstart' || e.type === 'touchend') {
+      const now = Date.now();
+      if (now - lastHotspotTouch < 250) return;
+      lastHotspotTouch = now;
+    }
+    e.stopPropagation();
+  }
+
   if (hotspotTimeout) clearTimeout(hotspotTimeout);
   hotspotClicks++;
+
   if (hotspotClicks >= 4) {
     hotspotClicks = 0;
     openPasswordModal();
   } else {
-    hotspotTimeout = setTimeout(() => { hotspotClicks = 0; }, 2500);
+    hotspotTimeout = setTimeout(() => { hotspotClicks = 0; }, 3000);
   }
 };
 

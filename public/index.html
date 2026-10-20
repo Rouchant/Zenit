@@ -19,7 +19,7 @@
         <img id="brandLogo" class="brand-logo-img" src="assets/logo.png" alt="Zenit">
         <div id="storeContainer" style="display: flex; align-items: center; gap: 20px;"></div>
       </div>
-      <div id="brandBadge" class="brand-badge">Zenit Showcase</div>
+      <div id="brandBadge" class="brand-badge" onclick="handleHotspot(event)" ontouchend="handleHotspot(event)">Zenit Showcase</div>
     </header>
 
     <!-- Main 3-Column Layout -->
@@ -49,8 +49,8 @@
       <aside id="rightColumn" class="column-specs right-column"></aside>
     </main>
 
-    <!-- Admin Hotspot (4 clics esquina superior derecha) -->
-    <div class="admin-hotspot" onclick="handleHotspot()" title="Admin (4 clics)"></div>
+    <!-- Admin Hotspot (4 clics o toques táctiles en la esquina superior derecha) -->
+    <div id="adminHotspot" class="admin-hotspot" onclick="handleHotspot(event)" ontouchend="handleHotspot(event)" title="Admin (4 toques)"></div>
 
     <!-- Fullscreen Inactivity Screensaver -->
     <div id="screensaverContainer" class="screensaver-container">

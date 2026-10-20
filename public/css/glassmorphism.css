@@ -364,15 +364,23 @@ html, body {
   transform: translateY(1px) scale(0.98);
 }
 
-/* Admin Hotspot */
+/* Admin Hotspot (Esquina Superior Derecha: área táctil y mouse) */
 .admin-hotspot {
   position: fixed;
   top: 0;
   right: 0;
-  width: 90px;
-  height: 90px;
-  z-index: 99999;
-  cursor: default;
+  width: 160px;
+  height: 120px;
+  z-index: 999999;
+  cursor: pointer;
+  background: transparent;
+  pointer-events: auto;
+  touch-action: manipulation;
+  transition: background 0.15s ease;
+}
+
+.admin-hotspot:active {
+  background: rgba(0, 242, 255, 0.1);
 }
 
 /* Screensaver */
