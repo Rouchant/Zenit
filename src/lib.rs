@@ -96,6 +96,21 @@ pub fn run() {
     main_window.show().expect("Failed to show Slint window");
     main_window.window().set_fullscreen(true);
 
+    #[cfg(target_os = "windows")]
+    unsafe {
+        use windows_sys::Win32::UI::WindowsAndMessaging::{
+            FindWindowA, GetSystemMetrics, SetWindowPos, HWND_TOP, SM_CXSCREEN, SM_CYSCREEN,
+            SWP_SHOWWINDOW,
+        };
+        let title = b"Showroom PC - Modo Exhibici\xc3\xb3n\0";
+        let hwnd = FindWindowA(std::ptr::null(), title.as_ptr());
+        if !hwnd.is_null() {
+            let screen_w = GetSystemMetrics(SM_CXSCREEN);
+            let screen_h = GetSystemMetrics(SM_CYSCREEN);
+            SetWindowPos(hwnd, HWND_TOP, 0, 0, screen_w, screen_h, SWP_SHOWWINDOW);
+        }
+    }
+
     populate_ui_state(&main_window);
 
     // Initial Live Clock

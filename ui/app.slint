@@ -91,6 +91,8 @@ export component MainWindow inherits Window {
     title: "Showroom PC - Modo Exhibición";
     no-frame: true;
     full-screen: true;
+    preferred-width: 1920px;
+    preferred-height: 1080px;
     background: #070a13;
 
     // Showroom Properties
@@ -295,232 +297,234 @@ export component MainWindow inherits Window {
 
         // 3-COLUMN SHOWROOM BODY
         HorizontalLayout {
-            width: 100%;
             vertical-stretch: 1;
             spacing: 24px;
 
             // LEFT COLUMN (Specs 1 to 4)
-            VerticalLayout {
+            Rectangle {
                 width: 340px;
-                vertical-stretch: 1;
-                spacing: 12px;
+                horizontal-stretch: 0;
 
-                for item in root.left_specs: SpecCard {
-                    category: item.category;
-                    value: item.value;
-                    subvalue: item.subvalue;
-                    tag: item.tag;
-                    accent_color: #38bdf8;
+                VerticalLayout {
+                    spacing: 12px;
+
+                    for item in root.left_specs: SpecCard {
+                        category: item.category;
+                        value: item.value;
+                        subvalue: item.subvalue;
+                        tag: item.tag;
+                        accent_color: #38bdf8;
+                    }
                 }
             }
 
             // CENTER HERO (Media & Pricing)
-            VerticalLayout {
+            Rectangle {
                 horizontal-stretch: 1;
-                vertical-stretch: 1;
-                spacing: 16px;
 
-                // Hero Frame
-                Rectangle {
-                    width: 100%;
-                    vertical-stretch: 1;
-                    min-height: 420px;
-                    background: #090e1a;
-                    border-radius: 20px;
-                    border-width: 1.5px;
-                    border-color: #38bdf833;
-                    clip: true;
+                VerticalLayout {
+                    spacing: 16px;
 
-                    // Glow background
+                    // Hero Frame
                     Rectangle {
-                        width: parent.width;
-                        height: parent.height;
-                        background: @linear-gradient(180deg, #0284c726 0%, #00000000 100%);
-                    }
+                        vertical-stretch: 1;
+                        min-height: 420px;
+                        background: #090e1a;
+                        border-radius: 20px;
+                        border-width: 1.5px;
+                        border-color: #38bdf833;
+                        clip: true;
 
-                    // libmpv Video Stream
-                    if root.has_video_stream: Image {
-                        width: parent.width;
-                        height: parent.height;
-                        source: root.video_frame;
-                        image-fit: cover;
-                    }
-
-                    VerticalLayout {
-                        alignment: root.has_video_stream ? end : center;
-                        padding-bottom: root.has_video_stream ? 24px : 0px;
-                        spacing: 20px;
-                        padding-left: 30px;
-                        padding-right: 30px;
-
-                        // Center Showcase Badge (shown when no video)
-                        if !root.has_video_stream: Rectangle {
-                            height: 64px;
-                            width: 64px;
-                            border-radius: 32px;
-                            background: #0284c733;
-                            border-width: 2px;
-                            border-color: #38bdf880;
-
-                            Text {
-                                text: "▶";
-                                font-size: 26px;
-                                color: #38bdf8;
-                                horizontal-alignment: center;
-                                vertical-alignment: center;
-                            }
-                        }
-
-                        if !root.has_video_stream: Text {
-                            text: "EQUIPO DISPONIBLE PARA PRUEBA INMEDIATA";
-                            font-size: 12px;
-                            font-weight: 800;
-                            color: #38bdf8;
-                            letter-spacing: 2px;
-                            horizontal-alignment: center;
-                        }
-
-                        if !root.has_video_stream: Text {
-                            text: root.brand_name + " " + root.model_name;
-                            font-size: 28px;
-                            font-weight: 800;
-                            color: #ffffff;
-                            horizontal-alignment: center;
-                            wrap: word-wrap;
-                        }
-
-                        if !root.has_video_stream: Text {
-                            text: "Experimenta la velocidad, potencia de gráficos y fluidez en tiempo real";
-                            font-size: 14px;
-                            color: #94a3b8;
-                            horizontal-alignment: center;
-                        }
-
-                        // PROBAR ESTA PC Button
+                        // Glow background
                         Rectangle {
-                            height: 56px;
-                            width: 280px;
-                            border-radius: 28px;
-                            background: #0284c7;
-                            border-width: 1px;
-                            border-color: #7dd3fc80;
-
-                            btn_touch := TouchArea {
-                                clicked => {
-                                    root.try_pc_clicked();
-                                }
-                            }
-
-                            states [
-                                hover when btn_touch.has-hover: {
-                                    background: #0369a1;
-                                }
-                            ]
-
-                            HorizontalLayout {
-                                alignment: center;
-                                spacing: 10px;
-
-                                Text {
-                                    text: "🚀";
-                                    font-size: 18px;
-                                    vertical-alignment: center;
-                                }
-                                Text {
-                                    text: "PROBAR ESTA PC";
-                                    font-size: 16px;
-                                    font-weight: 800;
-                                    color: #ffffff;
-                                    letter-spacing: 1px;
-                                    vertical-alignment: center;
-                                }
-                            }
-                        }
-                    }
-                }
-
-                // PRICING & SKU BANNER
-                Rectangle {
-                    width: 100%;
-                    height: 110px;
-                    background: #0f172acc;
-                    border-radius: 16px;
-                    border-width: 1px;
-                    border-color: #38bdf833;
-
-                    HorizontalLayout {
-                        alignment: space-between;
-                        padding-left: 24px;
-                        padding-right: 24px;
-                        padding-top: 14px;
-                        padding-bottom: 14px;
-
-                        // Retail Card Price
-                        VerticalLayout {
-                            alignment: center;
-                            spacing: 4px;
-                            Text {
-                                text: root.card_label;
-                                font-size: 12px;
-                                font-weight: 700;
-                                color: #38bdf8;
-                                letter-spacing: 1px;
-                            }
-                            Text {
-                                text: root.card_price;
-                                font-size: 32px;
-                                font-weight: 900;
-                                color: #ffffff;
-                            }
+                            width: parent.width;
+                            height: parent.height;
+                            background: @linear-gradient(180deg, #0284c726 0%, #00000000 100%);
                         }
 
-                        // Other Means Price
+                        // libmpv Video Stream
+                        if root.has_video_stream: Image {
+                            width: parent.width;
+                            height: parent.height;
+                            source: root.video_frame;
+                            image-fit: cover;
+                        }
+
                         VerticalLayout {
-                            alignment: center;
-                            spacing: 4px;
-                            Text {
-                                text: root.normal_label;
-                                font-size: 12px;
-                                font-weight: 600;
-                                color: #94a3b8;
+                            alignment: root.has_video_stream ? end : center;
+                            padding-bottom: root.has_video_stream ? 24px : 0px;
+                            spacing: 20px;
+                            padding-left: 30px;
+                            padding-right: 30px;
+
+                            // Center Showcase Badge (shown when no video)
+                            if !root.has_video_stream: Rectangle {
+                                height: 64px;
+                                width: 64px;
+                                border-radius: 32px;
+                                background: #0284c733;
+                                border-width: 2px;
+                                border-color: #38bdf880;
+
+                                Text {
+                                    text: "▶";
+                                    font-size: 26px;
+                                    color: #38bdf8;
+                                    horizontal-alignment: center;
+                                    vertical-alignment: center;
+                                }
                             }
-                            Text {
-                                text: root.normal_price;
-                                font-size: 24px;
+
+                            if !root.has_video_stream: Text {
+                                text: "EQUIPO DISPONIBLE PARA PRUEBA INMEDIATA";
+                                font-size: 12px;
                                 font-weight: 800;
-                                color: #cbd5e1;
+                                color: #38bdf8;
+                                letter-spacing: 2px;
+                                horizontal-alignment: center;
                             }
-                        }
 
-                        // SKU & Retail Store
-                        VerticalLayout {
-                            alignment: center;
-                            spacing: 6px;
+                            if !root.has_video_stream: Text {
+                                text: root.brand_name + " " + root.model_name;
+                                font-size: 28px;
+                                font-weight: 800;
+                                color: #ffffff;
+                                horizontal-alignment: center;
+                                wrap: word-wrap;
+                            }
+
+                            if !root.has_video_stream: Text {
+                                text: "Experimenta la velocidad, potencia de gráficos y fluidez en tiempo real";
+                                font-size: 14px;
+                                color: #94a3b8;
+                                horizontal-alignment: center;
+                            }
+
+                            // PROBAR ESTA PC Button
                             Rectangle {
-                                background: #1e293b;
-                                border-radius: 8px;
+                                height: 56px;
+                                width: 280px;
+                                border-radius: 28px;
+                                background: #0284c7;
                                 border-width: 1px;
-                                border-color: #334155;
+                                border-color: #7dd3fc80;
+
+                                btn_touch := TouchArea {
+                                    clicked => {
+                                        root.try_pc_clicked();
+                                    }
+                                }
+
+                                states [
+                                    hover when btn_touch.has-hover: {
+                                        background: #0369a1;
+                                    }
+                                ]
+
                                 HorizontalLayout {
-                                    padding-left: 12px;
-                                    padding-right: 12px;
-                                    padding-top: 6px;
-                                    padding-bottom: 6px;
+                                    alignment: center;
+                                    spacing: 10px;
+
                                     Text {
-                                        text: "SKU: " + root.sku_code;
-                                        font-size: 13px;
-                                        font-weight: 700;
-                                        color: #f8fafc;
+                                        text: "🚀";
+                                        font-size: 18px;
+                                        vertical-alignment: center;
+                                    }
+                                    Text {
+                                        text: "PROBAR ESTA PC";
+                                        font-size: 16px;
+                                        font-weight: 800;
+                                        color: #ffffff;
+                                        letter-spacing: 1px;
+                                        vertical-alignment: center;
                                     }
                                 }
                             }
-                            Text {
-                                text: root.retail_name;
-                                font-size: 11px;
-                                font-weight: 700;
-                                color: #64748b;
-                                letter-spacing: 1px;
-                                horizontal-alignment: center;
+                        }
+                    }
+
+                    // PRICING & SKU BANNER
+                    Rectangle {
+                        height: 110px;
+                        background: #0f172acc;
+                        border-radius: 16px;
+                        border-width: 1px;
+                        border-color: #38bdf833;
+
+                        HorizontalLayout {
+                            alignment: space-between;
+                            padding-left: 24px;
+                            padding-right: 24px;
+                            padding-top: 14px;
+                            padding-bottom: 14px;
+
+                            // Retail Card Price
+                            VerticalLayout {
+                                alignment: center;
+                                spacing: 4px;
+                                Text {
+                                    text: root.card_label;
+                                    font-size: 12px;
+                                    font-weight: 700;
+                                    color: #38bdf8;
+                                    letter-spacing: 1px;
+                                }
+                                Text {
+                                    text: root.card_price;
+                                    font-size: 32px;
+                                    font-weight: 900;
+                                    color: #ffffff;
+                                }
+                            }
+
+                            // Other Means Price
+                            VerticalLayout {
+                                alignment: center;
+                                spacing: 4px;
+                                Text {
+                                    text: root.normal_label;
+                                    font-size: 12px;
+                                    font-weight: 600;
+                                    color: #94a3b8;
+                                }
+                                Text {
+                                    text: root.normal_price;
+                                    font-size: 24px;
+                                    font-weight: 800;
+                                    color: #cbd5e1;
+                                }
+                            }
+
+                            // SKU & Retail Store
+                            VerticalLayout {
+                                alignment: center;
+                                spacing: 6px;
+                                Rectangle {
+                                    background: #1e293b;
+                                    border-radius: 8px;
+                                    border-width: 1px;
+                                    border-color: #334155;
+                                    HorizontalLayout {
+                                        padding-left: 12px;
+                                        padding-right: 12px;
+                                        padding-top: 6px;
+                                        padding-bottom: 6px;
+                                        Text {
+                                            text: "SKU: " + root.sku_code;
+                                            font-size: 13px;
+                                            font-weight: 700;
+                                            color: #f8fafc;
+                                        }
+                                    }
+                                }
+                                Text {
+                                    text: root.retail_name;
+                                    font-size: 11px;
+                                    font-weight: 700;
+                                    color: #64748b;
+                                    letter-spacing: 1px;
+                                    horizontal-alignment: center;
+                                }
                             }
                         }
                     }
@@ -528,17 +532,20 @@ export component MainWindow inherits Window {
             }
 
             // RIGHT COLUMN (Specs 5 to 8)
-            VerticalLayout {
+            Rectangle {
                 width: 340px;
-                vertical-stretch: 1;
-                spacing: 12px;
+                horizontal-stretch: 0;
 
-                for item in root.right_specs: SpecCard {
-                    category: item.category;
-                    value: item.value;
-                    subvalue: item.subvalue;
-                    tag: item.tag;
-                    accent_color: #818cf8;
+                VerticalLayout {
+                    spacing: 12px;
+
+                    for item in root.right_specs: SpecCard {
+                        category: item.category;
+                        value: item.value;
+                        subvalue: item.subvalue;
+                        tag: item.tag;
+                        accent_color: #818cf8;
+                    }
                 }
             }
         }
