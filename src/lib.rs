@@ -524,6 +524,85 @@ pub fn run() {
         }
     });
 
+    // Reset Store Defaults
+    let reset_store_handle = main_window.as_weak();
+    main_window.on_reset_store_defaults(move || {
+        if let Some(ui) = reset_store_handle.upgrade() {
+            let hw = detect_hardware();
+            let brand = if !hw.brand.is_empty() && !hw.brand.to_lowercase().contains("to be filled") && !hw.brand.to_lowercase().contains("o.e.m.") {
+                hw.brand
+            } else {
+                "ASUS".to_string()
+            };
+            let model = if !hw.model.is_empty() && !hw.model.to_lowercase().contains("to be filled") && !hw.model.to_lowercase().contains("o.e.m.") {
+                hw.model
+            } else {
+                "ROG Strix PC".to_string()
+            };
+            ui.set_cfg_brand(brand.into());
+            ui.set_cfg_model(model.into());
+            ui.set_cfg_retail("ripley".into());
+            ui.set_cfg_card_price("$1.299.990".into());
+            ui.set_cfg_normal_price("$1.349.990".into());
+            ui.set_cfg_sku("8493021".into());
+        }
+    });
+
+    // Reset Specs Defaults
+    let reset_specs_handle = main_window.as_weak();
+    main_window.on_reset_specs_defaults(move || {
+        if let Some(ui) = reset_specs_handle.upgrade() {
+            let hw = detect_hardware();
+            let brand = if !hw.brand.is_empty() && !hw.brand.to_lowercase().contains("to be filled") && !hw.brand.to_lowercase().contains("o.e.m.") {
+                hw.brand
+            } else {
+                "ASUS".to_string()
+            };
+            let model = if !hw.model.is_empty() && !hw.model.to_lowercase().contains("to be filled") && !hw.model.to_lowercase().contains("o.e.m.") {
+                hw.model
+            } else {
+                "ROG Strix PC".to_string()
+            };
+            ui.set_cfg_brand(brand.into());
+            ui.set_cfg_model(model.into());
+            ui.set_cfg_cpu(hw.processor.into());
+            ui.set_cfg_ram(hw.ram.into());
+            ui.set_cfg_storage(hw.storage.into());
+            ui.set_cfg_gpu(hw.gpu.into());
+            ui.set_cfg_display(hw.display.into());
+            ui.set_cfg_os(hw.os.into());
+            ui.set_cfg_battery(if !hw.battery.is_empty() && !hw.battery.contains("Conectado AC") {
+                hw.battery.into()
+            } else {
+                "Hasta 8 horas".into()
+            });
+            ui.set_cfg_others("Wi-Fi 6 / Bluetooth 5.3 / Teclado en Español".into());
+        }
+    });
+
+    // Reset Videos Defaults
+    let reset_videos_handle = main_window.as_weak();
+    main_window.on_reset_videos_defaults(move || {
+        if let Some(ui) = reset_videos_handle.upgrade() {
+            ui.set_cfg_central_video("assets/videos/landing.mp4".into());
+            ui.set_cfg_bg_video("assets/videos/bg.mp4".into());
+            ui.set_cfg_inactivity_video_1("assets/videos/inactivity.mp4".into());
+            ui.set_cfg_inactivity_video_2("".into());
+            ui.set_cfg_inactivity_video_3("".into());
+            ui.set_cfg_inactivity_timeout("120".into());
+        }
+    });
+
+    // Reset System / Factory Defaults
+    let reset_sys_handle = main_window.as_weak();
+    main_window.on_reset_system_defaults(move || {
+        if let Some(ui) = reset_sys_handle.upgrade() {
+            let default_cfg = domains::showcase::config::AppConfig::default();
+            let _ = domains::showcase::config::save_config(&default_cfg);
+            populate_ui_state(&ui);
+        }
+    });
+
     // Floating "Ver Detalles" Button Widget
     let floating_btn = Rc::new(FloatingDetailsButton::new().expect("Failed to initialize FloatingDetailsButton"));
     let restore_mw_handle = main_window.as_weak();

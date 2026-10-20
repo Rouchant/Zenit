@@ -272,6 +272,10 @@ export component MainWindow inherits Window {
     callback dismiss_screensaver();
     callback import_video_to_vault_clicked();
     callback delete_vault_video_clicked(string);
+    callback reset_store_defaults();
+    callback reset_specs_defaults();
+    callback reset_videos_defaults();
+    callback reset_system_defaults();
 
     // Root Fullscreen Showroom Surface
     Rectangle {
@@ -1129,6 +1133,38 @@ export component MainWindow inherits Window {
                                 }
                             }
                         }
+
+                        HorizontalLayout {
+                            alignment: end;
+                            Rectangle {
+                                height: 34px;
+                                width: 180px;
+                                background: #1e293b;
+                                border-radius: 6px;
+                                border-width: 1px;
+                                border-color: #475569;
+
+                                touch_reset_0 := TouchArea {
+                                    clicked => {
+                                        root.reset_store_defaults();
+                                    }
+                                }
+
+                                states [
+                                    hover when touch_reset_0.has-hover: {
+                                        background: #334155;
+                                        border-color: #38bdf8;
+                                    }
+                                ]
+
+                                HorizontalLayout {
+                                    alignment: center;
+                                    spacing: 8px;
+                                    Text { text: "↺"; font-size: 13px; color: #38bdf8; vertical-alignment: center; }
+                                    Text { text: "Valores por defecto"; font-size: 12px; font-weight: 600; color: #f1f5f9; vertical-alignment: center; }
+                                }
+                            }
+                        }
                     }
 
                     // TAB 1: ESPECIFICACIONES
@@ -1245,6 +1281,38 @@ export component MainWindow inherits Window {
                                 }
                             }
                         }
+
+                        HorizontalLayout {
+                            alignment: end;
+                            Rectangle {
+                                height: 34px;
+                                width: 180px;
+                                background: #1e293b;
+                                border-radius: 6px;
+                                border-width: 1px;
+                                border-color: #475569;
+
+                                touch_reset_1 := TouchArea {
+                                    clicked => {
+                                        root.reset_specs_defaults();
+                                    }
+                                }
+
+                                states [
+                                    hover when touch_reset_1.has-hover: {
+                                        background: #334155;
+                                        border-color: #38bdf8;
+                                    }
+                                ]
+
+                                HorizontalLayout {
+                                    alignment: center;
+                                    spacing: 8px;
+                                    Text { text: "↺"; font-size: 13px; color: #38bdf8; vertical-alignment: center; }
+                                    Text { text: "Valores por defecto"; font-size: 12px; font-weight: 600; color: #f1f5f9; vertical-alignment: center; }
+                                }
+                            }
+                        }
                     }
 
                     // TAB 2: VIDEOS Y BAÚL SEGURO
@@ -1327,29 +1395,62 @@ export component MainWindow inherits Window {
                         HorizontalLayout {
                             alignment: space-between;
                             Text {
-                                text: "📦 Baúl Seguro de Videos (%APPDATA%/Zenit/vault):";
+                                text: "📦 Baúl Seguro (%APPDATA%/Zenit/vault):";
                                 font-size: 12px;
                                 font-weight: 700;
                                 color: #ffffff;
                                 vertical-alignment: center;
                             }
-                            Rectangle {
-                                width: 220px;
-                                height: 32px;
-                                background: #0284c7;
-                                border-radius: 6px;
-                                TouchArea {
-                                    clicked => {
-                                        root.import_video_to_vault_clicked();
+                            HorizontalLayout {
+                                spacing: 8px;
+
+                                Rectangle {
+                                    width: 170px;
+                                    height: 32px;
+                                    background: #1e293b;
+                                    border-radius: 6px;
+                                    border-width: 1px;
+                                    border-color: #475569;
+
+                                    touch_reset_2 := TouchArea {
+                                        clicked => {
+                                            root.reset_videos_defaults();
+                                        }
+                                    }
+
+                                    states [
+                                        hover when touch_reset_2.has-hover: {
+                                            background: #334155;
+                                            border-color: #38bdf8;
+                                        }
+                                    ]
+
+                                    HorizontalLayout {
+                                        alignment: center;
+                                        spacing: 6px;
+                                        Text { text: "↺"; font-size: 13px; color: #38bdf8; vertical-alignment: center; }
+                                        Text { text: "Valores por defecto"; font-size: 12px; font-weight: 600; color: #f1f5f9; vertical-alignment: center; }
                                     }
                                 }
-                                Text {
-                                    text: "+ 📁 Importar Video al Baúl...";
-                                    font-size: 12px;
-                                    font-weight: 700;
-                                    color: #ffffff;
-                                    horizontal-alignment: center;
-                                    vertical-alignment: center;
+
+                                Rectangle {
+                                    width: 190px;
+                                    height: 32px;
+                                    background: #0284c7;
+                                    border-radius: 6px;
+                                    TouchArea {
+                                        clicked => {
+                                            root.import_video_to_vault_clicked();
+                                        }
+                                    }
+                                    Text {
+                                        text: "+ 📁 Importar Video...";
+                                        font-size: 12px;
+                                        font-weight: 700;
+                                        color: #ffffff;
+                                        horizontal-alignment: center;
+                                        vertical-alignment: center;
+                                    }
                                 }
                             }
                         }
@@ -1516,6 +1617,35 @@ export component MainWindow inherits Window {
                                 color: #ffffff;
                                 horizontal-alignment: center;
                                 vertical-alignment: center;
+                            }
+                        }
+
+                        // Reset All Defaults Button
+                        Rectangle {
+                            height: 42px;
+                            background: #1e293b;
+                            border-radius: 8px;
+                            border-width: 1px;
+                            border-color: #475569;
+
+                            touch_reset_3 := TouchArea {
+                                clicked => {
+                                    root.reset_system_defaults();
+                                }
+                            }
+
+                            states [
+                                hover when touch_reset_3.has-hover: {
+                                    background: #334155;
+                                    border-color: #38bdf8;
+                                }
+                            ]
+
+                            HorizontalLayout {
+                                alignment: center;
+                                spacing: 8px;
+                                Text { text: "↺"; font-size: 15px; color: #38bdf8; vertical-alignment: center; }
+                                Text { text: "Valores por defecto (Restablecer Todo a Fábrica)"; font-size: 14px; font-weight: 700; color: #f1f5f9; vertical-alignment: center; }
                             }
                         }
 

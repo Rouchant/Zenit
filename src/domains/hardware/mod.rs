@@ -95,28 +95,44 @@ fn read_reg_string(hkey: HKEY, subkey: &str, value_name: &str) -> Option<String>
 pub fn get_laptop_brand_and_model() -> (String, String) {
     let subkey = r"HARDWARE\DESCRIPTION\System\BIOS";
     let manufacturer = read_reg_string(HKEY_LOCAL_MACHINE, subkey, "SystemManufacturer")
-        .unwrap_or_else(|| "Generic".to_string());
+        .unwrap_or_else(|| "ASUS".to_string());
     let mut model = read_reg_string(HKEY_LOCAL_MACHINE, subkey, "SystemProductName")
         .unwrap_or_else(|| "".to_string());
 
+    let is_oem_placeholder = |s: &str| -> bool {
+        let l = s.to_lowercase();
+        l.contains("to be filled")
+            || l.contains("system manufacturer")
+            || l.contains("system product name")
+            || l.contains("o.e.m.")
+            || l.contains("default string")
+            || l.trim().is_empty()
+    };
+
     // Clean up generic OEM strings
-    let clean_mfg = if manufacturer.contains("To be filled")
-        || manufacturer.contains("System manufacturer")
-        || manufacturer.is_empty()
-    {
+    let mut clean_mfg = if is_oem_placeholder(&manufacturer) {
         read_reg_string(HKEY_LOCAL_MACHINE, subkey, "BaseBoardManufacturer")
-            .unwrap_or_else(|| "Laptop".to_string())
+            .unwrap_or_else(|| "ASUS".to_string())
     } else {
         manufacturer
     };
 
-    if model.contains("To be filled") || model.contains("System Product Name") || model.is_empty() {
+    if is_oem_placeholder(&clean_mfg) {
+        clean_mfg = "ASUS".to_string();
+    }
+
+    if is_oem_placeholder(&model) {
         model = read_reg_string(HKEY_LOCAL_MACHINE, subkey, "BaseBoardProduct")
-            .unwrap_or_else(|| "Portable PC".to_string());
+            .unwrap_or_else(|| "ROG Strix PC".to_string());
+    }
+
+    if is_oem_placeholder(&model) {
+        model = "Showroom PC".to_string();
     }
 
     let brand = clean_mfg
         .replace("ASUSTeK COMPUTER INC.", "ASUS")
+        .replace("ASUSTeK Computer Inc.", "ASUS")
         .replace("LENOVO", "Lenovo")
         .replace("Hewlett-Packard", "HP")
         .replace("Dell Inc.", "Dell")
