@@ -63,20 +63,28 @@ fn populate_ui_state(window: &MainWindow) {
     window.set_sku_code(sku_code.into());
 
     // Populate Left Column Specs
-    let left_items: Vec<SpecItem> = state.left_specs.into_iter().map(|s| SpecItem {
-        category: s.label.to_uppercase().into(),
-        value: s.value.into(),
-        subvalue: s.sub_value.unwrap_or_default().into(),
-        tag: s.tag.unwrap_or_default().into(),
+    let left_items: Vec<SpecItem> = state.left_specs.into_iter().map(|s| {
+        let icon_img = slint::Image::load_from_path(std::path::Path::new(&s.icon)).unwrap_or_default();
+        SpecItem {
+            category: s.label.to_uppercase().into(),
+            value: s.value.into(),
+            subvalue: s.sub_value.unwrap_or_default().into(),
+            tag: s.tag.unwrap_or_default().into(),
+            icon: icon_img,
+        }
     }).collect();
     window.set_left_specs(ModelRc::new(VecModel::from(left_items)));
 
     // Populate Right Column Specs
-    let right_items: Vec<SpecItem> = state.right_specs.into_iter().map(|s| SpecItem {
-        category: s.label.to_uppercase().into(),
-        value: s.value.into(),
-        subvalue: s.sub_value.unwrap_or_default().into(),
-        tag: s.tag.unwrap_or_default().into(),
+    let right_items: Vec<SpecItem> = state.right_specs.into_iter().map(|s| {
+        let icon_img = slint::Image::load_from_path(std::path::Path::new(&s.icon)).unwrap_or_default();
+        SpecItem {
+            category: s.label.to_uppercase().into(),
+            value: s.value.into(),
+            subvalue: s.sub_value.unwrap_or_default().into(),
+            tag: s.tag.unwrap_or_default().into(),
+            icon: icon_img,
+        }
     }).collect();
     window.set_right_specs(ModelRc::new(VecModel::from(right_items)));
 
