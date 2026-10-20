@@ -69,7 +69,22 @@ pub fn build_ui_state() -> ZenitUiState {
         if !os.trim().is_empty() { specs.os = os.clone(); }
     }
     if let Some(ref battery) = cfg.battery_override {
-        if !battery.trim().is_empty() { specs.battery = battery.clone(); }
+        let b = battery.trim();
+        if !b.is_empty() {
+            if let Ok(num) = b.parse::<f32>() {
+                specs.battery = format!("Hasta {} horas", num);
+            } else if b.chars().all(|c| c.is_ascii_digit() || c == '.' || c == ',') {
+                specs.battery = format!("Hasta {} horas", b);
+            } else if !b.to_lowercase().contains("hora") && !b.to_lowercase().contains("hrs") && !b.to_lowercase().contains("h") {
+                specs.battery = format!("Hasta {} horas", b);
+            } else {
+                specs.battery = b.to_string();
+            }
+        }
+    } else {
+        if specs.battery.contains("Conectado AC") || specs.battery.contains("Cargando") || specs.battery.trim().is_empty() {
+            specs.battery = "Hasta 8 horas".to_string();
+        }
     }
 
     // 2. Compute processor icon
@@ -153,7 +168,13 @@ pub fn build_ui_state() -> ZenitUiState {
         specs.brand.clone()
     };
 
-    let battery_tag = if specs.is_charging { Some("Cargando".to_string()) } else { None };
+    let battery_tag = if specs.battery.to_lowercase().contains("hora") {
+        Some("Autonomía".to_string())
+    } else if specs.is_charging {
+        Some("Cargando".to_string())
+    } else {
+        None
+    };
     let hz_tag = if specs.refresh_rate > 0 { Some(format!("{}Hz", specs.refresh_rate)) } else { None };
 
     let mut right_specs = vec![
@@ -177,7 +198,7 @@ pub fn build_ui_state() -> ZenitUiState {
             id: "card-battery".to_string(),
             label: "Batería".to_string(),
             value: specs.battery.clone(),
-            sub_value: None,
+            sub_value: Some("Batería de larga duración".to_string()),
             tag: battery_tag,
             icon: "assets/ui/battery.svg".to_string(),
         },

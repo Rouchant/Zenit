@@ -1177,10 +1177,10 @@ export component MainWindow inherits Window {
                             spacing: 12px;
                             VerticalLayout {
                                 spacing: 3px;
-                                Text { text: "Batería:"; font-size: 11px; color: #cbd5e1; }
+                                Text { text: "Duración Batería (Horas):"; font-size: 11px; color: #cbd5e1; }
                                 LineEdit {
                                     text: root.cfg_battery;
-                                    placeholder-text: "Auto / Vacío para sensor nativo";
+                                    placeholder-text: "Ej: Hasta 10 horas (o solo ingresa: 8, 10)";
                                     edited => { root.cfg_battery = self.text; }
                                 }
                             }

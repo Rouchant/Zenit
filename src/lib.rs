@@ -111,7 +111,10 @@ fn populate_ui_state(window: &MainWindow) {
     window.set_cfg_gpu(cfg.gpu_override.clone().unwrap_or_default().into());
     window.set_cfg_display(cfg.display_override.clone().unwrap_or_default().into());
     window.set_cfg_os(cfg.os_override.clone().unwrap_or_default().into());
-    window.set_cfg_battery(cfg.battery_override.clone().unwrap_or_default().into());
+    let battery_val = cfg.battery_override.clone().unwrap_or_else(|| {
+        "Hasta 8 horas".to_string()
+    });
+    window.set_cfg_battery(battery_val.into());
     window.set_cfg_others(cfg.other_specs.clone().into());
 
     window.set_cfg_central_video(cfg.central_video_path.clone().into());
@@ -267,7 +270,13 @@ pub fn run() {
             ui.set_cfg_gpu(hw.gpu.into());
             ui.set_cfg_display(hw.display.into());
             ui.set_cfg_os(hw.os.into());
-            ui.set_cfg_battery(hw.battery.into());
+            if hw.battery.contains("Conectado AC") || hw.battery.contains("Cargando") {
+                if ui.get_cfg_battery().trim().is_empty() {
+                    ui.set_cfg_battery("Hasta 8 horas".into());
+                }
+            } else {
+                ui.set_cfg_battery(hw.battery.into());
+            }
         }
     });
 
@@ -291,7 +300,21 @@ pub fn run() {
             if !gpu.trim().is_empty() { cfg.gpu_override = Some(gpu.to_string()); } else { cfg.gpu_override = None; }
             if !display.trim().is_empty() { cfg.display_override = Some(display.to_string()); } else { cfg.display_override = None; }
             if !os.trim().is_empty() { cfg.os_override = Some(os.to_string()); } else { cfg.os_override = None; }
-            if !battery.trim().is_empty() { cfg.battery_override = Some(battery.to_string()); } else { cfg.battery_override = None; }
+            if !battery.trim().is_empty() {
+                let b = battery.trim();
+                let formatted = if let Ok(num) = b.parse::<f32>() {
+                    format!("Hasta {} horas", num)
+                } else if b.chars().all(|c| c.is_ascii_digit() || c == '.' || c == ',') {
+                    format!("Hasta {} horas", b)
+                } else if !b.to_lowercase().contains("hora") && !b.to_lowercase().contains("hrs") && !b.to_lowercase().contains("h") {
+                    format!("Hasta {} horas", b)
+                } else {
+                    b.to_string()
+                };
+                cfg.battery_override = Some(formatted);
+            } else {
+                cfg.battery_override = None;
+            }
             cfg.other_specs = others.to_string();
 
             if !central_vid.trim().is_empty() { cfg.central_video_path = central_vid.to_string(); }
