@@ -8,6 +8,13 @@ export struct SpecItem {
     icon: image,
 }
 
+export struct VaultVideoItem {
+    name: string,
+    filename: string,
+    path: string,
+    size_str: string,
+}
+
 component SpecCard inherits Rectangle {
     in property <string> category: "CATEGORÍA";
     in property <string> value: "Valor Principal";
@@ -199,9 +206,11 @@ export component MainWindow inherits Window {
     in-out property <bool> is_screensaver_active: false;
     in-out property <string> admin_error_msg: "";
 
-    // Video Stream Properties (libmpv)
+    // Video Streams (libmpv)
     in-out property <image> video_frame;
     in-out property <bool> has_video_stream: false;
+    in-out property <image> bg_video_frame;
+    in-out property <bool> has_bg_video: false;
 
     // Screen Dimensions for Fullscreen Auto-Scaling
     in-out property <length> screen_width: 1920px;
@@ -237,11 +246,14 @@ export component MainWindow inherits Window {
     in-out property <string> cfg_battery: "";
     in-out property <string> cfg_others: "";
 
-    // Admin Tab Videos
+    // Admin Tab Videos & Baúl
     in-out property <string> cfg_central_video: "";
-    in-out property <string> cfg_inactivity_video: "";
     in-out property <string> cfg_bg_video: "";
+    in-out property <string> cfg_inactivity_video_1: "";
+    in-out property <string> cfg_inactivity_video_2: "";
+    in-out property <string> cfg_inactivity_video_3: "";
     in-out property <string> cfg_inactivity_timeout: "120";
+    in-out property <[VaultVideoItem]> vault_videos: [];
 
     // Callbacks
     callback try_pc_clicked();
@@ -255,15 +267,32 @@ export component MainWindow inherits Window {
     callback save_admin_config(
         string, string, string, string, string, string,
         string, string, string, string, string, string, string, string,
-        string, string, string, string
+        string, string, string, string, string, string
     );
     callback dismiss_screensaver();
+    callback import_video_to_vault_clicked();
+    callback delete_vault_video_clicked(string);
 
     // Root Fullscreen Showroom Surface
     Rectangle {
         width: 100%;
         height: 100%;
         background: #070a13;
+
+        // Fullscreen Background Video Stream (bg.mp4)
+        if root.has_bg_video: Image {
+            width: 100%;
+            height: 100%;
+            source: root.bg_video_frame;
+            image-fit: cover;
+        }
+
+        // Tint overlay so specs cards, text and central video stay crisp & legible
+        if root.has_bg_video: Rectangle {
+            width: 100%;
+            height: 100%;
+            background: #070a13d9;
+        }
 
         // Background Ambient Glow Gradients
         Rectangle {
@@ -791,8 +820,8 @@ export component MainWindow inherits Window {
         background: #000000e6;
 
         Rectangle {
-            width: root.is_admin_authenticated ? 740px : 480px;
-            height: root.is_admin_authenticated ? 620px : 360px;
+            width: root.is_admin_authenticated ? 840px : 480px;
+            height: root.is_admin_authenticated ? 680px : 360px;
             background: #0f172a;
             border-radius: 20px;
             border-width: 1px;
@@ -1196,36 +1225,25 @@ export component MainWindow inherits Window {
                         }
                     }
 
-                    // TAB 2: VIDEOS
+                    // TAB 2: VIDEOS Y BAÚL SEGURO
                     if root.admin_tab_index == 2: VerticalLayout {
-                        spacing: 12px;
-                        alignment: center;
+                        spacing: 10px;
 
-                        VerticalLayout {
-                            spacing: 4px;
-                            Text { text: "Video Central del Showroom:"; font-size: 12px; color: #cbd5e1; }
-                            LineEdit {
-                                text: root.cfg_central_video;
-                                placeholder-text: "assets/videos/landing.mp4";
-                                edited => { root.cfg_central_video = self.text; }
-                            }
-                        }
-
-                        VerticalLayout {
-                            spacing: 4px;
-                            Text { text: "Video Salvapantallas (Inactividad):"; font-size: 12px; color: #cbd5e1; }
-                            LineEdit {
-                                text: root.cfg_inactivity_video;
-                                placeholder-text: "assets/videos/promo2.mp4";
-                                edited => { root.cfg_inactivity_video = self.text; }
-                            }
-                        }
-
+                        // Sección: Videos Principales
                         HorizontalLayout {
                             spacing: 12px;
                             VerticalLayout {
-                                spacing: 4px;
-                                Text { text: "Video de Fondo:"; font-size: 12px; color: #cbd5e1; }
+                                spacing: 3px;
+                                Text { text: "Video Central Landing:"; font-size: 11px; color: #cbd5e1; }
+                                LineEdit {
+                                    text: root.cfg_central_video;
+                                    placeholder-text: "assets/videos/landing.mp4";
+                                    edited => { root.cfg_central_video = self.text; }
+                                }
+                            }
+                            VerticalLayout {
+                                spacing: 3px;
+                                Text { text: "Video Fondo Pantalla Completa:"; font-size: 11px; color: #cbd5e1; }
                                 LineEdit {
                                     text: root.cfg_bg_video;
                                     placeholder-text: "assets/videos/bg.mp4";
@@ -1233,12 +1251,226 @@ export component MainWindow inherits Window {
                                 }
                             }
                             VerticalLayout {
-                                spacing: 4px;
-                                Text { text: "Timeout Inactividad (segundos):"; font-size: 12px; color: #cbd5e1; }
+                                width: 140px;
+                                spacing: 3px;
+                                Text { text: "Timeout Inactividad (seg):"; font-size: 11px; color: #cbd5e1; }
                                 LineEdit {
                                     text: root.cfg_inactivity_timeout;
                                     placeholder-text: "120";
                                     edited => { root.cfg_inactivity_timeout = self.text; }
+                                }
+                            }
+                        }
+
+                        // Sección: 3 Slots de Inactividad (Rotación cada 2 minutos)
+                        Text {
+                            text: "🎬 Videos de Inactividad (Hasta 3 videos con rotación automática cada 2 min):";
+                            font-size: 12px;
+                            font-weight: 700;
+                            color: #38bdf8;
+                        }
+
+                        HorizontalLayout {
+                            spacing: 10px;
+                            VerticalLayout {
+                                spacing: 3px;
+                                Text { text: "Video Inactividad #1:"; font-size: 10px; color: #94a3b8; }
+                                LineEdit {
+                                    text: root.cfg_inactivity_video_1;
+                                    placeholder-text: "assets/videos/promo2.mp4";
+                                    edited => { root.cfg_inactivity_video_1 = self.text; }
+                                }
+                            }
+                            VerticalLayout {
+                                spacing: 3px;
+                                Text { text: "Video Inactividad #2:"; font-size: 10px; color: #94a3b8; }
+                                LineEdit {
+                                    text: root.cfg_inactivity_video_2;
+                                    placeholder-text: "assets/videos/promo.mp4";
+                                    edited => { root.cfg_inactivity_video_2 = self.text; }
+                                }
+                            }
+                            VerticalLayout {
+                                spacing: 3px;
+                                Text { text: "Video Inactividad #3:"; font-size: 10px; color: #94a3b8; }
+                                LineEdit {
+                                    text: root.cfg_inactivity_video_3;
+                                    placeholder-text: "Opcional / Vacío";
+                                    edited => { root.cfg_inactivity_video_3 = self.text; }
+                                }
+                            }
+                        }
+
+                        // Sección: Baúl Seguro de Videos
+                        HorizontalLayout {
+                            alignment: space-between;
+                            Text {
+                                text: "📦 Baúl Seguro de Videos (%APPDATA%/Zenit/vault):";
+                                font-size: 12px;
+                                font-weight: 700;
+                                color: #ffffff;
+                                vertical-alignment: center;
+                            }
+                            Rectangle {
+                                width: 220px;
+                                height: 32px;
+                                background: #0284c7;
+                                border-radius: 6px;
+                                TouchArea {
+                                    clicked => {
+                                        root.import_video_to_vault_clicked();
+                                    }
+                                }
+                                Text {
+                                    text: "+ 📁 Importar Video al Baúl...";
+                                    font-size: 12px;
+                                    font-weight: 700;
+                                    color: #ffffff;
+                                    horizontal-alignment: center;
+                                    vertical-alignment: center;
+                                }
+                            }
+                        }
+
+                        // Lista de Videos en el Baúl con ScrollView
+                        Rectangle {
+                            height: 140px;
+                            background: #090e1a;
+                            border-radius: 8px;
+                            border-width: 1px;
+                            border-color: #334155;
+                            clip: true;
+
+                            if root.vault_videos.length == 0: Text {
+                                text: "El baúl está vacío. Haz clic en 'Importar Video' para añadir videos MP4.";
+                                font-size: 12px;
+                                color: #64748b;
+                                horizontal-alignment: center;
+                                vertical-alignment: center;
+                            }
+
+                            if root.vault_videos.length > 0: ScrollView {
+                                content-width: self.width;
+                                VerticalLayout {
+                                    padding: 6px;
+                                    spacing: 6px;
+                                    for item in root.vault_videos: Rectangle {
+                                        height: 36px;
+                                        background: #1e293b;
+                                        border-radius: 6px;
+
+                                        HorizontalLayout {
+                                            padding-left: 10px;
+                                            padding-right: 10px;
+                                            spacing: 8px;
+                                            alignment: space-between;
+
+                                            HorizontalLayout {
+                                                spacing: 8px;
+                                                alignment: start;
+                                                Text {
+                                                    text: "🎬 " + item.name;
+                                                    font-size: 11px;
+                                                    font-weight: 600;
+                                                    color: #f1f5f9;
+                                                    vertical-alignment: center;
+                                                }
+                                                Text {
+                                                    text: "(" + item.size_str + ")";
+                                                    font-size: 10px;
+                                                    color: #64748b;
+                                                    vertical-alignment: center;
+                                                }
+                                            }
+
+                                            HorizontalLayout {
+                                                spacing: 6px;
+                                                alignment: end;
+
+                                                // Asignar a Slot 1
+                                                Rectangle {
+                                                    width: 48px;
+                                                    height: 24px;
+                                                    background: #0284c7;
+                                                    border-radius: 4px;
+                                                    TouchArea {
+                                                        clicked => {
+                                                            root.cfg_inactivity_video_1 = item.path;
+                                                        }
+                                                    }
+                                                    Text {
+                                                        text: "Slot 1";
+                                                        font-size: 10px;
+                                                        font-weight: 700;
+                                                        color: #ffffff;
+                                                        horizontal-alignment: center;
+                                                        vertical-alignment: center;
+                                                    }
+                                                }
+
+                                                // Asignar a Slot 2
+                                                Rectangle {
+                                                    width: 48px;
+                                                    height: 24px;
+                                                    background: #0284c7;
+                                                    border-radius: 4px;
+                                                    TouchArea {
+                                                        clicked => {
+                                                            root.cfg_inactivity_video_2 = item.path;
+                                                        }
+                                                    }
+                                                    Text {
+                                                        text: "Slot 2";
+                                                        font-size: 10px;
+                                                        font-weight: 700;
+                                                        color: #ffffff;
+                                                        horizontal-alignment: center;
+                                                        vertical-alignment: center;
+                                                    }
+                                                }
+
+                                                // Asignar a Slot 3
+                                                Rectangle {
+                                                    width: 48px;
+                                                    height: 24px;
+                                                    background: #0284c7;
+                                                    border-radius: 4px;
+                                                    TouchArea {
+                                                        clicked => {
+                                                            root.cfg_inactivity_video_3 = item.path;
+                                                        }
+                                                    }
+                                                    Text {
+                                                        text: "Slot 3";
+                                                        font-size: 10px;
+                                                        font-weight: 700;
+                                                        color: #ffffff;
+                                                        horizontal-alignment: center;
+                                                        vertical-alignment: center;
+                                                    }
+                                                }
+
+                                                // Eliminar
+                                                Rectangle {
+                                                    width: 28px;
+                                                    height: 24px;
+                                                    background: #ef444433;
+                                                    border-radius: 4px;
+                                                    TouchArea {
+                                                        clicked => {
+                                                            root.delete_vault_video_clicked(item.filename);
+                                                        }
+                                                    }
+                                                    Text {
+                                                        text: "🗑️";
+                                                        font-size: 11px;
+                                                        horizontal-alignment: center;
+                                                        vertical-alignment: center;
+                                                    }
+                                                }
+                                            }
+                                        }
+                                    }
                                 }
                             }
                         }
@@ -1313,7 +1545,7 @@ export component MainWindow inherits Window {
                                 root.save_admin_config(
                                     root.cfg_brand, root.cfg_model, root.cfg_retail, root.cfg_card_price, root.cfg_normal_price, root.cfg_sku,
                                     root.cfg_cpu, root.cfg_ram, root.cfg_storage, root.cfg_gpu, root.cfg_display, root.cfg_os, root.cfg_battery, root.cfg_others,
-                                    root.cfg_central_video, root.cfg_inactivity_video, root.cfg_bg_video, root.cfg_inactivity_timeout
+                                    root.cfg_central_video, root.cfg_bg_video, root.cfg_inactivity_video_1, root.cfg_inactivity_video_2, root.cfg_inactivity_video_3, root.cfg_inactivity_timeout
                                 );
                             }
                         }

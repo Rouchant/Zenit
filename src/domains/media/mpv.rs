@@ -29,6 +29,8 @@ type MpvSetOptionStringFn = unsafe extern "C" fn(*mut c_void, *const c_char, *co
 type MpvRenderContextCreateFn = unsafe extern "C" fn(*mut *mut c_void, *mut c_void, *mut MpvRenderParam) -> c_int;
 type MpvRenderContextRenderFn = unsafe extern "C" fn(*mut c_void, *mut MpvRenderParam) -> c_int;
 type MpvRenderContextFreeFn = unsafe extern "C" fn(*mut c_void);
+type MpvGetPropertyStringFn = unsafe extern "C" fn(*mut c_void, *const c_char) -> *mut c_char;
+type MpvFreeFn = unsafe extern "C" fn(*mut c_void);
 
 pub struct MpvLibrary {
     _lib: Library,
@@ -41,6 +43,8 @@ pub struct MpvLibrary {
     pub mpv_render_context_create: MpvRenderContextCreateFn,
     pub mpv_render_context_render: MpvRenderContextRenderFn,
     pub mpv_render_context_free: MpvRenderContextFreeFn,
+    pub mpv_get_property_string: Option<MpvGetPropertyStringFn>,
+    pub mpv_free: Option<MpvFreeFn>,
 }
 
 impl MpvLibrary {
@@ -103,6 +107,8 @@ impl MpvLibrary {
             let mpv_render_context_create: Symbol<MpvRenderContextCreateFn> = lib.get(b"mpv_render_context_create\0").map_err(|e| e.to_string())?;
             let mpv_render_context_render: Symbol<MpvRenderContextRenderFn> = lib.get(b"mpv_render_context_render\0").map_err(|e| e.to_string())?;
             let mpv_render_context_free: Symbol<MpvRenderContextFreeFn> = lib.get(b"mpv_render_context_free\0").map_err(|e| e.to_string())?;
+            let mpv_get_property_string: Option<MpvGetPropertyStringFn> = lib.get(b"mpv_get_property_string\0").ok().map(|s: Symbol<MpvGetPropertyStringFn>| *s);
+            let mpv_free: Option<MpvFreeFn> = lib.get(b"mpv_free\0").ok().map(|s: Symbol<MpvFreeFn>| *s);
 
             Ok(Self {
                 mpv_create: *mpv_create,
@@ -114,6 +120,8 @@ impl MpvLibrary {
                 mpv_render_context_create: *mpv_render_context_create,
                 mpv_render_context_render: *mpv_render_context_render,
                 mpv_render_context_free: *mpv_render_context_free,
+                mpv_get_property_string,
+                mpv_free,
                 _lib: lib,
             })
         }
@@ -277,6 +285,16 @@ impl SlintMpvPlayer {
     }
 
     pub fn change_video(&mut self, video_path: &str) {
+        self.change_video_looping(video_path, true);
+    }
+
+    pub fn change_video_looping(&mut self, video_path: &str, looping: bool) {
+        let opt_loop = CString::new("loop-file").unwrap();
+        let loop_val = CString::new(if looping { "inf" } else { "no" }).unwrap();
+        unsafe {
+            (self.lib.mpv_set_option_string)(self.mpv, opt_loop.as_ptr(), loop_val.as_ptr());
+        }
+
         if let (Ok(c_cmd), Ok(c_path), Ok(c_mode)) = (
             CString::new("loadfile"),
             CString::new(video_path.replace('\\', "/")),
@@ -292,6 +310,36 @@ impl SlintMpvPlayer {
                 (self.lib.mpv_command)(self.mpv, cmd_args.as_ptr());
             }
         }
+    }
+
+    pub fn get_property_string(&self, name: &str) -> Option<String> {
+        let get_fn = self.lib.mpv_get_property_string?;
+        let free_fn = self.lib.mpv_free?;
+        if let Ok(c_name) = CString::new(name) {
+            unsafe {
+                let ptr = get_fn(self.mpv, c_name.as_ptr());
+                if !ptr.is_null() {
+                    let s = std::ffi::CStr::from_ptr(ptr).to_string_lossy().to_string();
+                    free_fn(ptr as *mut c_void);
+                    return Some(s);
+                }
+            }
+        }
+        None
+    }
+
+    pub fn is_eof(&self) -> bool {
+        self.get_property_string("eof-reached")
+            .map(|val| val == "yes")
+            .unwrap_or(false)
+    }
+
+    pub fn get_duration(&self) -> Option<f64> {
+        self.get_property_string("duration").and_then(|s| s.parse::<f64>().ok())
+    }
+
+    pub fn get_time_pos(&self) -> Option<f64> {
+        self.get_property_string("time-pos").and_then(|s| s.parse::<f64>().ok())
     }
 
     pub fn pause(&self) {

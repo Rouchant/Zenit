@@ -15,6 +15,20 @@ slint::include_modules!();
 static IS_IN_TRY_PC_MODE: AtomicBool = AtomicBool::new(false);
 static IS_SCREENSAVER_ACTIVE: AtomicBool = AtomicBool::new(false);
 
+fn populate_vault_videos(window: &MainWindow) {
+    domains::media::vault::seed_vault_defaults();
+    let videos = domains::media::vault::list_vault_videos();
+    let items: Vec<VaultVideoItem> = videos.into_iter().map(|v| {
+        VaultVideoItem {
+            name: v.name.into(),
+            filename: v.filename.into(),
+            path: v.path.into(),
+            size_str: format!("{:.1} MB", v.size_mb).into(),
+        }
+    }).collect();
+    window.set_vault_videos(ModelRc::new(VecModel::from(items)));
+}
+
 fn populate_ui_state(window: &MainWindow) {
     let state = build_ui_state();
     let cfg = load_config();
@@ -118,9 +132,13 @@ fn populate_ui_state(window: &MainWindow) {
     window.set_cfg_others(cfg.other_specs.clone().into());
 
     window.set_cfg_central_video(cfg.central_video_path.clone().into());
-    window.set_cfg_inactivity_video(cfg.inactivity_video_path.clone().into());
     window.set_cfg_bg_video(cfg.bg_video_path.clone().into());
+    window.set_cfg_inactivity_video_1(cfg.inactivity_video_path.clone().into());
+    window.set_cfg_inactivity_video_2(cfg.inactivity_video_path_2.clone().into());
+    window.set_cfg_inactivity_video_3(cfg.inactivity_video_path_3.clone().into());
     window.set_cfg_inactivity_timeout(cfg.inactivity_timeout_sec.to_string().into());
+
+    populate_vault_videos(window);
 }
 
 pub fn run() {
@@ -165,35 +183,67 @@ pub fn run() {
 
     match domains::media::SlintMpvPlayer::new(&video_path_str, 854, 480) {
         Ok(player) => {
-            println!("[libmpv] Reproductor inicializado con video: {}", video_path_str);
+            println!("[libmpv] Reproductor landing inicializado con video: {}", video_path_str);
             main_window.set_has_video_stream(true);
             *player_shared.lock().unwrap() = Some(player);
-            let vh = main_window.as_weak();
-            let player_for_timer = player_shared.clone();
-            video_timer.start(slint::TimerMode::Repeated, std::time::Duration::from_millis(33), move || {
-                if !IS_IN_TRY_PC_MODE.load(Ordering::SeqCst) {
-                    if let Ok(mut guard) = player_for_timer.try_lock() {
-                        if let Some(ref mut p) = *guard {
-                            match p.render_frame_buffer() {
-                                Ok(buffer) => {
-                                    if let Some(ui) = vh.upgrade() {
-                                        ui.set_video_frame(slint::Image::from_rgba8(buffer));
-                                    }
-                                }
-                                Err(e) => {
-                                    eprintln!("[libmpv render error] {}", e);
-                                }
-                            }
-                        }
-                    }
-                }
-            });
         }
         Err(err) => {
-            println!("[libmpv] {}", err);
+            println!("[libmpv error] {}", err);
             main_window.set_has_video_stream(false);
         }
     }
+
+    // Initialize libmpv Fullscreen Background Video Player (bg.mp4)
+    let initial_cfg = load_config();
+    let bg_path = domains::media::resolve_video_path(&initial_cfg.bg_video_path);
+    let bg_path_str = bg_path.to_string_lossy().to_string();
+    let bg_player_shared: Arc<Mutex<Option<domains::media::SlintMpvPlayer>>> =
+        Arc::new(Mutex::new(None));
+
+    if bg_path.exists() {
+        match domains::media::SlintMpvPlayer::new(&bg_path_str, 960, 540) {
+            Ok(bg_p) => {
+                println!("[libmpv bg] Reproductor de fondo inicializado con video: {}", bg_path_str);
+                main_window.set_has_bg_video(true);
+                *bg_player_shared.lock().unwrap() = Some(bg_p);
+            }
+            Err(e) => {
+                println!("[libmpv bg error] {}", e);
+                main_window.set_has_bg_video(false);
+            }
+        }
+    } else {
+        main_window.set_has_bg_video(false);
+    }
+
+    let vh = main_window.as_weak();
+    let player_for_timer = player_shared.clone();
+    let bg_for_timer = bg_player_shared.clone();
+    video_timer.start(slint::TimerMode::Repeated, std::time::Duration::from_millis(33), move || {
+        if !IS_IN_TRY_PC_MODE.load(Ordering::SeqCst) {
+            // 1. Render Landing / Screensaver video stream
+            if let Ok(mut guard) = player_for_timer.try_lock() {
+                if let Some(ref mut p) = *guard {
+                    if let Ok(buffer) = p.render_frame_buffer() {
+                        if let Some(ui) = vh.upgrade() {
+                            ui.set_video_frame(slint::Image::from_rgba8(buffer));
+                        }
+                    }
+                }
+            }
+
+            // 2. Render Fullscreen Background video stream (bg.mp4)
+            if let Ok(mut guard) = bg_for_timer.try_lock() {
+                if let Some(ref mut p) = *guard {
+                    if let Ok(buffer) = p.render_frame_buffer() {
+                        if let Some(ui) = vh.upgrade() {
+                            ui.set_bg_video_frame(slint::Image::from_rgba8(buffer));
+                        }
+                    }
+                }
+            }
+        }
+    });
 
     // Live Clock Timer (updates every 1s)
     let clock_timer = slint::Timer::default();
@@ -282,9 +332,11 @@ pub fn run() {
 
     // Save Admin Configuration Form (Tienda, Especificaciones, Videos, Sistema)
     let save_admin_handle = main_window.as_weak();
+    let bg_player_on_save = bg_player_shared.clone();
+    let landing_player_on_save = player_shared.clone();
     main_window.on_save_admin_config(move |brand, model, retail, card_p, normal_p, sku,
                                            cpu, ram, storage, gpu, display, os, battery, others,
-                                           central_vid, inact_vid, bg_vid, timeout_str| {
+                                           central_vid, bg_vid, inact_vid_1, inact_vid_2, inact_vid_3, timeout_str| {
         if let Some(ui) = save_admin_handle.upgrade() {
             let mut cfg = load_config();
             if !brand.trim().is_empty() { cfg.brand_override = Some(brand.to_string()); } else { cfg.brand_override = None; }
@@ -317,9 +369,31 @@ pub fn run() {
             }
             cfg.other_specs = others.to_string();
 
-            if !central_vid.trim().is_empty() { cfg.central_video_path = central_vid.to_string(); }
-            if !inact_vid.trim().is_empty() { cfg.inactivity_video_path = inact_vid.to_string(); }
-            if !bg_vid.trim().is_empty() { cfg.bg_video_path = bg_vid.to_string(); }
+            if !central_vid.trim().is_empty() {
+                if central_vid.to_string() != cfg.central_video_path {
+                    let resolved = domains::media::resolve_video_path(&central_vid);
+                    if let Ok(mut guard) = landing_player_on_save.lock() {
+                        if let Some(ref mut p) = *guard {
+                            p.change_video_looping(&resolved.to_string_lossy(), true);
+                        }
+                    }
+                }
+                cfg.central_video_path = central_vid.to_string();
+            }
+            if !bg_vid.trim().is_empty() {
+                if bg_vid.to_string() != cfg.bg_video_path {
+                    let resolved = domains::media::resolve_video_path(&bg_vid);
+                    if let Ok(mut guard) = bg_player_on_save.lock() {
+                        if let Some(ref mut p) = *guard {
+                            p.change_video_looping(&resolved.to_string_lossy(), true);
+                        }
+                    }
+                }
+                cfg.bg_video_path = bg_vid.to_string();
+            }
+            if !inact_vid_1.trim().is_empty() { cfg.inactivity_video_path = inact_vid_1.to_string(); }
+            cfg.inactivity_video_path_2 = inact_vid_2.to_string();
+            cfg.inactivity_video_path_3 = inact_vid_3.to_string();
             if let Ok(t) = timeout_str.trim().parse::<u64>() {
                 if t > 0 { cfg.inactivity_timeout_sec = t; }
             }
@@ -328,6 +402,32 @@ pub fn run() {
             ui.set_is_admin_open(false);
             ui.set_is_admin_authenticated(false);
             populate_ui_state(&ui);
+        }
+    });
+
+    // Vault: Import video to safe folder
+    let vault_handle = main_window.as_weak();
+    main_window.on_import_video_to_vault_clicked(move || {
+        let wh = vault_handle.clone();
+        std::thread::spawn(move || {
+            if let Some(picked) = domains::media::vault::pick_video_file() {
+                if let Ok(_item) = domains::media::vault::import_video_to_vault(&picked) {
+                    let _ = slint::invoke_from_event_loop(move || {
+                        if let Some(ui) = wh.upgrade() {
+                            populate_vault_videos(&ui);
+                        }
+                    });
+                }
+            }
+        });
+    });
+
+    // Vault: Delete video
+    let del_vault_handle = main_window.as_weak();
+    main_window.on_delete_vault_video_clicked(move |filename| {
+        let _ = domains::media::vault::delete_vault_video(&filename);
+        if let Some(ui) = del_vault_handle.upgrade() {
+            populate_vault_videos(&ui);
         }
     });
 
@@ -425,10 +525,15 @@ pub fn run() {
         }
     });
 
-    // Screensaver Dismiss
+    // Screensaver Dismiss Tracking & Dismiss Handler
+    let last_dismiss_time = std::sync::Arc::new(std::sync::Mutex::new(std::time::Instant::now()));
     let dismiss_handle = main_window.as_weak();
     let player_dismiss = player_shared.clone();
+    let last_dismiss_for_cb = last_dismiss_time.clone();
     main_window.on_dismiss_screensaver(move || {
+        if let Ok(mut t) = last_dismiss_for_cb.lock() {
+            *t = std::time::Instant::now();
+        }
         if let Some(ui) = dismiss_handle.upgrade() {
             ui.set_is_screensaver_active(false);
             IS_SCREENSAVER_ACTIVE.store(false, Ordering::SeqCst);
@@ -436,7 +541,7 @@ pub fn run() {
         let landing_video = domains::media::resolve_showroom_video_path();
         if let Ok(mut guard) = player_dismiss.lock() {
             if let Some(ref mut p) = *guard {
-                p.change_video(&landing_video.to_string_lossy());
+                p.change_video_looping(&landing_video.to_string_lossy(), true);
             }
         }
     });
@@ -458,45 +563,85 @@ pub fn run() {
     let watcher_handle = main_window.as_weak();
     let watcher_fb_handle = floating_btn.as_weak();
     let player_watcher = player_shared.clone();
+    let last_dismiss_watcher = last_dismiss_time.clone();
     std::thread::spawn(move || {
+        let mut inactivity_slot = 0usize;
+        let mut screensaver_start_time = std::time::Instant::now();
+
         loop {
             std::thread::sleep(std::time::Duration::from_millis(500));
             let idle_seconds = get_system_idle_seconds();
             let cfg = load_config();
             let timeout = cfg.inactivity_timeout_sec;
 
-            // 1. Screensaver state toggle
+            let time_since_dismiss = last_dismiss_watcher
+                .lock()
+                .map(|t| t.elapsed().as_secs())
+                .unwrap_or(u64::MAX);
+
             let was_screensaver = IS_SCREENSAVER_ACTIVE.load(Ordering::SeqCst);
-            if !was_screensaver && idle_seconds >= timeout {
-                IS_SCREENSAVER_ACTIVE.store(true, Ordering::SeqCst);
-                let promo_video = domains::media::resolve_video_path(&cfg.inactivity_video_path);
-                if promo_video.exists() {
-                    if let Ok(mut guard) = player_watcher.lock() {
-                        if let Some(ref mut p) = *guard {
-                            p.change_video(&promo_video.to_string_lossy());
+
+            // 1. Screensaver state toggle
+            if !was_screensaver {
+                // Must be idle >= timeout AND at least timeout seconds since last dismiss/finish
+                if idle_seconds >= timeout && time_since_dismiss >= timeout {
+                    let video_list = cfg.get_inactivity_video_list();
+                    if !video_list.is_empty() {
+                        let selected_rel_path = &video_list[inactivity_slot % video_list.len()];
+                        inactivity_slot = inactivity_slot.wrapping_add(1);
+                        let promo_video = domains::media::resolve_video_path(selected_rel_path);
+                        if promo_video.exists() {
+                            if let Ok(mut guard) = player_watcher.lock() {
+                                if let Some(ref mut p) = *guard {
+                                    // Play once without looping
+                                    p.change_video_looping(&promo_video.to_string_lossy(), false);
+                                }
+                            }
+                        }
+                    }
+
+                    IS_SCREENSAVER_ACTIVE.store(true, Ordering::SeqCst);
+                    screensaver_start_time = std::time::Instant::now();
+
+                    let wh = watcher_handle.clone();
+                    let _ = slint::invoke_from_event_loop(move || {
+                        if let Some(ui) = wh.upgrade() {
+                            ui.set_is_screensaver_active(true);
+                        }
+                    });
+                }
+            } else {
+                // Currently in screensaver:
+                // Dismiss if user interacts (idle_seconds < 2) OR video finished playing once (is_eof)
+                let mut video_finished = false;
+                if screensaver_start_time.elapsed().as_secs() >= 2 {
+                    if let Ok(guard) = player_watcher.lock() {
+                        if let Some(ref p) = *guard {
+                            video_finished = p.is_eof();
                         }
                     }
                 }
-                let wh = watcher_handle.clone();
-                let _ = slint::invoke_from_event_loop(move || {
-                    if let Some(ui) = wh.upgrade() {
-                        ui.set_is_screensaver_active(true);
+
+                if idle_seconds < 2 || video_finished {
+                    IS_SCREENSAVER_ACTIVE.store(false, Ordering::SeqCst);
+                    if let Ok(mut t) = last_dismiss_watcher.lock() {
+                        *t = std::time::Instant::now();
                     }
-                });
-            } else if was_screensaver && idle_seconds < 2 {
-                IS_SCREENSAVER_ACTIVE.store(false, Ordering::SeqCst);
-                let landing_video = domains::media::resolve_showroom_video_path();
-                if let Ok(mut guard) = player_watcher.lock() {
-                    if let Some(ref mut p) = *guard {
-                        p.change_video(&landing_video.to_string_lossy());
+
+                    let landing_video = domains::media::resolve_showroom_video_path();
+                    if let Ok(mut guard) = player_watcher.lock() {
+                        if let Some(ref mut p) = *guard {
+                            p.change_video_looping(&landing_video.to_string_lossy(), true);
+                        }
                     }
+
+                    let wh = watcher_handle.clone();
+                    let _ = slint::invoke_from_event_loop(move || {
+                        if let Some(ui) = wh.upgrade() {
+                            ui.set_is_screensaver_active(false);
+                        }
+                    });
                 }
-                let wh = watcher_handle.clone();
-                let _ = slint::invoke_from_event_loop(move || {
-                    if let Some(ui) = wh.upgrade() {
-                        ui.set_is_screensaver_active(false);
-                    }
-                });
             }
 
             // 2. Try-PC Auto-restore after 120s of no desktop activity
@@ -505,7 +650,7 @@ pub fn run() {
                 let landing_video = domains::media::resolve_showroom_video_path();
                 if let Ok(mut guard) = player_watcher.lock() {
                     if let Some(ref mut p) = *guard {
-                        p.change_video(&landing_video.to_string_lossy());
+                        p.change_video_looping(&landing_video.to_string_lossy(), true);
                     }
                 }
                 let wh = watcher_handle.clone();

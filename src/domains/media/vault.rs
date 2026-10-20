@@ -97,6 +97,45 @@ pub fn delete_vault_video(filename: &str) -> Result<(), String> {
     Ok(())
 }
 
+pub fn seed_vault_defaults() {
+    let vault_dir = get_vault_dir();
+    let samples = [
+        ("assets/videos/promo2.mp4", "promo2.mp4"),
+        ("assets/videos/promo.mp4", "promo.mp4"),
+        ("assets/videos/landing2.mp4", "landing2.mp4"),
+    ];
+    for (src, name) in samples {
+        let dest = vault_dir.join(name);
+        if !dest.exists() && Path::new(src).exists() {
+            let _ = fs::copy(src, dest);
+        }
+    }
+}
+
+pub fn pick_video_file() -> Option<String> {
+    #[cfg(target_os = "windows")]
+    {
+        let script = r#"
+Add-Type -AssemblyName System.Windows.Forms
+$dlg = New-Object System.Windows.Forms.OpenFileDialog
+$dlg.Filter = "Videos (*.mp4, *.webm, *.mkv, *.mov)|*.mp4;*.webm;*.mkv;*.mov"
+$dlg.Title = "Seleccionar video para el Baúl Seguro"
+if ($dlg.ShowDialog() -eq [System.Windows.Forms.DialogResult]::OK) {
+    Write-Output $dlg.FileName
+}
+"#;
+        let output = std::process::Command::new("powershell")
+            .args(["-NoProfile", "-Command", script])
+            .output()
+            .ok()?;
+        let path = String::from_utf8_lossy(&output.stdout).trim().to_string();
+        if !path.is_empty() && Path::new(&path).exists() {
+            return Some(path);
+        }
+    }
+    None
+}
+
 #[cfg(test)]
 mod tests {
     use super::*;

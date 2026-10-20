@@ -32,11 +32,34 @@ pub struct AppConfig {
     pub central_video_path: String,
     pub bg_video_path: String,
     pub inactivity_video_path: String,
+    #[serde(default)]
+    pub inactivity_video_path_2: String,
+    #[serde(default)]
+    pub inactivity_video_path_3: String,
     pub inactivity_timeout_sec: u64,
 
     // First Run Setup
     #[serde(default)]
     pub setup_completed: bool,
+}
+
+impl AppConfig {
+    pub fn get_inactivity_video_list(&self) -> Vec<String> {
+        let mut list = Vec::new();
+        if !self.inactivity_video_path.trim().is_empty() {
+            list.push(self.inactivity_video_path.clone());
+        }
+        if !self.inactivity_video_path_2.trim().is_empty() {
+            list.push(self.inactivity_video_path_2.clone());
+        }
+        if !self.inactivity_video_path_3.trim().is_empty() {
+            list.push(self.inactivity_video_path_3.clone());
+        }
+        if list.is_empty() {
+            list.push("assets/videos/promo2.mp4".to_string());
+        }
+        list
+    }
 }
 
 impl Default for AppConfig {
@@ -66,6 +89,8 @@ impl Default for AppConfig {
             central_video_path: "assets/videos/landing.mp4".to_string(),
             bg_video_path: "assets/videos/bg.mp4".to_string(),
             inactivity_video_path: "assets/videos/promo2.mp4".to_string(),
+            inactivity_video_path_2: "assets/videos/promo.mp4".to_string(),
+            inactivity_video_path_3: "".to_string(),
             inactivity_timeout_sec: 120,
 
             setup_completed: false,
