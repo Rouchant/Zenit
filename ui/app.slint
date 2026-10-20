@@ -298,10 +298,14 @@ export component MainWindow inherits Window {
             }
         }
 
-        // 3-COLUMN SHOWROOM BODY
-        HorizontalLayout {
+        // 3-COLUMN SHOWROOM BODY CONTAINER
+        Rectangle {
             vertical-stretch: 1;
-            spacing: 24px;
+
+            HorizontalLayout {
+                width: parent.width;
+                height: parent.height;
+                spacing: 24px;
 
             // LEFT COLUMN (Specs 1 to 4)
             Rectangle {
@@ -554,6 +558,7 @@ export component MainWindow inherits Window {
             }
         }
     }
+}
 }
 
     // MODAL 1: QUICK SETUP WIZARD (First Launch)
