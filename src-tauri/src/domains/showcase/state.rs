@@ -232,3 +232,36 @@ pub fn build_ui_state() -> ZenitUiState {
         is_first_run: !cfg.setup_completed,
     }
 }
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn test_ui_state_structure() {
+        let state = build_ui_state();
+        assert_eq!(state.left_specs.len(), 4, "Left column must have 4 core specs: CPU, RAM, Storage, OS");
+        assert!(state.right_specs.len() >= 4, "Right column must have at least Display, GPU, Battery, Model");
+        
+        // Check IDs
+        assert_eq!(state.left_specs[0].id, "card-processor");
+        assert_eq!(state.left_specs[1].id, "card-ram");
+        assert_eq!(state.left_specs[2].id, "card-storage");
+        assert_eq!(state.left_specs[3].id, "card-os");
+    }
+
+    #[test]
+    fn test_colors_initialization() {
+        let state = build_ui_state();
+        assert!(!state.colors.primary.is_empty());
+        assert!(!state.colors.secondary.is_empty());
+        assert!(!state.colors.accent.is_empty());
+    }
+
+    #[test]
+    fn test_first_run_matches_config() {
+        let cfg = load_config();
+        let state = build_ui_state();
+        assert_eq!(state.is_first_run, !cfg.setup_completed);
+    }
+}

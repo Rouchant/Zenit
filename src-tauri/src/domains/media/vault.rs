@@ -96,3 +96,24 @@ pub fn delete_vault_video(filename: &str) -> Result<(), String> {
     }
     Ok(())
 }
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn test_vault_dir_creation() {
+        let vault_dir = get_vault_dir();
+        assert!(vault_dir.exists(), "Vault directory must exist or be created");
+    }
+
+    #[test]
+    fn test_list_vault_videos_runs_without_panic() {
+        let list = list_vault_videos();
+        // Simply assert list can be iterated over
+        for v in list {
+            assert!(!v.filename.is_empty());
+            assert!(!v.path.is_empty());
+        }
+    }
+}

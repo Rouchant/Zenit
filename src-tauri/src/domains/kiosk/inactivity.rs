@@ -14,3 +14,15 @@ pub fn get_system_idle_seconds() -> u64 {
     }
     0
 }
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn test_get_system_idle_seconds_non_panicking() {
+        let idle = get_system_idle_seconds();
+        // Should execute smoothly on Windows and return a valid u64
+        assert!(idle < 100_000_000, "System idle seconds should be a reasonable value");
+    }
+}

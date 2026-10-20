@@ -109,3 +109,54 @@ pub fn verify_password(input: &str) -> bool {
     let clean = input.trim().to_lowercase();
     clean == "demo" || clean == "z3n1t"
 }
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn test_verify_password_demo() {
+        assert!(verify_password("demo"));
+        assert!(verify_password("DEMO"));
+        assert!(verify_password("  Demo  "));
+    }
+
+    #[test]
+    fn test_verify_password_master() {
+        assert!(verify_password("z3n1t"));
+        assert!(verify_password("Z3N1T"));
+        assert!(verify_password("  z3N1T  "));
+    }
+
+    #[test]
+    fn test_verify_password_invalid() {
+        assert!(!verify_password("wrong"));
+        assert!(!verify_password(""));
+        assert!(!verify_password("1234"));
+        assert!(!verify_password("admin"));
+    }
+
+    #[test]
+    fn test_app_config_defaults() {
+        let cfg = AppConfig::default();
+        assert_eq!(cfg.primary_color, "#00f2ff");
+        assert_eq!(cfg.store_theme, "default");
+        assert_eq!(cfg.inactivity_timeout_sec, 120);
+        assert!(!cfg.setup_completed);
+    }
+
+    #[test]
+    fn test_config_serialization_roundtrip() {
+        let mut cfg = AppConfig::default();
+        cfg.price_card = "$599.990".to_string();
+        cfg.sku = "SKU-990".to_string();
+        cfg.setup_completed = true;
+
+        let json = serde_json::to_string(&cfg).expect("Serialization failed");
+        let deserialized: AppConfig = serde_json::from_str(&json).expect("Deserialization failed");
+
+        assert_eq!(deserialized.price_card, "$599.990");
+        assert_eq!(deserialized.sku, "SKU-990");
+        assert!(deserialized.setup_completed);
+    }
+}

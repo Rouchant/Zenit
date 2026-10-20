@@ -336,3 +336,24 @@ pub fn detect_hardware() -> SystemSpecs {
         is_charging,
     }
 }
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn test_detect_hardware_execution() {
+        let specs = detect_hardware();
+        assert!(!specs.processor.is_empty(), "Processor should not be empty");
+        assert!(specs.cores > 0, "Cores should be at least 1");
+        assert!(specs.threads > 0, "Threads should be at least 1");
+        assert!(!specs.ram.is_empty(), "RAM should not be empty");
+        assert!(!specs.os.is_empty(), "OS should not be empty");
+    }
+
+    #[test]
+    fn test_ram_formatting() {
+        let specs = detect_hardware();
+        assert!(specs.ram.contains("GB"), "RAM description should contain GB");
+    }
+}

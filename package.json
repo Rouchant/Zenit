@@ -7,7 +7,8 @@
   "scripts": {
     "dev": "tauri dev",
     "build": "tauri build",
-    "tauri": "tauri"
+    "tauri": "tauri",
+    "test": "node --test tests/frontend.test.js && cargo test --manifest-path src-tauri/Cargo.toml --lib"
   },
   "build": {
     "appId": "com.zenit.app",
