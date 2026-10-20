@@ -14,6 +14,7 @@ component SpecCard inherits Rectangle {
     in property <string> tag: "TOP";
     in property <color> accent_color: #38bdf8;
 
+    vertical-stretch: 1;
     background: #0f172a99;
     border-radius: 12px;
     border-width: 1px;
@@ -33,10 +34,11 @@ component SpecCard inherits Rectangle {
     ]
 
     VerticalLayout {
-        padding-left: 16px;
-        padding-right: 16px;
-        padding-top: 14px;
-        padding-bottom: 14px;
+        alignment: center;
+        padding-left: 18px;
+        padding-right: 18px;
+        padding-top: 12px;
+        padding-bottom: 12px;
         spacing: 6px;
 
         HorizontalLayout {
@@ -87,8 +89,8 @@ component SpecCard inherits Rectangle {
 
 export component MainWindow inherits Window {
     title: "Showroom PC - Modo Exhibición";
-    width: 1920px;
-    height: 1080px;
+    no-frame: true;
+    full-screen: true;
     background: #070a13;
 
     // Showroom Properties
@@ -290,11 +292,13 @@ export component MainWindow inherits Window {
 
         // 3-COLUMN SHOWROOM BODY
         HorizontalLayout {
+            vertical-stretch: 1;
             spacing: 20px;
 
             // LEFT COLUMN (Specs 1 to 4)
             VerticalLayout {
-                width: 320px;
+                width: 330px;
+                vertical-stretch: 1;
                 spacing: 12px;
 
                 for item in root.left_specs: SpecCard {
@@ -309,11 +313,13 @@ export component MainWindow inherits Window {
             // CENTER HERO (Media & Pricing)
             VerticalLayout {
                 horizontal-stretch: 1;
+                vertical-stretch: 1;
                 spacing: 16px;
 
                 // Hero Frame
                 Rectangle {
-                    height: 430px;
+                    vertical-stretch: 1;
+                    min-height: 420px;
                     background: #090e1a;
                     border-radius: 20px;
                     border-width: 1.5px;
@@ -517,7 +523,8 @@ export component MainWindow inherits Window {
 
             // RIGHT COLUMN (Specs 5 to 8)
             VerticalLayout {
-                width: 320px;
+                width: 330px;
+                vertical-stretch: 1;
                 spacing: 12px;
 
                 for item in root.right_specs: SpecCard {

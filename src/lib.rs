@@ -92,8 +92,9 @@ fn populate_ui_state(window: &MainWindow) {
 pub fn run() {
     let main_window = MainWindow::new().expect("Failed to initialize Slint MainWindow");
 
-    // Make window visible and fullscreen/maximized on Windows
+    // Make window visible and fullscreen in kiosk showroom mode
     main_window.show().expect("Failed to show Slint window");
+    main_window.window().set_fullscreen(true);
 
     populate_ui_state(&main_window);
 
@@ -318,6 +319,9 @@ pub fn run() {
             }
         }
     });
+
+    // Ensure true fullscreen kiosk mode
+    main_window.window().set_fullscreen(true);
 
     // Start native event loop
     main_window.run().expect("Error running Slint application");
