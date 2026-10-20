@@ -17,13 +17,20 @@ pub fn setup_video_timer(
         slint::TimerMode::Repeated,
         std::time::Duration::from_millis(16),
         move || {
-            if !IS_IN_TRY_PC_MODE.load(Ordering::SeqCst) {
+            if IS_IN_TRY_PC_MODE.load(Ordering::SeqCst) {
+                return;
+            }
+
+            if let Some(ui) = vh.upgrade() {
+                // Skip video rendering when Admin Panel covers the screen to preserve 100% responsiveness
+                if ui.get_is_admin_open() {
+                    return;
+                }
+
                 if let Ok(mut guard) = player_for_timer.try_lock() {
                     if let Some(ref mut p) = *guard {
                         if let Ok(buffer) = p.render_frame_buffer() {
-                            if let Some(ui) = vh.upgrade() {
-                                ui.set_video_frame(slint::Image::from_rgba8(buffer));
-                            }
+                            ui.set_video_frame(slint::Image::from_rgba8(buffer));
                         }
                     }
                 }

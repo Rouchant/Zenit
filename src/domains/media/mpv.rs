@@ -275,9 +275,11 @@ impl SlintMpvPlayer {
                 return Err(format!("Error rendering mpv frame: {}", res));
             }
 
-            // In rgb0: ensure byte 3 (alpha) is 255 so Slint renders 100% opaque video!
-            for chunk in raw_bytes.chunks_exact_mut(4) {
-                chunk[3] = 255;
+            // In rgb0: ensure byte 3 (alpha) is 255 (0xFF) so Slint renders 100% opaque video.
+            // Using 32-bit integer chunks allows compiler auto-vectorization (SIMD).
+            let (_, pixels, _) = raw_bytes.align_to_mut::<u32>();
+            for pixel in pixels {
+                *pixel |= 0xFF00_0000;
             }
 
             Ok(self.pixel_buffer.clone())

@@ -2,6 +2,24 @@ use crate::domains::hardware::{get_hardware_specs, is_oem_placeholder};
 use crate::domains::showcase::{build_ui_state, load_config};
 use slint::{ModelRc, VecModel};
 use crate::{MainWindow, SpecItem, VaultVideoItem};
+use std::cell::RefCell;
+use std::collections::HashMap;
+
+thread_local! {
+    static ICON_CACHE: RefCell<HashMap<String, slint::Image>> = RefCell::new(HashMap::new());
+}
+
+fn load_cached_icon(path: &str) -> slint::Image {
+    ICON_CACHE.with(|cache| {
+        let mut map = cache.borrow_mut();
+        if let Some(img) = map.get(path) {
+            return img.clone();
+        }
+        let img = slint::Image::load_from_path(std::path::Path::new(path)).unwrap_or_default();
+        map.insert(path.to_string(), img.clone());
+        img
+    })
+}
 
 pub fn populate_vault_videos(window: &MainWindow) {
     crate::domains::media::vault::seed_vault_defaults();
@@ -94,8 +112,7 @@ pub fn populate_ui_state(window: &MainWindow) {
 
     // Store Logo
     if let Some(ref logo_path) = state.store_logo {
-        let logo_img = slint::Image::load_from_path(std::path::Path::new(logo_path)).unwrap_or_default();
-        window.set_store_logo(logo_img);
+        window.set_store_logo(load_cached_icon(logo_path));
     } else {
         window.set_store_logo(slint::Image::default());
     }
@@ -105,7 +122,7 @@ pub fn populate_ui_state(window: &MainWindow) {
         .left_specs
         .iter()
         .map(|s| {
-            let icon_img = slint::Image::load_from_path(std::path::Path::new(&s.icon)).unwrap_or_default();
+            let icon_img = load_cached_icon(&s.icon);
             SpecItem {
                 category: s.label.to_uppercase().into(),
                 value: s.value.clone().into(),
@@ -122,7 +139,7 @@ pub fn populate_ui_state(window: &MainWindow) {
         .right_specs
         .iter()
         .map(|s| {
-            let icon_img = slint::Image::load_from_path(std::path::Path::new(&s.icon)).unwrap_or_default();
+            let icon_img = load_cached_icon(&s.icon);
             SpecItem {
                 category: s.label.to_uppercase().into(),
                 value: s.value.clone().into(),

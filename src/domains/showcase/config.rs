@@ -107,7 +107,25 @@ fn get_config_file_path() -> PathBuf {
     dir.join("config.json")
 }
 
+use std::sync::RwLock;
+
+static CACHED_CONFIG: RwLock<Option<AppConfig>> = RwLock::new(None);
+
 pub fn load_config() -> AppConfig {
+    if let Ok(guard) = CACHED_CONFIG.read() {
+        if let Some(ref cfg) = *guard {
+            return cfg.clone();
+        }
+    }
+
+    let cfg = load_config_from_disk();
+    if let Ok(mut guard) = CACHED_CONFIG.write() {
+        *guard = Some(cfg.clone());
+    }
+    cfg
+}
+
+fn load_config_from_disk() -> AppConfig {
     let path = get_config_file_path();
     if path.exists() {
         if let Ok(content) = fs::read_to_string(&path) {
@@ -162,6 +180,10 @@ pub fn save_config(config: &AppConfig) -> Result<(), String> {
         .map_err(|e| format!("Error al serializar config: {}", e))?;
     fs::write(path, data)
         .map_err(|e| format!("Error al guardar config en disco: {}", e))?;
+
+    if let Ok(mut guard) = CACHED_CONFIG.write() {
+        *guard = Some(config.clone());
+    }
     Ok(())
 }
 

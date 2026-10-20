@@ -97,7 +97,15 @@ pub fn delete_vault_video(filename: &str) -> Result<(), String> {
     Ok(())
 }
 
+use std::sync::atomic::{AtomicBool, Ordering};
+
+static VAULT_SEEDED: AtomicBool = AtomicBool::new(false);
+
 pub fn seed_vault_defaults() {
+    if VAULT_SEEDED.swap(true, Ordering::SeqCst) {
+        return;
+    }
+
     let vault_dir = get_vault_dir();
     let samples = [
         ("assets/videos/promo2.mp4", "promo2.mp4"),

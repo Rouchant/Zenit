@@ -1,5 +1,5 @@
 use crate::app::sync::populate_ui_state;
-use crate::domains::hardware::detect_hardware;
+use crate::domains::hardware::get_hardware_specs;
 use crate::MainWindow;
 use slint::ComponentHandle;
 
@@ -8,7 +8,7 @@ pub fn setup_defaults_handlers(main_window: &MainWindow) {
     let reset_store_handle = main_window.as_weak();
     main_window.on_reset_store_defaults(move || {
         if let Some(ui) = reset_store_handle.upgrade() {
-            let hw = detect_hardware();
+            let hw = get_hardware_specs();
             let brand = if !hw.brand.is_empty()
                 && !hw.brand.to_lowercase().contains("to be filled")
                 && !hw.brand.to_lowercase().contains("o.e.m.")
@@ -38,7 +38,7 @@ pub fn setup_defaults_handlers(main_window: &MainWindow) {
     let reset_specs_handle = main_window.as_weak();
     main_window.on_reset_specs_defaults(move || {
         if let Some(ui) = reset_specs_handle.upgrade() {
-            let hw = detect_hardware();
+            let hw = get_hardware_specs();
             let brand = if !hw.brand.is_empty()
                 && !hw.brand.to_lowercase().contains("to be filled")
                 && !hw.brand.to_lowercase().contains("o.e.m.")
