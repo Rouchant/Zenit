@@ -59,8 +59,8 @@ component SpecCard inherits Rectangle {
 
                 if root.icon.width > 0: Image {
                     source: root.icon;
-                    width: 15px;
-                    height: 15px;
+                    width: 30px;
+                    height: 30px;
                     colorize: root.accent_color;
                     vertical-alignment: center;
                 }
@@ -190,7 +190,7 @@ export component MainWindow inherits Window {
         { category: "PROCESADOR", value: "Intel Core i7-13650HX", subvalue: "14 núcleos, 20 hilos", tag: "GEN 13", icon: @image-url("../assets/ui/cpu.svg") },
         { category: "MEMORIA RAM", value: "16 GB DDR5 4800MHz", subvalue: "Expandible a 32 GB", tag: "DDR5", icon: @image-url("../assets/ui/ram.svg") },
         { category: "ALMACENAMIENTO", value: "512 GB SSD NVMe M.2", subvalue: "PCIe 4.0 de alta velocidad", tag: "NVMe", icon: @image-url("../assets/ui/storage.svg") },
-        { category: "SISTEMA OPERATIVO", value: "Windows 11 Home", subvalue: "64-bit con licencia oficial", tag: "OFICIAL", icon: @image-url("../assets/ui/windows-11.svg") }
+        { category: "SISTEMA OPERATIVO", value: "Windows 11 Home", subvalue: "64-bit con licencia oficial", tag: "OFICIAL", icon: @image-url("../assets/ui/software.svg") }
     ];
     in-out property <[SpecItem]> right_specs: [
         { category: "MARCA Y MODELO", value: "ASUS ROG STRIX G16", subvalue: "Marca: ASUS • Modelo: ROG Strix G16", tag: "ASUS", icon: @image-url("../assets/ui/laptop.svg") },

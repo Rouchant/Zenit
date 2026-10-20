@@ -88,14 +88,7 @@ pub fn build_ui_state() -> ZenitUiState {
     }
 
     // 2. Compute processor icon
-    let vendor_lower = specs.vendor.to_lowercase();
-    let proc_icon = if vendor_lower.contains("intel") {
-        "assets/logos/intel.svg".to_string()
-    } else if vendor_lower.contains("amd") {
-        "assets/logos/amd.svg".to_string()
-    } else {
-        "assets/ui/cpu.svg".to_string()
-    };
+    let proc_icon = "assets/ui/cpu.svg".to_string();
 
     // 3. Compute brand logo
     let brand_lower = specs.brand.to_lowercase();
@@ -153,7 +146,7 @@ pub fn build_ui_state() -> ZenitUiState {
             value: specs.os.clone(),
             sub_value: None,
             tag: None,
-            icon: "assets/ui/windows-11.svg".to_string(),
+            icon: "assets/ui/software.svg".to_string(),
         },
     ];
 
