@@ -178,12 +178,12 @@ export component MainWindow inherits Window {
     in-out property <string> brand_name: "ASUS";
     in-out property <string> model_name: "ROG STRIX G16";
     in-out property <string> live_clock: "12:00:00";
-    in-out property <string> retail_name: "RIPLEY";
-    in-out property <string> card_price: "$1.299.990";
-    in-out property <string> card_label: "Tarjeta Ripley";
-    in-out property <string> normal_price: "$1.349.990";
-    in-out property <string> normal_label: "Otros medios de pago";
-    in-out property <string> sku_code: "8493021";
+    in-out property <string> retail_name: "";
+    in-out property <string> card_price: "";
+    in-out property <string> card_label: "Precio Tarjeta";
+    in-out property <string> normal_price: "";
+    in-out property <string> normal_label: "Todo medio de pago";
+    in-out property <string> sku_code: "";
 
     // Specs
     in-out property <[SpecItem]> left_specs: [
@@ -557,8 +557,8 @@ export component MainWindow inherits Window {
                         }
                     }
 
-                    // PRICING & SKU BANNER
-                    Rectangle {
+                    // PRICING & SKU BANNER (Hidden if all pricing, SKU and store fields are empty)
+                    if root.card_price != "" || root.normal_price != "" || root.sku_code != "" || root.retail_name != "": Rectangle {
                         height: 110px;
                         background: #0f172acc;
                         border-radius: 16px;
@@ -573,7 +573,7 @@ export component MainWindow inherits Window {
                             padding-bottom: 14px;
 
                             // Retail Card Price
-                            VerticalLayout {
+                            if root.card_price != "": VerticalLayout {
                                 alignment: center;
                                 spacing: 4px;
                                 Text {
@@ -591,8 +591,8 @@ export component MainWindow inherits Window {
                                 }
                             }
 
-                            // Other Means Price
-                            VerticalLayout {
+                            // Other Means Price (shows alone as "Todo medio de pago" if no card price)
+                            if root.normal_price != "": VerticalLayout {
                                 alignment: center;
                                 spacing: 4px;
                                 Text {
@@ -610,10 +610,10 @@ export component MainWindow inherits Window {
                             }
 
                             // SKU & Retail Store
-                            VerticalLayout {
+                            if root.sku_code != "" || root.retail_name != "": VerticalLayout {
                                 alignment: center;
                                 spacing: 6px;
-                                Rectangle {
+                                if root.sku_code != "": Rectangle {
                                     background: #1e293b;
                                     border-radius: 8px;
                                     border-width: 1px;
@@ -631,7 +631,7 @@ export component MainWindow inherits Window {
                                         }
                                     }
                                 }
-                                Text {
+                                if root.retail_name != "": Text {
                                     text: root.retail_name;
                                     font-size: 11px;
                                     font-weight: 700;

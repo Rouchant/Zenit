@@ -46,35 +46,35 @@ fn populate_ui_state(window: &MainWindow) {
     });
     window.set_model_name(model_display.clone().into());
 
-    let retail_upper = if cfg.store_theme.is_empty() || cfg.store_theme == "default" {
-        "SHOWROOM".to_string()
-    } else {
-        cfg.store_theme.to_uppercase()
-    };
-    window.set_retail_name(retail_upper.clone().into());
+    let card_trim = cfg.price_card.trim();
+    let normal_trim = cfg.price_all_methods.trim();
+    let sku_trim = cfg.sku.trim();
+    let store_trim = cfg.store_theme.trim();
 
-    let card_p = if cfg.price_card.trim().is_empty() {
-        "$1.299.990".to_string()
+    let retail_display = if store_trim.is_empty() || store_trim.eq_ignore_ascii_case("default") {
+        "".to_string()
     } else {
-        cfg.price_card.clone()
+        store_trim.to_uppercase()
     };
-    window.set_card_price(card_p.into());
-    window.set_card_label(format!("Tarjeta {}", retail_upper).into());
+    window.set_retail_name(retail_display.clone().into());
 
-    let normal_p = if cfg.price_all_methods.trim().is_empty() {
-        "$1.349.990".to_string()
+    let card_label = if !retail_display.is_empty() {
+        format!("Tarjeta {}", retail_display)
     } else {
-        cfg.price_all_methods.clone()
+        "Precio Tarjeta".to_string()
     };
-    window.set_normal_price(normal_p.into());
-    window.set_normal_label("Otros medios de pago".into());
+    window.set_card_label(card_label.into());
+    window.set_card_price(card_trim.into());
 
-    let sku_code = if cfg.sku.trim().is_empty() {
-        "8493021".to_string()
+    let normal_label = if card_trim.is_empty() {
+        "Todo medio de pago".to_string()
     } else {
-        cfg.sku.clone()
+        "Otros medios de pago".to_string()
     };
-    window.set_sku_code(sku_code.into());
+    window.set_normal_label(normal_label.into());
+    window.set_normal_price(normal_trim.into());
+
+    window.set_sku_code(sku_trim.into());
 
     // Populate Left Column Specs
     let left_items: Vec<SpecItem> = state.left_specs.iter().map(|s| {
