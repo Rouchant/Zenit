@@ -1,0 +1,106 @@
+export component ScreensaverView inherits Rectangle {
+    in property <bool> has_video_stream: false;
+    in property <image> video_frame;
+    in property <string> brand_name: "ASUS";
+    in property <string> model_name: "ROG STRIX G16";
+
+    callback dismiss_screensaver();
+
+    width: 100%;
+    height: 100%;
+    background: #000000;
+
+    // Video a Pantalla Completa
+    if root.has_video_stream: Image {
+        width: 100%;
+        height: 100%;
+        source: root.video_frame;
+        image-fit: cover;
+    }
+
+    // Cualquier toque en pantalla desactiva el salvapantallas
+    TouchArea {
+        clicked => {
+            root.dismiss_screensaver();
+        }
+    }
+
+    // Fallback cuando no hay stream de video disponible
+    if !root.has_video_stream: VerticalLayout {
+        alignment: center;
+        spacing: 24px;
+
+        Rectangle {
+            width: 90px;
+            height: 90px;
+            border-radius: 45px;
+            background: #0284c726;
+            border-width: 2px;
+            border-color: #38bdf880;
+
+            Text {
+                text: "✨";
+                font-size: 40px;
+                horizontal-alignment: center;
+                vertical-alignment: center;
+            }
+        }
+
+        Text {
+            text: root.brand_name + " " + root.model_name;
+            font-size: 36px;
+            font-weight: 900;
+            color: #ffffff;
+            horizontal-alignment: center;
+        }
+
+        Text {
+            text: "Toca la pantalla o presiona cualquier tecla para interactuar";
+            font-size: 16px;
+            font-weight: 600;
+            color: #38bdf8;
+            horizontal-alignment: center;
+        }
+    }
+
+    // Indicador interactivo sutil inferior
+    if root.has_video_stream: VerticalLayout {
+        alignment: end;
+        padding-bottom: 32px;
+
+        HorizontalLayout {
+            alignment: center;
+
+            Rectangle {
+                background: #030712b3;
+                border-radius: 20px;
+                border-width: 1px;
+                border-color: #38bdf840;
+                drop-shadow-blur: 16px;
+                drop-shadow-color: #00000080;
+                height: 40px;
+
+                HorizontalLayout {
+                    padding-left: 20px;
+                    padding-right: 20px;
+                    spacing: 10px;
+                    alignment: center;
+
+                    Text {
+                        text: "✨";
+                        font-size: 14px;
+                        vertical-alignment: center;
+                    }
+
+                    Text {
+                        text: "Toca la pantalla o presiona cualquier tecla para interactuar";
+                        font-size: 14px;
+                        font-weight: 700;
+                        color: #ffffff;
+                        vertical-alignment: center;
+                    }
+                }
+            }
+        }
+    }
+}

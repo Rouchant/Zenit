@@ -1,0 +1,166 @@
+import { LineEdit } from "std-widgets.slint";
+
+export component QuickSetupView inherits Rectangle {
+    in-out property <string> setup_brand: "";
+    in-out property <string> setup_model: "";
+    in-out property <string> setup_retail: "Ripley";
+    in-out property <string> setup_card_price: "";
+    in-out property <string> setup_normal_price: "";
+    in-out property <string> setup_sku: "";
+
+    callback auto_detect_clicked();
+    callback save_quick_setup(string, string, string, string, string, string);
+
+    width: 100%;
+    height: 100%;
+    background: #000000df;
+
+    Rectangle {
+        width: 620px;
+        height: 560px;
+        background: #0f172a;
+        border-radius: 20px;
+        border-width: 1px;
+        border-color: #38bdf880;
+
+        VerticalLayout {
+            padding-left: 36px;
+            padding-right: 36px;
+            padding-top: 30px;
+            padding-bottom: 30px;
+            spacing: 16px;
+
+            Text {
+                text: "Configuración Rápida de Exhibición";
+                font-size: 22px;
+                font-weight: 800;
+                color: #ffffff;
+            }
+
+            Text {
+                text: "Ingresa los datos comerciales del equipo para iniciar el showroom en tienda.";
+                font-size: 13px;
+                color: #94a3b8;
+            }
+
+            // Auto-detect Button
+            Rectangle {
+                height: 38px;
+                background: #1e293b;
+                border-radius: 8px;
+                border-width: 1px;
+                border-color: #38bdf840;
+
+                detect_touch := TouchArea {
+                    clicked => {
+                        root.auto_detect_clicked();
+                    }
+                }
+
+                Text {
+                    text: "⚡ Auto-detectar Hardware del Equipo";
+                    font-size: 13px;
+                    font-weight: 700;
+                    color: #38bdf8;
+                    horizontal-alignment: center;
+                    vertical-alignment: center;
+                }
+            }
+
+            HorizontalLayout {
+                spacing: 12px;
+                VerticalLayout {
+                    spacing: 4px;
+                    Text { text: "Marca:"; font-size: 12px; color: #cbd5e1; }
+                    brand_ed := LineEdit {
+                        text: root.setup_brand;
+                        placeholder-text: "Ej: ASUS, LENOVO, HP";
+                        edited => { root.setup_brand = self.text; }
+                    }
+                }
+                VerticalLayout {
+                    spacing: 4px;
+                    Text { text: "Modelo:"; font-size: 12px; color: #cbd5e1; }
+                    model_ed := LineEdit {
+                        text: root.setup_model;
+                        placeholder-text: "Ej: ROG Strix G16";
+                        edited => { root.setup_model = self.text; }
+                    }
+                }
+            }
+
+            HorizontalLayout {
+                spacing: 12px;
+                VerticalLayout {
+                    spacing: 4px;
+                    Text { text: "Precio Tarjeta:"; font-size: 12px; color: #cbd5e1; }
+                    cprice_ed := LineEdit {
+                        text: root.setup_card_price;
+                        placeholder-text: "Ej: $1.299.990";
+                        edited => { root.setup_card_price = self.text; }
+                    }
+                }
+                VerticalLayout {
+                    spacing: 4px;
+                    Text { text: "Precio Normal:"; font-size: 12px; color: #cbd5e1; }
+                    nprice_ed := LineEdit {
+                        text: root.setup_normal_price;
+                        placeholder-text: "Ej: $1.349.990";
+                        edited => { root.setup_normal_price = self.text; }
+                    }
+                }
+            }
+
+            HorizontalLayout {
+                spacing: 12px;
+                VerticalLayout {
+                    spacing: 4px;
+                    Text { text: "SKU Tienda:"; font-size: 12px; color: #cbd5e1; }
+                    sku_ed := LineEdit {
+                        text: root.setup_sku;
+                        placeholder-text: "Ej: 8493021";
+                        edited => { root.setup_sku = self.text; }
+                    }
+                }
+                VerticalLayout {
+                    spacing: 4px;
+                    Text { text: "Tienda Retail:"; font-size: 12px; color: #cbd5e1; }
+                    retail_ed := LineEdit {
+                        text: root.setup_retail;
+                        placeholder-text: "Ej: Ripley, Falabella, Paris";
+                        edited => { root.setup_retail = self.text; }
+                    }
+                }
+            }
+
+            // Submit button
+            Rectangle {
+                height: 48px;
+                background: #0284c7;
+                border-radius: 10px;
+
+                TouchArea {
+                    clicked => {
+                        root.save_quick_setup(
+                            root.setup_brand,
+                            root.setup_model,
+                            root.setup_card_price,
+                            root.setup_normal_price,
+                            root.setup_sku,
+                            root.setup_retail
+                        );
+                    }
+                }
+
+                Text {
+                    text: "Guardar y Comenzar Showroom";
+                    font-size: 15px;
+                    font-weight: 800;
+                    color: #ffffff;
+                    horizontal-alignment: center;
+                    vertical-alignment: center;
+                }
+            }
+        }
+    }
+}

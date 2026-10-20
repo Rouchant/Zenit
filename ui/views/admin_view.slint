@@ -1,0 +1,1134 @@
+﻿import { Button, LineEdit, ScrollView } from "std-widgets.slint";
+import { VaultVideoItem } from "../theme.slint";
+
+export component AdminView inherits Rectangle {
+    in-out property <bool> is_admin_authenticated: false;
+    in-out property <string> admin_password_input: "";
+    in-out property <string> admin_error_msg: "";
+    in-out property <int> admin_tab_index: 0;
+
+    // Tab Tienda
+    in-out property <string> cfg_brand: "";
+    in-out property <string> cfg_model: "";
+    in-out property <string> cfg_retail: "Ripley";
+    in-out property <string> cfg_card_price: "";
+    in-out property <string> cfg_normal_price: "";
+    in-out property <string> cfg_sku: "";
+
+    // Tab Especificaciones
+    in-out property <string> cfg_cpu: "";
+    in-out property <string> cfg_ram: "";
+    in-out property <string> cfg_storage: "";
+    in-out property <string> cfg_gpu: "";
+    in-out property <string> cfg_display: "";
+    in-out property <string> cfg_os: "";
+    in-out property <string> cfg_battery: "";
+    in-out property <string> cfg_others: "";
+
+    // Tab Videos & BaÃºl
+    in-out property <string> cfg_central_video: "";
+    in-out property <string> cfg_bg_video: "";
+    in-out property <string> cfg_inactivity_video_1: "";
+    in-out property <string> cfg_inactivity_video_2: "";
+    in-out property <string> cfg_inactivity_video_3: "";
+    in-out property <string> cfg_inactivity_timeout: "120";
+    in-out property <[VaultVideoItem]> vault_videos: [];
+
+    // Callbacks
+    callback close_admin_clicked();
+    callback check_admin_password(string);
+    callback emergency_exit_clicked();
+    callback emergency_restart_clicked();
+    callback auto_detect_clicked();
+    callback save_admin_config(
+        string, string, string, string, string, string,
+        string, string, string, string, string, string, string, string,
+        string, string, string, string, string, string
+    );
+    callback import_video_to_vault_clicked();
+    callback delete_vault_video_clicked(string);
+    callback reset_store_defaults();
+    callback reset_specs_defaults();
+    callback reset_videos_defaults();
+    callback reset_system_defaults();
+    callback pick_central_video_clicked();
+    callback pick_bg_video_clicked();
+    callback pick_inactivity_1_clicked();
+    callback pick_inactivity_2_clicked();
+    callback pick_inactivity_3_clicked();
+
+    width: 100%;
+    height: 100%;
+    background: #000000e6;
+        Rectangle {
+            width: root.is_admin_authenticated ? 840px : 480px;
+            height: root.is_admin_authenticated ? 680px : 360px;
+            background: #0f172a;
+            border-radius: 20px;
+            border-width: 1px;
+            border-color: #38bdf880;
+
+            if !root.is_admin_authenticated: VerticalLayout {
+                padding-left: 32px;
+                padding-right: 32px;
+                padding-top: 24px;
+                padding-bottom: 24px;
+                spacing: 16px;
+                alignment: center;
+
+                HorizontalLayout {
+                    alignment: space-between;
+                    Text {
+                        text: "Acceso de AdministraciÃ³n";
+                        font-size: 20px;
+                        font-weight: 800;
+                        color: #ffffff;
+                        vertical-alignment: center;
+                    }
+                    Rectangle {
+                        width: 34px;
+                        height: 34px;
+                        background: touch_close_login.has-hover ? #ef4444 : #1e293b;
+                        border-radius: 17px;
+                        border-width: 1px;
+                        border-color: touch_close_login.has-hover ? #f87171 : #475569;
+
+                        touch_close_login := TouchArea {
+                            clicked => {
+                                root.close_admin_clicked();
+                            }
+                        }
+
+                        Image {
+                            width: 16px;
+                            height: 16px;
+                            source: @image-url("../../assets/ui/close.svg");
+                            horizontal-alignment: center;
+                            vertical-alignment: center;
+                        }
+                    }
+                }
+
+                Text {
+                    text: "Ingresa la contraseÃ±a para configurar opciones avanzadas o salir.";
+                    font-size: 13px;
+                    color: #94a3b8;
+                    horizontal-alignment: center;
+                }
+
+                pwd_ed := LineEdit {
+                    placeholder-text: "ContraseÃ±a";
+                    text: root.admin_password_input;
+                    input-type: password;
+                    accepted => {
+                        root.check_admin_password(self.text);
+                    }
+                    edited => {
+                        root.admin_password_input = self.text;
+                    }
+                }
+
+                if root.admin_error_msg != "": Text {
+                    text: root.admin_error_msg;
+                    font-size: 12px;
+                    color: #f87171;
+                    horizontal-alignment: center;
+                }
+
+                HorizontalLayout {
+                    spacing: 12px;
+
+                    Rectangle {
+                        height: 42px;
+                        background: #0284c7;
+                        border-radius: 8px;
+
+                        TouchArea {
+                            clicked => {
+                                root.check_admin_password(root.admin_password_input);
+                            }
+                        }
+
+                        Text {
+                            text: "Desbloquear";
+                            font-size: 14px;
+                            font-weight: 700;
+                            color: #ffffff;
+                            horizontal-alignment: center;
+                            vertical-alignment: center;
+                        }
+                    }
+
+                    Rectangle {
+                        height: 42px;
+                        background: #1e293b;
+                        border-radius: 8px;
+
+                        TouchArea {
+                            clicked => {
+                                root.close_admin_clicked();
+                            }
+                        }
+
+                        Text {
+                            text: "Cancelar";
+                            font-size: 14px;
+                            color: #94a3b8;
+                            horizontal-alignment: center;
+                            vertical-alignment: center;
+                        }
+                    }
+                }
+            }
+
+            if root.is_admin_authenticated: VerticalLayout {
+                padding-left: 28px;
+                padding-right: 28px;
+                padding-top: 24px;
+                padding-bottom: 24px;
+                spacing: 16px;
+
+                // Modal Header with highly visible close button
+                HorizontalLayout {
+                    alignment: space-between;
+                    Text {
+                        text: "Panel de Control y ConfiguraciÃ³n";
+                        font-size: 20px;
+                        font-weight: 800;
+                        color: #ffffff;
+                        vertical-alignment: center;
+                    }
+                    Rectangle {
+                        width: 34px;
+                        height: 34px;
+                        background: touch_close.has-hover ? #ef4444 : #1e293b;
+                        border-radius: 17px;
+                        border-width: 1px;
+                        border-color: touch_close.has-hover ? #f87171 : #475569;
+
+                        touch_close := TouchArea {
+                            clicked => {
+                                root.close_admin_clicked();
+                            }
+                        }
+
+                        Image {
+                            width: 16px;
+                            height: 16px;
+                            source: @image-url("../../assets/ui/close.svg");
+                            horizontal-alignment: center;
+                            vertical-alignment: center;
+                        }
+                    }
+                }
+
+                // Tabs Navigation Bar
+                HorizontalLayout {
+                    spacing: 8px;
+                    height: 38px;
+
+                    // Tab 0: Tienda
+                    Rectangle {
+                        background: root.admin_tab_index == 0 ? #0284c7 : #1e293b;
+                        border-radius: 8px;
+                        border-width: 1px;
+                        border-color: root.admin_tab_index == 0 ? #38bdf8 : #334155;
+                        TouchArea { clicked => { root.admin_tab_index = 0; } }
+                        Text {
+                            text: "ðŸª Tienda";
+                            font-size: 13px;
+                            font-weight: 700;
+                            color: #ffffff;
+                            horizontal-alignment: center;
+                            vertical-alignment: center;
+                        }
+                    }
+
+                    // Tab 1: Especificaciones
+                    Rectangle {
+                        background: root.admin_tab_index == 1 ? #0284c7 : #1e293b;
+                        border-radius: 8px;
+                        border-width: 1px;
+                        border-color: root.admin_tab_index == 1 ? #38bdf8 : #334155;
+                        TouchArea { clicked => { root.admin_tab_index = 1; } }
+                        Text {
+                            text: "âš™ï¸ Especificaciones";
+                            font-size: 13px;
+                            font-weight: 700;
+                            color: #ffffff;
+                            horizontal-alignment: center;
+                            vertical-alignment: center;
+                        }
+                    }
+
+                    // Tab 2: Videos
+                    Rectangle {
+                        background: root.admin_tab_index == 2 ? #0284c7 : #1e293b;
+                        border-radius: 8px;
+                        border-width: 1px;
+                        border-color: root.admin_tab_index == 2 ? #38bdf8 : #334155;
+                        TouchArea { clicked => { root.admin_tab_index = 2; } }
+                        Text {
+                            text: "ðŸŽ¬ Videos";
+                            font-size: 13px;
+                            font-weight: 700;
+                            color: #ffffff;
+                            horizontal-alignment: center;
+                            vertical-alignment: center;
+                        }
+                    }
+
+                    // Tab 3: Sistema
+                    Rectangle {
+                        background: root.admin_tab_index == 3 ? #0284c7 : #1e293b;
+                        border-radius: 8px;
+                        border-width: 1px;
+                        border-color: root.admin_tab_index == 3 ? #38bdf8 : #334155;
+                        TouchArea { clicked => { root.admin_tab_index = 3; } }
+                        Text {
+                            text: "ðŸ› ï¸ Sistema";
+                            font-size: 13px;
+                            font-weight: 700;
+                            color: #ffffff;
+                            horizontal-alignment: center;
+                            vertical-alignment: center;
+                        }
+                    }
+                }
+
+                // Tab Content Area
+                VerticalLayout {
+                    vertical-stretch: 1;
+
+                    // TAB 0: TIENDA
+                    if root.admin_tab_index == 0: VerticalLayout {
+                        spacing: 12px;
+                        alignment: center;
+
+                        HorizontalLayout {
+                            spacing: 12px;
+                            VerticalLayout {
+                                spacing: 4px;
+                                Text { text: "Marca del Equipo:"; font-size: 12px; color: #cbd5e1; }
+                                LineEdit {
+                                    text: root.cfg_brand;
+                                    placeholder-text: "Ej: ASUS, Lenovo, HP";
+                                    edited => { root.cfg_brand = self.text; }
+                                }
+                            }
+                            VerticalLayout {
+                                spacing: 4px;
+                                Text { text: "Modelo:"; font-size: 12px; color: #cbd5e1; }
+                                LineEdit {
+                                    text: root.cfg_model;
+                                    placeholder-text: "Ej: ROG Strix G16";
+                                    edited => { root.cfg_model = self.text; }
+                                }
+                            }
+                        }
+
+                        HorizontalLayout {
+                            spacing: 12px;
+                            VerticalLayout {
+                                spacing: 4px;
+                                Text { text: "Precio Tarjeta:"; font-size: 12px; color: #cbd5e1; }
+                                LineEdit {
+                                    text: root.cfg_card_price;
+                                    placeholder-text: "Ej: $1.299.990";
+                                    edited => { root.cfg_card_price = self.text; }
+                                }
+                            }
+                            VerticalLayout {
+                                spacing: 4px;
+                                Text { text: "Precio Otros Medios:"; font-size: 12px; color: #cbd5e1; }
+                                LineEdit {
+                                    text: root.cfg_normal_price;
+                                    placeholder-text: "Ej: $1.349.990";
+                                    edited => { root.cfg_normal_price = self.text; }
+                                }
+                            }
+                        }
+
+                        HorizontalLayout {
+                            spacing: 12px;
+                            VerticalLayout {
+                                spacing: 4px;
+                                Text { text: "CÃ³digo SKU:"; font-size: 12px; color: #cbd5e1; }
+                                LineEdit {
+                                    text: root.cfg_sku;
+                                    placeholder-text: "Ej: 8493021";
+                                    edited => { root.cfg_sku = self.text; }
+                                }
+                            }
+                            VerticalLayout {
+                                spacing: 4px;
+                                Text { text: "Tienda / Retail:"; font-size: 12px; color: #cbd5e1; }
+                                LineEdit {
+                                    text: root.cfg_retail;
+                                    placeholder-text: "ripley, falabella, paris, default";
+                                    edited => { root.cfg_retail = self.text; }
+                                }
+                            }
+                        }
+
+                        HorizontalLayout {
+                            alignment: end;
+                            Rectangle {
+                                height: 34px;
+                                width: 180px;
+                                background: #1e293b;
+                                border-radius: 6px;
+                                border-width: 1px;
+                                border-color: #475569;
+
+                                touch_reset_0 := TouchArea {
+                                    clicked => {
+                                        root.reset_store_defaults();
+                                    }
+                                }
+
+                                states [
+                                    hover when touch_reset_0.has-hover: {
+                                        background: #334155;
+                                        border-color: #38bdf8;
+                                    }
+                                ]
+
+                                HorizontalLayout {
+                                    alignment: center;
+                                    spacing: 8px;
+                                    Image {
+                                        source: @image-url("../../assets/ui/reset.svg");
+                                        width: 14px;
+                                        height: 14px;
+                                        colorize: #38bdf8;
+                                        vertical-alignment: center;
+                                    }
+                                    Text { text: "Valores por defecto"; font-size: 12px; font-weight: 600; color: #f1f5f9; vertical-alignment: center; }
+                                }
+                            }
+                        }
+                    }
+
+                    // TAB 1: ESPECIFICACIONES
+                    if root.admin_tab_index == 1: VerticalLayout {
+                        spacing: 8px;
+                        alignment: center;
+
+                        HorizontalLayout {
+                            spacing: 12px;
+                            VerticalLayout {
+                                spacing: 3px;
+                                Text { text: "Marca del Equipo:"; font-size: 11px; color: #cbd5e1; }
+                                LineEdit {
+                                    text: root.cfg_brand;
+                                    placeholder-text: "Ej: ASUS, Lenovo, HP";
+                                    edited => { root.cfg_brand = self.text; }
+                                }
+                            }
+                            VerticalLayout {
+                                spacing: 3px;
+                                Text { text: "Modelo del Equipo:"; font-size: 11px; color: #cbd5e1; }
+                                LineEdit {
+                                    text: root.cfg_model;
+                                    placeholder-text: "Ej: ROG Strix G16";
+                                    edited => { root.cfg_model = self.text; }
+                                }
+                            }
+                        }
+
+                        HorizontalLayout {
+                            spacing: 12px;
+                            VerticalLayout {
+                                spacing: 3px;
+                                Text { text: "Procesador (CPU):"; font-size: 11px; color: #cbd5e1; }
+                                LineEdit {
+                                    text: root.cfg_cpu;
+                                    placeholder-text: "Auto / VacÃ­o para sensor nativo";
+                                    edited => { root.cfg_cpu = self.text; }
+                                }
+                            }
+                            VerticalLayout {
+                                spacing: 3px;
+                                Text { text: "Memoria RAM:"; font-size: 11px; color: #cbd5e1; }
+                                LineEdit {
+                                    text: root.cfg_ram;
+                                    placeholder-text: "Auto / VacÃ­o para sensor nativo";
+                                    edited => { root.cfg_ram = self.text; }
+                                }
+                            }
+                        }
+
+                        HorizontalLayout {
+                            spacing: 12px;
+                            VerticalLayout {
+                                spacing: 3px;
+                                Text { text: "Almacenamiento (SSD):"; font-size: 11px; color: #cbd5e1; }
+                                LineEdit {
+                                    text: root.cfg_storage;
+                                    placeholder-text: "Auto / VacÃ­o para sensor nativo";
+                                    edited => { root.cfg_storage = self.text; }
+                                }
+                            }
+                            VerticalLayout {
+                                spacing: 3px;
+                                Text { text: "Tarjeta GrÃ¡fica (GPU):"; font-size: 11px; color: #cbd5e1; }
+                                LineEdit {
+                                    text: root.cfg_gpu;
+                                    placeholder-text: "Auto / VacÃ­o para sensor nativo";
+                                    edited => { root.cfg_gpu = self.text; }
+                                }
+                            }
+                        }
+
+                        HorizontalLayout {
+                            spacing: 12px;
+                            VerticalLayout {
+                                spacing: 3px;
+                                Text { text: "Pantalla:"; font-size: 11px; color: #cbd5e1; }
+                                LineEdit {
+                                    text: root.cfg_display;
+                                    placeholder-text: "Auto / VacÃ­o para sensor nativo";
+                                    edited => { root.cfg_display = self.text; }
+                                }
+                            }
+                            VerticalLayout {
+                                spacing: 3px;
+                                Text { text: "Sistema Operativo:"; font-size: 11px; color: #cbd5e1; }
+                                LineEdit {
+                                    text: root.cfg_os;
+                                    placeholder-text: "Auto / VacÃ­o para sensor nativo";
+                                    edited => { root.cfg_os = self.text; }
+                                }
+                            }
+                        }
+
+                        HorizontalLayout {
+                            spacing: 12px;
+                            VerticalLayout {
+                                spacing: 3px;
+                                Text { text: "DuraciÃ³n BaterÃ­a (Horas):"; font-size: 11px; color: #cbd5e1; }
+                                LineEdit {
+                                    text: root.cfg_battery;
+                                    placeholder-text: "Ej: Hasta 10 horas (o solo ingresa: 8, 10)";
+                                    edited => { root.cfg_battery = self.text; }
+                                }
+                            }
+                            VerticalLayout {
+                                spacing: 3px;
+                                Text { text: "Otros / Conectividad:"; font-size: 11px; color: #cbd5e1; }
+                                LineEdit {
+                                    text: root.cfg_others;
+                                    placeholder-text: "Wi-Fi 6 / Bluetooth 5.3 / Teclado EspaÃ±ol";
+                                    edited => { root.cfg_others = self.text; }
+                                }
+                            }
+                        }
+
+                        HorizontalLayout {
+                            alignment: end;
+                            Rectangle {
+                                height: 34px;
+                                width: 180px;
+                                background: #1e293b;
+                                border-radius: 6px;
+                                border-width: 1px;
+                                border-color: #475569;
+
+                                touch_reset_1 := TouchArea {
+                                    clicked => {
+                                        root.reset_specs_defaults();
+                                    }
+                                }
+
+                                states [
+                                    hover when touch_reset_1.has-hover: {
+                                        background: #334155;
+                                        border-color: #38bdf8;
+                                    }
+                                ]
+
+                                HorizontalLayout {
+                                    alignment: center;
+                                    spacing: 8px;
+                                    Image {
+                                        source: @image-url("../../assets/ui/reset.svg");
+                                        width: 14px;
+                                        height: 14px;
+                                        colorize: #38bdf8;
+                                        vertical-alignment: center;
+                                    }
+                                    Text { text: "Valores por defecto"; font-size: 12px; font-weight: 600; color: #f1f5f9; vertical-alignment: center; }
+                                }
+                            }
+                        }
+                    }
+
+                    // TAB 2: VIDEOS Y BAÃšL SEGURO
+                    if root.admin_tab_index == 2: VerticalLayout {
+                        spacing: 10px;
+
+                        // SecciÃ³n: Videos Principales
+                        HorizontalLayout {
+                            spacing: 12px;
+                            VerticalLayout {
+                                spacing: 3px;
+                                Text { text: "Video Central Landing:"; font-size: 11px; color: #cbd5e1; }
+                                HorizontalLayout {
+                                    spacing: 6px;
+                                    LineEdit {
+                                        horizontal-stretch: 1;
+                                        text: root.cfg_central_video;
+                                        placeholder-text: "assets/videos/landing.mp4";
+                                        edited => { root.cfg_central_video = self.text; }
+                                    }
+                                    Rectangle {
+                                        width: 36px;
+                                        height: 32px;
+                                        background: #1e293b;
+                                        border-radius: 6px;
+                                        border-width: 1px;
+                                        border-color: #475569;
+                                        touch_pick_central := TouchArea {
+                                            clicked => { root.pick_central_video_clicked(); }
+                                        }
+                                        states [
+                                            hover when touch_pick_central.has-hover: {
+                                                background: #0284c7;
+                                                border-color: #38bdf8;
+                                            }
+                                        ]
+                                        Text {
+                                            text: "ðŸ“";
+                                            font-size: 14px;
+                                            horizontal-alignment: center;
+                                            vertical-alignment: center;
+                                        }
+                                    }
+                                }
+                            }
+                            VerticalLayout {
+                                spacing: 3px;
+                                Text { text: "Video Fondo Pantalla Completa:"; font-size: 11px; color: #cbd5e1; }
+                                HorizontalLayout {
+                                    spacing: 6px;
+                                    LineEdit {
+                                        horizontal-stretch: 1;
+                                        text: root.cfg_bg_video;
+                                        placeholder-text: "assets/videos/bg.mp4";
+                                        edited => { root.cfg_bg_video = self.text; }
+                                    }
+                                    Rectangle {
+                                        width: 36px;
+                                        height: 32px;
+                                        background: #1e293b;
+                                        border-radius: 6px;
+                                        border-width: 1px;
+                                        border-color: #475569;
+                                        touch_pick_bg := TouchArea {
+                                            clicked => { root.pick_bg_video_clicked(); }
+                                        }
+                                        states [
+                                            hover when touch_pick_bg.has-hover: {
+                                                background: #0284c7;
+                                                border-color: #38bdf8;
+                                            }
+                                        ]
+                                        Text {
+                                            text: "ðŸ“";
+                                            font-size: 14px;
+                                            horizontal-alignment: center;
+                                            vertical-alignment: center;
+                                        }
+                                    }
+                                }
+                            }
+                            VerticalLayout {
+                                width: 140px;
+                                spacing: 3px;
+                                Text { text: "Timeout Inactividad (seg):"; font-size: 11px; color: #cbd5e1; }
+                                LineEdit {
+                                    text: root.cfg_inactivity_timeout;
+                                    placeholder-text: "120";
+                                    edited => { root.cfg_inactivity_timeout = self.text; }
+                                }
+                            }
+                        }
+
+                        // SecciÃ³n: 3 Slots de Inactividad (RotaciÃ³n cada 2 minutos)
+                        Text {
+                            text: "ðŸŽ¬ Videos de Inactividad (Hasta 3 videos con rotaciÃ³n automÃ¡tica cada 2 min):";
+                            font-size: 12px;
+                            font-weight: 700;
+                            color: #38bdf8;
+                        }
+
+                        HorizontalLayout {
+                            spacing: 10px;
+                            VerticalLayout {
+                                spacing: 3px;
+                                Text { text: "Video Inactividad #1:"; font-size: 10px; color: #94a3b8; }
+                                HorizontalLayout {
+                                    spacing: 6px;
+                                    LineEdit {
+                                        horizontal-stretch: 1;
+                                        text: root.cfg_inactivity_video_1;
+                                        placeholder-text: "assets/videos/promo2.mp4";
+                                        edited => { root.cfg_inactivity_video_1 = self.text; }
+                                    }
+                                    Rectangle {
+                                        width: 32px;
+                                        height: 30px;
+                                        background: #1e293b;
+                                        border-radius: 6px;
+                                        border-width: 1px;
+                                        border-color: #475569;
+                                        touch_pick_inact1 := TouchArea {
+                                            clicked => { root.pick_inactivity_1_clicked(); }
+                                        }
+                                        states [
+                                            hover when touch_pick_inact1.has-hover: {
+                                                background: #0284c7;
+                                                border-color: #38bdf8;
+                                            }
+                                        ]
+                                        Text {
+                                            text: "ðŸ“";
+                                            font-size: 13px;
+                                            horizontal-alignment: center;
+                                            vertical-alignment: center;
+                                        }
+                                    }
+                                }
+                            }
+                            VerticalLayout {
+                                spacing: 3px;
+                                Text { text: "Video Inactividad #2:"; font-size: 10px; color: #94a3b8; }
+                                HorizontalLayout {
+                                    spacing: 6px;
+                                    LineEdit {
+                                        horizontal-stretch: 1;
+                                        text: root.cfg_inactivity_video_2;
+                                        placeholder-text: "assets/videos/promo.mp4";
+                                        edited => { root.cfg_inactivity_video_2 = self.text; }
+                                    }
+                                    Rectangle {
+                                        width: 32px;
+                                        height: 30px;
+                                        background: #1e293b;
+                                        border-radius: 6px;
+                                        border-width: 1px;
+                                        border-color: #475569;
+                                        touch_pick_inact2 := TouchArea {
+                                            clicked => { root.pick_inactivity_2_clicked(); }
+                                        }
+                                        states [
+                                            hover when touch_pick_inact2.has-hover: {
+                                                background: #0284c7;
+                                                border-color: #38bdf8;
+                                            }
+                                        ]
+                                        Text {
+                                            text: "ðŸ“";
+                                            font-size: 13px;
+                                            horizontal-alignment: center;
+                                            vertical-alignment: center;
+                                        }
+                                    }
+                                }
+                            }
+                            VerticalLayout {
+                                spacing: 3px;
+                                Text { text: "Video Inactividad #3:"; font-size: 10px; color: #94a3b8; }
+                                HorizontalLayout {
+                                    spacing: 6px;
+                                    LineEdit {
+                                        horizontal-stretch: 1;
+                                        text: root.cfg_inactivity_video_3;
+                                        placeholder-text: "Opcional / VacÃ­o";
+                                        edited => { root.cfg_inactivity_video_3 = self.text; }
+                                    }
+                                    Rectangle {
+                                        width: 32px;
+                                        height: 30px;
+                                        background: #1e293b;
+                                        border-radius: 6px;
+                                        border-width: 1px;
+                                        border-color: #475569;
+                                        touch_pick_inact3 := TouchArea {
+                                            clicked => { root.pick_inactivity_3_clicked(); }
+                                        }
+                                        states [
+                                            hover when touch_pick_inact3.has-hover: {
+                                                background: #0284c7;
+                                                border-color: #38bdf8;
+                                            }
+                                        ]
+                                        Text {
+                                            text: "ðŸ“";
+                                            font-size: 13px;
+                                            horizontal-alignment: center;
+                                            vertical-alignment: center;
+                                        }
+                                    }
+                                }
+                            }
+                        }
+
+                        // SecciÃ³n: BaÃºl Seguro de Videos
+                        HorizontalLayout {
+                            alignment: space-between;
+                            Text {
+                                text: "ðŸ“¦ BaÃºl Seguro (%APPDATA%/Zenit/vault):";
+                                font-size: 12px;
+                                font-weight: 700;
+                                color: #ffffff;
+                                vertical-alignment: center;
+                            }
+                            HorizontalLayout {
+                                spacing: 8px;
+
+                                Rectangle {
+                                    width: 170px;
+                                    height: 32px;
+                                    background: #1e293b;
+                                    border-radius: 6px;
+                                    border-width: 1px;
+                                    border-color: #475569;
+
+                                    touch_reset_2 := TouchArea {
+                                        clicked => {
+                                            root.reset_videos_defaults();
+                                        }
+                                    }
+
+                                    states [
+                                        hover when touch_reset_2.has-hover: {
+                                            background: #334155;
+                                            border-color: #38bdf8;
+                                        }
+                                    ]
+
+                                    HorizontalLayout {
+                                        alignment: center;
+                                        spacing: 6px;
+                                        Image {
+                                            source: @image-url("../../assets/ui/reset.svg");
+                                            width: 14px;
+                                            height: 14px;
+                                            colorize: #38bdf8;
+                                            vertical-alignment: center;
+                                        }
+                                        Text { text: "Valores por defecto"; font-size: 12px; font-weight: 600; color: #f1f5f9; vertical-alignment: center; }
+                                    }
+                                }
+
+                                Rectangle {
+                                    width: 190px;
+                                    height: 32px;
+                                    background: #0284c7;
+                                    border-radius: 6px;
+                                    TouchArea {
+                                        clicked => {
+                                            root.import_video_to_vault_clicked();
+                                        }
+                                    }
+                                    Text {
+                                        text: "+ ðŸ“ Importar Video...";
+                                        font-size: 12px;
+                                        font-weight: 700;
+                                        color: #ffffff;
+                                        horizontal-alignment: center;
+                                        vertical-alignment: center;
+                                    }
+                                }
+                            }
+                        }
+
+                        // Lista de Videos en el BaÃºl con ScrollView
+                        Rectangle {
+                            height: 140px;
+                            background: #090e1a;
+                            border-radius: 8px;
+                            border-width: 1px;
+                            border-color: #334155;
+                            clip: true;
+
+                            if root.vault_videos.length == 0: Text {
+                                text: "El baÃºl estÃ¡ vacÃ­o. Haz clic en 'Importar Video' para aÃ±adir videos MP4.";
+                                font-size: 12px;
+                                color: #64748b;
+                                horizontal-alignment: center;
+                                vertical-alignment: center;
+                            }
+
+                            if root.vault_videos.length > 0: ScrollView {
+                                content-width: self.width;
+                                VerticalLayout {
+                                    padding: 6px;
+                                    spacing: 6px;
+                                    for item in root.vault_videos: Rectangle {
+                                        height: 36px;
+                                        background: #1e293b;
+                                        border-radius: 6px;
+
+                                        HorizontalLayout {
+                                            padding-left: 10px;
+                                            padding-right: 10px;
+                                            spacing: 8px;
+                                            alignment: space-between;
+
+                                            HorizontalLayout {
+                                                spacing: 8px;
+                                                alignment: start;
+                                                Text {
+                                                    text: "ðŸŽ¬ " + item.name;
+                                                    font-size: 11px;
+                                                    font-weight: 600;
+                                                    color: #f1f5f9;
+                                                    vertical-alignment: center;
+                                                }
+                                                Text {
+                                                    text: "(" + item.size_str + ")";
+                                                    font-size: 10px;
+                                                    color: #64748b;
+                                                    vertical-alignment: center;
+                                                }
+                                            }
+
+                                            HorizontalLayout {
+                                                spacing: 6px;
+                                                alignment: end;
+
+                                                // Asignar a Slot 1
+                                                Rectangle {
+                                                    width: 48px;
+                                                    height: 24px;
+                                                    background: #0284c7;
+                                                    border-radius: 4px;
+                                                    TouchArea {
+                                                        clicked => {
+                                                            root.cfg_inactivity_video_1 = item.path;
+                                                        }
+                                                    }
+                                                    Text {
+                                                        text: "Slot 1";
+                                                        font-size: 10px;
+                                                        font-weight: 700;
+                                                        color: #ffffff;
+                                                        horizontal-alignment: center;
+                                                        vertical-alignment: center;
+                                                    }
+                                                }
+
+                                                // Asignar a Slot 2
+                                                Rectangle {
+                                                    width: 48px;
+                                                    height: 24px;
+                                                    background: #0284c7;
+                                                    border-radius: 4px;
+                                                    TouchArea {
+                                                        clicked => {
+                                                            root.cfg_inactivity_video_2 = item.path;
+                                                        }
+                                                    }
+                                                    Text {
+                                                        text: "Slot 2";
+                                                        font-size: 10px;
+                                                        font-weight: 700;
+                                                        color: #ffffff;
+                                                        horizontal-alignment: center;
+                                                        vertical-alignment: center;
+                                                    }
+                                                }
+
+                                                // Asignar a Slot 3
+                                                Rectangle {
+                                                    width: 48px;
+                                                    height: 24px;
+                                                    background: #0284c7;
+                                                    border-radius: 4px;
+                                                    TouchArea {
+                                                        clicked => {
+                                                            root.cfg_inactivity_video_3 = item.path;
+                                                        }
+                                                    }
+                                                    Text {
+                                                        text: "Slot 3";
+                                                        font-size: 10px;
+                                                        font-weight: 700;
+                                                        color: #ffffff;
+                                                        horizontal-alignment: center;
+                                                        vertical-alignment: center;
+                                                    }
+                                                }
+
+                                                // Eliminar
+                                                Rectangle {
+                                                    width: 28px;
+                                                    height: 24px;
+                                                    background: #ef444433;
+                                                    border-radius: 4px;
+                                                    TouchArea {
+                                                        clicked => {
+                                                            root.delete_vault_video_clicked(item.filename);
+                                                        }
+                                                    }
+                                                    Text {
+                                                        text: "ðŸ—‘ï¸";
+                                                        font-size: 11px;
+                                                        horizontal-alignment: center;
+                                                        vertical-alignment: center;
+                                                    }
+                                                }
+                                            }
+                                        }
+                                    }
+                                }
+                            }
+                        }
+                    }
+
+                    // TAB 3: SISTEMA
+                    if root.admin_tab_index == 3: VerticalLayout {
+                        spacing: 14px;
+                        alignment: center;
+
+                        // Auto-detect Button
+                        Rectangle {
+                            height: 42px;
+                            background: #0284c7;
+                            border-radius: 8px;
+                            TouchArea { clicked => { root.auto_detect_clicked(); } }
+                            Text {
+                                text: "âš¡ Auto-detectar Hardware del Equipo";
+                                font-size: 14px;
+                                font-weight: 700;
+                                color: #ffffff;
+                                horizontal-alignment: center;
+                                vertical-alignment: center;
+                            }
+                        }
+
+                        // Reset All Defaults Button
+                        Rectangle {
+                            height: 42px;
+                            background: #1e293b;
+                            border-radius: 8px;
+                            border-width: 1px;
+                            border-color: #475569;
+
+                            touch_reset_3 := TouchArea {
+                                clicked => {
+                                    root.reset_system_defaults();
+                                }
+                            }
+
+                            states [
+                                hover when touch_reset_3.has-hover: {
+                                    background: #334155;
+                                    border-color: #38bdf8;
+                                }
+                            ]
+
+                            HorizontalLayout {
+                                alignment: center;
+                                spacing: 8px;
+                                Image {
+                                    source: @image-url("../../assets/ui/reset.svg");
+                                    width: 16px;
+                                    height: 16px;
+                                    colorize: #38bdf8;
+                                    vertical-alignment: center;
+                                }
+                                Text { text: "Valores por defecto (Restablecer Todo a FÃ¡brica)"; font-size: 14px; font-weight: 700; color: #f1f5f9; vertical-alignment: center; }
+                            }
+                        }
+
+                        // Restart App
+                        Rectangle {
+                            height: 42px;
+                            background: #d97706;
+                            border-radius: 8px;
+                            TouchArea { clicked => { root.emergency_restart_clicked(); } }
+                            Text {
+                                text: "ðŸ”„ Reiniciar AplicaciÃ³n";
+                                font-size: 14px;
+                                font-weight: 700;
+                                color: #ffffff;
+                                horizontal-alignment: center;
+                                vertical-alignment: center;
+                            }
+                        }
+
+                        // Exit to Windows
+                        Rectangle {
+                            height: 42px;
+                            background: #dc2626;
+                            border-radius: 8px;
+                            TouchArea { clicked => { root.emergency_exit_clicked(); } }
+                            Text {
+                                text: "ðŸšª Salir a Windows (Cerrar AplicaciÃ³n)";
+                                font-size: 14px;
+                                font-weight: 700;
+                                color: #ffffff;
+                                horizontal-alignment: center;
+                                vertical-alignment: center;
+                            }
+                        }
+                    }
+                }
+
+                // Modal Footer
+                HorizontalLayout {
+                    spacing: 12px;
+                    height: 44px;
+
+                    Rectangle {
+                        background: #0284c7;
+                        border-radius: 8px;
+
+                        TouchArea {
+                            clicked => {
+                                root.save_admin_config(
+                                    root.cfg_brand, root.cfg_model, root.cfg_retail, root.cfg_card_price, root.cfg_normal_price, root.cfg_sku,
+                                    root.cfg_cpu, root.cfg_ram, root.cfg_storage, root.cfg_gpu, root.cfg_display, root.cfg_os, root.cfg_battery, root.cfg_others,
+                                    root.cfg_central_video, root.cfg_bg_video, root.cfg_inactivity_video_1, root.cfg_inactivity_video_2, root.cfg_inactivity_video_3, root.cfg_inactivity_timeout
+                                );
+                            }
+                        }
+
+                        Text {
+                            text: "ðŸ’¾ Guardar Cambios";
+                            font-size: 14px;
+                            font-weight: 700;
+                            color: #ffffff;
+                            horizontal-alignment: center;
+                            vertical-alignment: center;
+                        }
+                    }
+
+                    Rectangle {
+                        width: 120px;
+                        background: #1e293b;
+                        border-radius: 8px;
+
+                        TouchArea {
+                            clicked => {
+                                root.close_admin_clicked();
+                            }
+                        }
+
+                        Text {
+                            text: "Cerrar";
+                            font-size: 14px;
+                            font-weight: 600;
+                            color: #94a3b8;
+                            horizontal-alignment: center;
+                            vertical-alignment: center;
+                        }
+                    }
+                }
+            }
+        }
+}
