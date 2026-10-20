@@ -130,7 +130,7 @@ pub fn run() {
     #[cfg(target_os = "windows")]
     unsafe {
         use windows_sys::Win32::UI::WindowsAndMessaging::{
-            FindWindowA, GetSystemMetrics, SetWindowPos, HWND_TOP, SM_CXSCREEN, SM_CYSCREEN,
+            FindWindowW, GetSystemMetrics, SetWindowPos, HWND_TOP, SM_CXSCREEN, SM_CYSCREEN,
             SWP_SHOWWINDOW,
         };
         let screen_w = GetSystemMetrics(SM_CXSCREEN);
@@ -139,8 +139,8 @@ pub fn run() {
         main_window.set_screen_width(screen_w as f32);
         main_window.set_screen_height(screen_h as f32);
 
-        let title = b"Showroom PC - Modo Exhibici\xc3\xb3n\0";
-        let hwnd = FindWindowA(std::ptr::null(), title.as_ptr());
+        let title: Vec<u16> = "Showroom PC - Modo Exhibición".encode_utf16().chain(std::iter::once(0)).collect();
+        let hwnd = FindWindowW(std::ptr::null(), title.as_ptr());
         if !hwnd.is_null() {
             SetWindowPos(hwnd, HWND_TOP, 0, 0, screen_w, screen_h, SWP_SHOWWINDOW);
         }
@@ -344,14 +344,15 @@ pub fn run() {
             let _ = fb.hide();
         }
         if let Some(mw) = restore_mw_handle.upgrade() {
+            let _ = mw.show();
             mw.window().set_fullscreen(true);
             #[cfg(target_os = "windows")]
             unsafe {
                 use windows_sys::Win32::UI::WindowsAndMessaging::{
-                    FindWindowA, SetForegroundWindow, ShowWindow, SW_RESTORE,
+                    FindWindowW, SetForegroundWindow, ShowWindow, SW_RESTORE,
                 };
-                let title = b"Showroom PC - Modo Exhibici\xc3\xb3n\0";
-                let hwnd = FindWindowA(std::ptr::null(), title.as_ptr());
+                let title: Vec<u16> = "Showroom PC - Modo Exhibición".encode_utf16().chain(std::iter::once(0)).collect();
+                let hwnd = FindWindowW(std::ptr::null(), title.as_ptr());
                 if !hwnd.is_null() {
                     ShowWindow(hwnd, SW_RESTORE);
                     SetForegroundWindow(hwnd);
@@ -387,13 +388,13 @@ pub fn run() {
             }
         }
 
-        if let Some(_ui) = try_pc_mw_handle.upgrade() {
-            // Under Windows, minimize main window so user can interact with the desktop
+        if let Some(ui) = try_pc_mw_handle.upgrade() {
+            let _ = ui.hide();
             #[cfg(target_os = "windows")]
             unsafe {
-                use windows_sys::Win32::UI::WindowsAndMessaging::{FindWindowA, ShowWindow, SW_MINIMIZE};
-                let title = b"Showroom PC - Modo Exhibici\xc3\xb3n\0";
-                let hwnd = FindWindowA(std::ptr::null(), title.as_ptr());
+                use windows_sys::Win32::UI::WindowsAndMessaging::{FindWindowW, ShowWindow, SW_MINIMIZE};
+                let title: Vec<u16> = "Showroom PC - Modo Exhibición".encode_utf16().chain(std::iter::once(0)).collect();
+                let hwnd = FindWindowW(std::ptr::null(), title.as_ptr());
                 if !hwnd.is_null() {
                     ShowWindow(hwnd, SW_MINIMIZE);
                 }
@@ -491,15 +492,16 @@ pub fn run() {
                         let _ = fb.hide();
                     }
                     if let Some(ui) = wh.upgrade() {
+                        let _ = ui.show();
                         ui.window().set_fullscreen(true);
                         ui.set_is_screensaver_active(false);
                         #[cfg(target_os = "windows")]
                         unsafe {
                             use windows_sys::Win32::UI::WindowsAndMessaging::{
-                                FindWindowA, SetForegroundWindow, ShowWindow, SW_RESTORE,
+                                FindWindowW, SetForegroundWindow, ShowWindow, SW_RESTORE,
                             };
-                            let title = b"Showroom PC - Modo Exhibici\xc3\xb3n\0";
-                            let hwnd = FindWindowA(std::ptr::null(), title.as_ptr());
+                            let title: Vec<u16> = "Showroom PC - Modo Exhibición".encode_utf16().chain(std::iter::once(0)).collect();
+                            let hwnd = FindWindowW(std::ptr::null(), title.as_ptr());
                             if !hwnd.is_null() {
                                 ShowWindow(hwnd, SW_RESTORE);
                                 SetForegroundWindow(hwnd);
