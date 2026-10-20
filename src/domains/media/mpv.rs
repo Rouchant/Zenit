@@ -296,12 +296,19 @@ impl SlintMpvPlayer {
         } else {
             "set loop-file no"
         }).unwrap();
-        let keep_cmd = CString::new("set keep-open yes").unwrap();
+        let keep_cmd = CString::new(if looping {
+            "set keep-open no"
+        } else {
+            "set keep-open yes"
+        }).unwrap();
+        let unpause_cmd = CString::new("set pause no").unwrap();
 
         unsafe {
             (self.lib.mpv_command_string)(self.mpv, loop_cmd.as_ptr());
             (self.lib.mpv_command_string)(self.mpv, keep_cmd.as_ptr());
+            (self.lib.mpv_command_string)(self.mpv, unpause_cmd.as_ptr());
         }
+        self.is_playing.store(true, Ordering::SeqCst);
 
         if let (Ok(c_cmd), Ok(c_path), Ok(c_mode)) = (
             CString::new("loadfile"),
@@ -356,6 +363,14 @@ impl SlintMpvPlayer {
 
     pub fn get_time_pos(&self) -> Option<f64> {
         self.get_property_string("time-pos").and_then(|s| s.parse::<f64>().ok())
+    }
+
+    pub fn seek(&self, sec: f64) {
+        if let Ok(cmd) = CString::new(format!("seek {} absolute", sec)) {
+            unsafe {
+                (self.lib.mpv_command_string)(self.mpv, cmd.as_ptr());
+            }
+        }
     }
 
     pub fn pause(&self) {
