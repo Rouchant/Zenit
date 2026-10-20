@@ -30,7 +30,7 @@ const formConfig = reactive({
   other_specs: store.appConfig.other_specs || store.currentSpecs.other_specs || '',
 
   central_video_path: store.appConfig.central_video_path || 'assets/videos/landing.mp4',
-  bg_video_path: store.appConfig.bg_video_path || 'assets/videos/bg.mp4',
+  bg_video_path: store.appConfig.bg_video_path || 'assets/images/fallback-bg/bg.mp4',
   inactivity_video_path: store.appConfig.inactivity_video_path || 'assets/videos/promo.mp4',
   inactivity_timeout_sec: store.appConfig.inactivity_timeout_sec || 120,
 });
@@ -353,7 +353,7 @@ onMounted(async () => {
               <h4>Video de Fondo</h4>
               <p class="active-path-text">{{ formConfig.bg_video_path }}</p>
               <div class="assignment-buttons">
-                <button class="pill-btn" @click="formConfig.bg_video_path = 'assets/videos/bg.mp4'">Fondo Cyberpunk</button>
+                <button class="pill-btn" @click="formConfig.bg_video_path = 'assets/images/fallback-bg/bg.mp4'">Fondo Predeterminado</button>
                 <button class="pill-btn" @click="formConfig.bg_video_path = 'assets/videos/bg3.mp4'">Fondo Aurora</button>
               </div>
             </div>

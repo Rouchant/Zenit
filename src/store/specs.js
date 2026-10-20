@@ -71,7 +71,7 @@ export const useSpecsStore = defineStore('specs', () => {
     battery_override: null,
     other_specs: 'Wi-Fi 6E / Bluetooth 5.3 / Teclado en Español',
     central_video_path: 'assets/videos/landing.mp4',
-    bg_video_path: 'assets/videos/bg.mp4',
+    bg_video_path: 'assets/images/fallback-bg/bg.mp4',
     inactivity_video_path: 'assets/videos/promo.mp4',
     inactivity_timeout_sec: 120,
   });

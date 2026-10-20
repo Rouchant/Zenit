@@ -60,7 +60,7 @@ impl Default for AppConfig {
             other_specs: "Wi-Fi 6 / Bluetooth 5.3 / Teclado en Español".to_string(),
 
             central_video_path: "assets/videos/landing.mp4".to_string(),
-            bg_video_path: "assets/videos/bg.mp4".to_string(),
+            bg_video_path: "assets/images/fallback-bg/bg.mp4".to_string(),
             inactivity_video_path: "assets/videos/promo.mp4".to_string(),
             inactivity_timeout_sec: 120,
         }

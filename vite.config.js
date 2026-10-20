@@ -10,7 +10,7 @@ export default defineConfig({
     port: 5173,
     strictPort: true,
     watch: {
-      ignored: ['**/src-tauri/**', '**/target/**']
+      ignored: ['**/src-tauri/**', '**/target/**', '**/*.mp4', '**/*.mkv', '**/*.webm']
     }
   },
   build: {
