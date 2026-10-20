@@ -98,6 +98,42 @@ pub fn run() {
     let now = chrono::Local::now();
     main_window.set_live_clock(now.format("%H:%M:%S").to_string().into());
 
+    // Initialize libmpv Showroom Video Player (Pure Rust + libmpv)
+    let video_handle = main_window.as_weak();
+    let video_path = domains::media::resolve_showroom_video_path();
+    let video_path_str = video_path.to_string_lossy().to_string();
+
+    match domains::media::SlintMpvPlayer::new(&video_path_str, 854, 480) {
+        Ok(mut player) => {
+            println!("[libmpv] Reproductor inicializado con video: {}", video_path_str);
+            std::thread::spawn(move || {
+                loop {
+                    let start = std::time::Instant::now();
+                    if !IS_IN_TRY_PC_MODE.load(Ordering::SeqCst) {
+                        if let Ok(buffer) = player.render_frame_buffer() {
+                            let vh = video_handle.clone();
+                            let _ = slint::invoke_from_event_loop(move || {
+                                if let Some(ui) = vh.upgrade() {
+                                    ui.set_has_video_stream(true);
+                                    ui.set_video_frame(slint::Image::from_rgba8(buffer));
+                                }
+                            });
+                        }
+                    }
+                    let elapsed = start.elapsed();
+                    let target_frame_time = std::time::Duration::from_millis(33); // ~30 fps
+                    if elapsed < target_frame_time {
+                        std::thread::sleep(target_frame_time - elapsed);
+                    }
+                }
+            });
+        }
+        Err(err) => {
+            println!("[libmpv] {}", err);
+            main_window.set_has_video_stream(false);
+        }
+    }
+
     // Live Clock Timer (updates every 1s)
     let clock_timer = slint::Timer::default();
     let clock_handle = main_window.as_weak();

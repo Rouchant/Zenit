@@ -123,6 +123,10 @@ export component MainWindow inherits Window {
     in-out property <bool> is_screensaver_active: false;
     in-out property <string> admin_error_msg: "";
 
+    // Video Stream Properties (libmpv)
+    in-out property <image> video_frame;
+    in-out property <bool> has_video_stream: false;
+
     // Quick Setup Form Fields
     in-out property <string> setup_brand: "";
     in-out property <string> setup_model: "";
@@ -323,14 +327,22 @@ export component MainWindow inherits Window {
                         background: @linear-gradient(180deg, #0284c726 0%, #00000000 100%);
                     }
 
+                    // libmpv Video Stream
+                    if root.has_video_stream: Image {
+                        width: parent.width;
+                        height: parent.height;
+                        source: root.video_frame;
+                        image-fit: contain;
+                    }
+
                     VerticalLayout {
                         alignment: center;
                         spacing: 20px;
                         padding-left: 30px;
                         padding-right: 30px;
 
-                        // Center Showcase Badge
-                        Rectangle {
+                        // Center Showcase Badge (shown when no video)
+                        if !root.has_video_stream: Rectangle {
                             height: 64px;
                             width: 64px;
                             border-radius: 32px;
@@ -347,7 +359,7 @@ export component MainWindow inherits Window {
                             }
                         }
 
-                        Text {
+                        if !root.has_video_stream: Text {
                             text: "EQUIPO DISPONIBLE PARA PRUEBA INMEDIATA";
                             font-size: 12px;
                             font-weight: 800;
@@ -356,7 +368,7 @@ export component MainWindow inherits Window {
                             horizontal-alignment: center;
                         }
 
-                        Text {
+                        if !root.has_video_stream: Text {
                             text: root.brand_name + " " + root.model_name;
                             font-size: 28px;
                             font-weight: 800;
@@ -365,7 +377,7 @@ export component MainWindow inherits Window {
                             wrap: word-wrap;
                         }
 
-                        Text {
+                        if !root.has_video_stream: Text {
                             text: "Experimenta la velocidad, potencia de gráficos y fluidez en tiempo real";
                             font-size: 14px;
                             color: #94a3b8;
