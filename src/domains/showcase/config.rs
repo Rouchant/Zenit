@@ -121,6 +121,29 @@ pub fn load_config() -> AppConfig {
                     cfg.bg_video_path = "assets/videos/bg.mp4".to_string();
                     modified = true;
                 }
+                let is_oem_placeholder = |s: &str| -> bool {
+                    let l = s.to_lowercase();
+                    l.contains("to be filled")
+                        || l.contains("system manufacturer")
+                        || l.contains("system product name")
+                        || l.contains("o.e.m.")
+                        || l.contains("default string")
+                        || l.trim().is_empty()
+                };
+
+                if let Some(ref b) = cfg.brand_override {
+                    if is_oem_placeholder(b) {
+                        cfg.brand_override = None;
+                        modified = true;
+                    }
+                }
+                if let Some(ref m) = cfg.model_override {
+                    if is_oem_placeholder(m) {
+                        cfg.model_override = None;
+                        modified = true;
+                    }
+                }
+
                 if modified {
                     let _ = save_config(&cfg);
                 }

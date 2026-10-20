@@ -19,10 +19,38 @@ pub use display::get_display_and_hz;
 pub use gpu::get_gpu_name;
 pub use memory::get_ram_info;
 pub use storage::get_storage_info;
-pub use system_info::{get_laptop_brand_and_model, get_os_info};
+pub use system_info::{get_laptop_brand_and_model, get_os_info, is_oem_placeholder};
 pub use types::SystemSpecs;
 
+use std::sync::RwLock;
 use sysinfo::System;
+
+static CACHED_SPECS: RwLock<Option<SystemSpecs>> = RwLock::new(None);
+
+/// Retrieves system hardware specifications, returning cached results if available
+/// to avoid repeating expensive PowerShell and powercfg subprocess calls.
+pub fn get_hardware_specs() -> SystemSpecs {
+    if let Ok(guard) = CACHED_SPECS.read() {
+        if let Some(ref specs) = *guard {
+            return specs.clone();
+        }
+    }
+
+    let specs = detect_hardware();
+    if let Ok(mut guard) = CACHED_SPECS.write() {
+        *guard = Some(specs.clone());
+    }
+    specs
+}
+
+/// Forces a fresh detection of all system hardware and updates the global cache.
+pub fn refresh_hardware_specs() -> SystemSpecs {
+    let specs = detect_hardware();
+    if let Ok(mut guard) = CACHED_SPECS.write() {
+        *guard = Some(specs.clone());
+    }
+    specs
+}
 
 pub fn detect_hardware() -> SystemSpecs {
     let mut sys = System::new_all();
@@ -94,5 +122,20 @@ mod tests {
         );
         assert!(!specs.brand.is_empty(), "Brand should not be empty");
         assert!(!specs.model.is_empty(), "Model should not be empty");
+    }
+
+    #[test]
+    fn test_get_hardware_specs_caching() {
+        let t1 = std::time::Instant::now();
+        let _ = get_hardware_specs();
+        let _elapsed1 = t1.elapsed();
+
+        let t2 = std::time::Instant::now();
+        let specs_cached = get_hardware_specs();
+        let elapsed2 = t2.elapsed();
+
+        // Cached call must be virtually instantaneous (sub-millisecond)
+        assert!(elapsed2.as_millis() < 50, "Cached specs should return almost instantly");
+        assert!(!specs_cached.processor.is_empty());
     }
 }

@@ -1,4 +1,4 @@
-use crate::domains::hardware::detect_hardware;
+use crate::domains::hardware::{is_oem_placeholder, refresh_hardware_specs};
 use crate::MainWindow;
 use slint::ComponentHandle;
 
@@ -6,13 +6,24 @@ pub fn setup_detect_handlers(main_window: &MainWindow) {
     let detect_handle = main_window.as_weak();
     main_window.on_auto_detect_clicked(move || {
         if let Some(ui) = detect_handle.upgrade() {
-            let hw = detect_hardware();
-            ui.set_setup_brand(hw.brand.clone().into());
-            ui.set_setup_model(hw.model.clone().into());
+            let hw = refresh_hardware_specs();
+            let brand = if !is_oem_placeholder(&hw.brand) {
+                hw.brand.clone()
+            } else {
+                "ASUS".to_string()
+            };
+            let model = if !is_oem_placeholder(&hw.model) {
+                hw.model.clone()
+            } else {
+                "ROG Strix PC".to_string()
+            };
+
+            ui.set_setup_brand(brand.clone().into());
+            ui.set_setup_model(model.clone().into());
 
             // Fill Admin form fields
-            ui.set_cfg_brand(hw.brand.into());
-            ui.set_cfg_model(hw.model.into());
+            ui.set_cfg_brand(brand.into());
+            ui.set_cfg_model(model.into());
             ui.set_cfg_cpu(hw.processor.into());
             ui.set_cfg_ram(hw.ram.into());
             ui.set_cfg_storage(hw.storage.into());

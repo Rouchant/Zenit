@@ -9,10 +9,10 @@ pub use overrides::apply_config_overrides;
 pub use types::{DisplaySpecCard, ThemeColors, ZenitUiState};
 
 use super::config::load_config;
-use crate::domains::hardware::detect_hardware;
+use crate::domains::hardware::get_hardware_specs;
 
 pub fn build_ui_state() -> ZenitUiState {
-    let mut specs = detect_hardware();
+    let mut specs = get_hardware_specs();
     let cfg = load_config();
 
     // 1. Apply overrides

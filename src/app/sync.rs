@@ -1,4 +1,4 @@
-use crate::domains::hardware::detect_hardware;
+use crate::domains::hardware::{get_hardware_specs, is_oem_placeholder};
 use crate::domains::showcase::{build_ui_state, load_config};
 use slint::{ModelRc, VecModel};
 use crate::{MainWindow, SpecItem, VaultVideoItem};
@@ -102,22 +102,32 @@ pub fn populate_ui_state(window: &MainWindow) {
     window.set_right_specs(ModelRc::new(VecModel::from(right_items)));
 
     // Pre-populate Quick Setup & Admin Form Fields
-    let hw = detect_hardware();
-    window.set_setup_brand(cfg.brand_override.clone().unwrap_or_else(|| {
-        if !hw.brand.is_empty() && !hw.brand.to_lowercase().contains("to be filled") && !hw.brand.to_lowercase().contains("o.e.m.") {
-            hw.brand.clone()
-        } else {
-            "ASUS".to_string()
-        }
-    }).into());
+    let hw = get_hardware_specs();
 
-    window.set_setup_model(cfg.model_override.clone().unwrap_or_else(|| {
-        if !hw.model.is_empty() && !hw.model.to_lowercase().contains("to be filled") && !hw.model.to_lowercase().contains("o.e.m.") {
-            hw.model.clone()
-        } else {
-            "ROG Strix PC".to_string()
-        }
-    }).into());
+    let clean_brand = cfg.brand_override.as_deref()
+        .filter(|b| !is_oem_placeholder(b))
+        .map(|s| s.to_string())
+        .unwrap_or_else(|| {
+            if !hw.brand.is_empty() && !is_oem_placeholder(&hw.brand) {
+                hw.brand.clone()
+            } else {
+                "ASUS".to_string()
+            }
+        });
+
+    let clean_model = cfg.model_override.as_deref()
+        .filter(|m| !is_oem_placeholder(m))
+        .map(|s| s.to_string())
+        .unwrap_or_else(|| {
+            if !hw.model.is_empty() && !is_oem_placeholder(&hw.model) {
+                hw.model.clone()
+            } else {
+                "ROG Strix PC".to_string()
+            }
+        });
+
+    window.set_setup_brand(clean_brand.clone().into());
+    window.set_setup_model(clean_model.clone().into());
 
     window.set_setup_retail(if !cfg.store_theme.is_empty() && !cfg.store_theme.eq_ignore_ascii_case("default") {
         cfg.store_theme.clone().into()
@@ -129,21 +139,8 @@ pub fn populate_ui_state(window: &MainWindow) {
     window.set_setup_sku(sku_trim.into());
 
     // Pre-populate Admin Tienda
-    window.set_cfg_brand(cfg.brand_override.clone().unwrap_or_else(|| {
-        if !hw.brand.is_empty() && !hw.brand.to_lowercase().contains("to be filled") && !hw.brand.to_lowercase().contains("o.e.m.") {
-            hw.brand.clone()
-        } else {
-            "ASUS".to_string()
-        }
-    }).into());
-
-    window.set_cfg_model(cfg.model_override.clone().unwrap_or_else(|| {
-        if !hw.model.is_empty() && !hw.model.to_lowercase().contains("to be filled") && !hw.model.to_lowercase().contains("o.e.m.") {
-            hw.model.clone()
-        } else {
-            "ROG Strix PC".to_string()
-        }
-    }).into());
+    window.set_cfg_brand(clean_brand.into());
+    window.set_cfg_model(clean_model.into());
 
     window.set_cfg_retail(if !cfg.store_theme.is_empty() && !cfg.store_theme.eq_ignore_ascii_case("default") {
         cfg.store_theme.clone().into()

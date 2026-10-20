@@ -2,22 +2,22 @@ use crate::domains::hardware::registry::read_reg_string;
 use sysinfo::System;
 use windows_sys::Win32::System::Registry::HKEY_LOCAL_MACHINE;
 
+pub fn is_oem_placeholder(s: &str) -> bool {
+    let l = s.to_lowercase();
+    l.contains("to be filled")
+        || l.contains("system manufacturer")
+        || l.contains("system product name")
+        || l.contains("o.e.m.")
+        || l.contains("default string")
+        || l.trim().is_empty()
+}
+
 pub fn get_laptop_brand_and_model() -> (String, String) {
     let subkey = r"HARDWARE\DESCRIPTION\System\BIOS";
     let manufacturer = read_reg_string(HKEY_LOCAL_MACHINE, subkey, "SystemManufacturer")
         .unwrap_or_else(|| "ASUS".to_string());
     let mut model = read_reg_string(HKEY_LOCAL_MACHINE, subkey, "SystemProductName")
         .unwrap_or_else(|| "".to_string());
-
-    let is_oem_placeholder = |s: &str| -> bool {
-        let l = s.to_lowercase();
-        l.contains("to be filled")
-            || l.contains("system manufacturer")
-            || l.contains("system product name")
-            || l.contains("o.e.m.")
-            || l.contains("default string")
-            || l.trim().is_empty()
-    };
 
     // Clean up generic OEM strings
     let mut clean_mfg = if is_oem_placeholder(&manufacturer) {
