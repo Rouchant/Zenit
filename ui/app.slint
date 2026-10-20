@@ -442,121 +442,133 @@ export component MainWindow inherits Window {
                 width: max(680px, root.screen_width - 784px);
 
                 VerticalLayout {
-                    spacing: 16px;
+                    alignment: center;
+                    spacing: 14px;
 
-                    // Hero Frame
-                    Rectangle {
-                        vertical-stretch: 1;
-                        min-height: 420px;
-                        background: #090e1a;
-                        border-radius: 20px;
-                        border-width: 1.5px;
-                        border-color: #38bdf833;
-                        clip: true;
+                    // 16:9 Video Frame
+                    HorizontalLayout {
+                        alignment: center;
 
-                        // Glow background
                         Rectangle {
-                            width: parent.width;
-                            height: parent.height;
-                            background: @linear-gradient(180deg, #0284c726 0%, #00000000 100%);
-                        }
+                            width: min(parent.width, min(960px, (root.screen_height - 350px) * 16 / 9));
+                            height: self.width * 9 / 16;
+                            background: #090e1a;
+                            border-radius: 18px;
+                            border-width: 1.5px;
+                            border-color: #38bdf833;
+                            clip: true;
 
-                        // libmpv Video Stream
-                        if root.has_video_stream: Image {
-                            width: parent.width;
-                            height: parent.height;
-                            source: root.video_frame;
-                            image-fit: cover;
-                        }
-
-                        VerticalLayout {
-                            alignment: root.has_video_stream ? end : center;
-                            padding-bottom: root.has_video_stream ? 24px : 0px;
-                            spacing: 20px;
-                            padding-left: 30px;
-                            padding-right: 30px;
-
-                            // Center Showcase Badge (shown when no video)
-                            if !root.has_video_stream: Rectangle {
-                                height: 64px;
-                                width: 64px;
-                                border-radius: 32px;
-                                background: #0284c733;
-                                border-width: 2px;
-                                border-color: #38bdf880;
-
-                                Text {
-                                    text: "▶";
-                                    font-size: 26px;
-                                    color: #38bdf8;
-                                    horizontal-alignment: center;
-                                    vertical-alignment: center;
-                                }
-                            }
-
-                            if !root.has_video_stream: Text {
-                                text: "EQUIPO DISPONIBLE PARA PRUEBA INMEDIATA";
-                                font-size: 12px;
-                                font-weight: 800;
-                                color: #38bdf8;
-                                letter-spacing: 2px;
-                                horizontal-alignment: center;
-                            }
-
-                            if !root.has_video_stream: Text {
-                                text: root.brand_name + " " + root.model_name;
-                                font-size: 28px;
-                                font-weight: 800;
-                                color: #ffffff;
-                                horizontal-alignment: center;
-                                wrap: word-wrap;
-                            }
-
-                            if !root.has_video_stream: Text {
-                                text: "Experimenta la velocidad, potencia de gráficos y fluidez en tiempo real";
-                                font-size: 14px;
-                                color: #94a3b8;
-                                horizontal-alignment: center;
-                            }
-
-                            // PROBAR ESTA PC Button
+                            // Glow background
                             Rectangle {
-                                height: 56px;
-                                width: 280px;
-                                border-radius: 28px;
-                                background: #0284c7;
-                                border-width: 1px;
-                                border-color: #7dd3fc80;
+                                width: parent.width;
+                                height: parent.height;
+                                background: @linear-gradient(180deg, #0284c726 0%, #00000000 100%);
+                            }
 
-                                btn_touch := TouchArea {
-                                    clicked => {
-                                        root.try_pc_clicked();
-                                    }
-                                }
+                            // libmpv Video Stream (16:9)
+                            if root.has_video_stream: Image {
+                                width: parent.width;
+                                height: parent.height;
+                                source: root.video_frame;
+                                image-fit: cover;
+                            }
 
-                                states [
-                                    hover when btn_touch.has-hover: {
-                                        background: #0369a1;
-                                    }
-                                ]
+                            // Center Showcase Badge (shown ONLY when no video stream)
+                            if !root.has_video_stream: VerticalLayout {
+                                alignment: center;
+                                spacing: 14px;
+                                padding-left: 30px;
+                                padding-right: 30px;
 
                                 HorizontalLayout {
                                     alignment: center;
-                                    spacing: 10px;
+                                    Rectangle {
+                                        height: 60px;
+                                        width: 60px;
+                                        border-radius: 30px;
+                                        background: #0284c733;
+                                        border-width: 2px;
+                                        border-color: #38bdf880;
 
-                                    Text {
-                                        text: "🚀";
-                                        font-size: 18px;
-                                        vertical-alignment: center;
+                                        Text {
+                                            text: "▶";
+                                            font-size: 26px;
+                                            color: #38bdf8;
+                                            horizontal-alignment: center;
+                                            vertical-alignment: center;
+                                        }
                                     }
-                                    Text {
-                                        text: "PROBAR ESTA PC";
-                                        font-size: 16px;
-                                        font-weight: 800;
-                                        color: #ffffff;
-                                        letter-spacing: 1px;
-                                        vertical-alignment: center;
-                                    }
+                                }
+
+                                Text {
+                                    text: "EQUIPO DISPONIBLE PARA PRUEBA INMEDIATA";
+                                    font-size: 12px;
+                                    font-weight: 800;
+                                    color: #38bdf8;
+                                    letter-spacing: 2px;
+                                    horizontal-alignment: center;
+                                }
+
+                                Text {
+                                    text: root.brand_name + " " + root.model_name;
+                                    font-size: 26px;
+                                    font-weight: 800;
+                                    color: #ffffff;
+                                    horizontal-alignment: center;
+                                    wrap: word-wrap;
+                                }
+
+                                Text {
+                                    text: "Experimenta la velocidad, potencia de gráficos y fluidez en tiempo real";
+                                    font-size: 13px;
+                                    color: #94a3b8;
+                                    horizontal-alignment: center;
+                                }
+                            }
+                        }
+                    }
+
+                    // Botón PROBAR ESTA PC (Debajo del componente de video)
+                    HorizontalLayout {
+                        alignment: center;
+
+                        Rectangle {
+                            height: 52px;
+                            width: 300px;
+                            border-radius: 26px;
+                            background: @linear-gradient(135deg, #0284c7 0%, #0369a1 100%);
+                            border-width: 1.5px;
+                            border-color: #7dd3fc80;
+
+                            btn_touch := TouchArea {
+                                clicked => {
+                                    root.try_pc_clicked();
+                                }
+                            }
+
+                            states [
+                                hover when btn_touch.has-hover: {
+                                    background: @linear-gradient(135deg, #0369a1 0%, #075985 100%);
+                                    border-color: #bae6fd;
+                                }
+                            ]
+
+                            HorizontalLayout {
+                                alignment: center;
+                                spacing: 10px;
+
+                                Text {
+                                    text: "🚀";
+                                    font-size: 18px;
+                                    vertical-alignment: center;
+                                }
+                                Text {
+                                    text: "PROBAR ESTA PC";
+                                    font-size: 15px;
+                                    font-weight: 800;
+                                    color: #ffffff;
+                                    letter-spacing: 1.5px;
+                                    vertical-alignment: center;
                                 }
                             }
                         }
