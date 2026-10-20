@@ -50,7 +50,7 @@ export component SpecCard inherits Rectangle {
 
                 Text {
                     text: root.category;
-                    font-size: 11px;
+                    font-size: 12px;
                     font-weight: 700;
                     color: #94a3b8;
                     letter-spacing: 1px;
@@ -62,21 +62,21 @@ export component SpecCard inherits Rectangle {
                 alignment: center;
 
                 Rectangle {
-                    height: 20px;
+                    height: 24px;
                     background: #0369a140;
                     border-radius: 6px;
                     border-width: 1px;
                     border-color: #38bdf840;
 
                     HorizontalLayout {
-                        padding-left: 8px;
-                        padding-right: 8px;
+                        padding-left: 10px;
+                        padding-right: 10px;
                         alignment: center;
 
                         Text {
                             text: root.tag;
-                            font-size: 10px;
-                            font-weight: 700;
+                            font-size: 13px;
+                            font-weight: 800;
                             color: #38bdf8;
                             vertical-alignment: center;
                             horizontal-alignment: center;
@@ -88,15 +88,15 @@ export component SpecCard inherits Rectangle {
 
         Text {
             text: root.value;
-            font-size: 16px;
-            font-weight: 700;
+            font-size: 19px;
+            font-weight: 800;
             color: #ffffff;
             wrap: word-wrap;
         }
 
         if root.subvalue != "": Text {
             text: root.subvalue;
-            font-size: 12px;
+            font-size: 13px;
             color: #cbd5e1;
             wrap: word-wrap;
         }
