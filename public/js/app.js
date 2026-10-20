@@ -68,15 +68,22 @@ function renderUI(state) {
   // 2. Header
   const brandLogoEl = document.getElementById('brandLogo');
   if (brandLogoEl) {
-    brandLogoEl.src = state.brand_logo || 'assets/logo.png';
-    brandLogoEl.alt = state.brand_name;
+    if (state.brand_logo && !state.brand_logo.includes('logo.png')) {
+      brandLogoEl.src = state.brand_logo;
+      brandLogoEl.alt = state.brand_name || '';
+      brandLogoEl.style.display = 'block';
+    } else {
+      brandLogoEl.src = '';
+      brandLogoEl.style.display = 'none';
+    }
   }
 
   const storeContainer = document.getElementById('storeContainer');
   if (storeContainer) {
     if (state.store_logo) {
+      const showSeparator = brandLogoEl && brandLogoEl.style.display !== 'none';
       storeContainer.innerHTML = `
-        <div class="brand-separator"></div>
+        ${showSeparator ? '<div class="brand-separator"></div>' : ''}
         <img class="store-logo-img" src="${state.store_logo}" alt="Retail">
       `;
     } else {
@@ -86,7 +93,7 @@ function renderUI(state) {
 
   const brandBadgeEl = document.getElementById('brandBadge');
   if (brandBadgeEl) {
-    brandBadgeEl.textContent = state.brand_name || 'Zenit Showcase';
+    brandBadgeEl.textContent = state.brand_name || 'Exhibición';
   }
 
   // 3. Left Column (Hardware Core)
