@@ -77,26 +77,26 @@ fn populate_ui_state(window: &MainWindow) {
     window.set_sku_code(sku_code.into());
 
     // Populate Left Column Specs
-    let left_items: Vec<SpecItem> = state.left_specs.into_iter().map(|s| {
+    let left_items: Vec<SpecItem> = state.left_specs.iter().map(|s| {
         let icon_img = slint::Image::load_from_path(std::path::Path::new(&s.icon)).unwrap_or_default();
         SpecItem {
             category: s.label.to_uppercase().into(),
-            value: s.value.into(),
-            subvalue: s.sub_value.unwrap_or_default().into(),
-            tag: s.tag.unwrap_or_default().into(),
+            value: s.value.clone().into(),
+            subvalue: s.sub_value.clone().unwrap_or_default().into(),
+            tag: s.tag.clone().unwrap_or_default().into(),
             icon: icon_img,
         }
     }).collect();
     window.set_left_specs(ModelRc::new(VecModel::from(left_items)));
 
     // Populate Right Column Specs
-    let right_items: Vec<SpecItem> = state.right_specs.into_iter().map(|s| {
+    let right_items: Vec<SpecItem> = state.right_specs.iter().map(|s| {
         let icon_img = slint::Image::load_from_path(std::path::Path::new(&s.icon)).unwrap_or_default();
         SpecItem {
             category: s.label.to_uppercase().into(),
-            value: s.value.into(),
-            subvalue: s.sub_value.unwrap_or_default().into(),
-            tag: s.tag.unwrap_or_default().into(),
+            value: s.value.clone().into(),
+            subvalue: s.sub_value.clone().unwrap_or_default().into(),
+            tag: s.tag.clone().unwrap_or_default().into(),
             icon: icon_img,
         }
     }).collect();
@@ -112,24 +112,91 @@ fn populate_ui_state(window: &MainWindow) {
     window.set_setup_retail(cfg.store_theme.clone().into());
 
     // Admin Configuration Initial State
-    window.set_cfg_brand(cfg.brand_override.clone().unwrap_or_else(|| state.brand_name.clone()).into());
-    window.set_cfg_model(cfg.model_override.clone().unwrap_or(model_display).into());
+    let hw = detect_hardware();
+
+    let brand_val = cfg.brand_override.clone().unwrap_or_else(|| {
+        if !hw.brand.is_empty() { hw.brand.clone() } else { state.brand_name.clone() }
+    });
+    window.set_cfg_brand(brand_val.into());
+
+    let model_val = cfg.model_override.clone().unwrap_or_else(|| {
+        if !hw.model.is_empty() { hw.model.clone() } else { model_display.clone() }
+    });
+    window.set_cfg_model(model_val.into());
+
     window.set_cfg_retail(cfg.store_theme.clone().into());
     window.set_cfg_card_price(cfg.price_card.clone().into());
     window.set_cfg_normal_price(cfg.price_all_methods.clone().into());
     window.set_cfg_sku(cfg.sku.clone().into());
 
-    window.set_cfg_cpu(cfg.processor_override.clone().unwrap_or_default().into());
-    window.set_cfg_ram(cfg.ram_override.clone().unwrap_or_default().into());
-    window.set_cfg_storage(cfg.storage_override.clone().unwrap_or_default().into());
-    window.set_cfg_gpu(cfg.gpu_override.clone().unwrap_or_default().into());
-    window.set_cfg_display(cfg.display_override.clone().unwrap_or_default().into());
-    window.set_cfg_os(cfg.os_override.clone().unwrap_or_default().into());
+    // Fall back to recognized hardware specs if user hasn't set an override
+    let cpu_val = cfg.processor_override.clone().unwrap_or_else(|| {
+        state.left_specs.iter()
+            .find(|s| s.id == "card-processor")
+            .map(|s| s.value.clone())
+            .unwrap_or(hw.processor.clone())
+    });
+    window.set_cfg_cpu(cpu_val.into());
+
+    let ram_val = cfg.ram_override.clone().unwrap_or_else(|| {
+        state.left_specs.iter()
+            .find(|s| s.id == "card-ram")
+            .map(|s| s.value.clone())
+            .unwrap_or(hw.ram.clone())
+    });
+    window.set_cfg_ram(ram_val.into());
+
+    let storage_val = cfg.storage_override.clone().unwrap_or_else(|| {
+        state.left_specs.iter()
+            .find(|s| s.id == "card-storage")
+            .map(|s| s.value.clone())
+            .unwrap_or(hw.storage.clone())
+    });
+    window.set_cfg_storage(storage_val.into());
+
+    let gpu_val = cfg.gpu_override.clone().unwrap_or_else(|| {
+        state.right_specs.iter()
+            .find(|s| s.id == "card-gpu")
+            .map(|s| s.value.clone())
+            .unwrap_or(hw.gpu.clone())
+    });
+    window.set_cfg_gpu(gpu_val.into());
+
+    let display_val = cfg.display_override.clone().unwrap_or_else(|| {
+        state.right_specs.iter()
+            .find(|s| s.id == "card-display")
+            .map(|s| s.value.clone())
+            .unwrap_or(hw.display.clone())
+    });
+    window.set_cfg_display(display_val.into());
+
+    let os_val = cfg.os_override.clone().unwrap_or_else(|| {
+        state.left_specs.iter()
+            .find(|s| s.id == "card-os")
+            .map(|s| s.value.clone())
+            .unwrap_or(hw.os.clone())
+    });
+    window.set_cfg_os(os_val.into());
+
     let battery_val = cfg.battery_override.clone().unwrap_or_else(|| {
-        "Hasta 8 horas".to_string()
+        let b = state.right_specs.iter()
+            .find(|s| s.id == "card-battery")
+            .map(|s| s.value.clone())
+            .unwrap_or_else(|| hw.battery.clone());
+        if !b.is_empty() && !b.contains("Conectado AC") {
+            b
+        } else {
+            "Hasta 8 horas".to_string()
+        }
     });
     window.set_cfg_battery(battery_val.into());
-    window.set_cfg_others(cfg.other_specs.clone().into());
+
+    let others_val = if cfg.other_specs.trim().is_empty() {
+        "Wi-Fi 6 / Bluetooth 5.3 / Teclado en Español".to_string()
+    } else {
+        cfg.other_specs.clone()
+    };
+    window.set_cfg_others(others_val.into());
 
     window.set_cfg_central_video(cfg.central_video_path.clone().into());
     window.set_cfg_bg_video(cfg.bg_video_path.clone().into());
@@ -297,6 +364,7 @@ pub fn run() {
             if verify_password(&pwd) {
                 ui.set_is_admin_authenticated(true);
                 ui.set_admin_error_msg("".into());
+                populate_ui_state(&ui);
             } else {
                 ui.set_admin_error_msg("Contraseña incorrecta. Intente nuevamente.".into());
             }
