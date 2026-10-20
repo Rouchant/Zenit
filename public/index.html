@@ -1,0 +1,246 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Zenit</title>
+  <link rel="icon" type="image/x-icon" href="favicon.ico">
+  <link rel="stylesheet" href="css/glassmorphism.css">
+</head>
+<body>
+  <div class="app-container">
+    <!-- Background Video & Ambient Blur Overlay -->
+    <video id="bgVideo" class="bg-video-layer" autoplay loop muted playsinline poster="assets/images/background.png"></video>
+    <div class="bg-blur-overlay"></div>
+
+    <!-- Header -->
+    <header class="app-header">
+      <div class="brand-group">
+        <img id="brandLogo" class="brand-logo-img" src="assets/logo.png" alt="Zenit">
+        <div id="storeContainer" style="display: flex; align-items: center; gap: 20px;"></div>
+      </div>
+      <div id="brandBadge" class="brand-badge">Zenit Showcase</div>
+    </header>
+
+    <!-- Main 3-Column Layout -->
+    <main class="main-layout">
+      <!-- Columna Izquierda: Hardware Core -->
+      <aside id="leftColumn" class="column-specs left-column"></aside>
+
+      <!-- Columna Central: Hero Video + Precios + Botón Prueba esta PC -->
+      <section class="center-column">
+        <div class="hero-video-frame">
+          <video id="heroVideo" class="hero-video-player" autoplay loop muted playsinline poster="assets/images/background.png"></video>
+        </div>
+
+        <div id="pricingContainer" class="pricing-glass-banner" style="display: none;"></div>
+
+        <button class="try-pc-button" onclick="tryPc()">
+          <svg xmlns="http://www.w3.org/2000/svg" width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+            <rect x="2" y="3" width="20" height="14" rx="2" ry="2"/>
+            <line x1="8" y1="21" x2="16" y2="21"/>
+            <line x1="12" y1="17" x2="12" y2="21"/>
+          </svg>
+          <span>Prueba esta PC</span>
+        </button>
+      </section>
+
+      <!-- Columna Derecha: Pantalla, GPU, Batería, Modelo y Otros -->
+      <aside id="rightColumn" class="column-specs right-column"></aside>
+    </main>
+
+    <!-- Admin Hotspot (4 clics esquina superior derecha) -->
+    <div class="admin-hotspot" onclick="handleHotspot()" title="Admin (4 clics)"></div>
+
+    <!-- Fullscreen Inactivity Screensaver -->
+    <div id="screensaverContainer" class="screensaver-container">
+      <video id="screensaverVideo" class="screensaver-video" loop muted playsinline></video>
+      <div class="screensaver-hint">Toca la pantalla o mueve el mouse para explorar</div>
+    </div>
+
+    <!-- Password Modal -->
+    <div id="passwordModal" class="modal-backdrop">
+      <div class="glass-modal-card password-dialog">
+        <h2>Panel de Administración</h2>
+        <p>Ingresa la contraseña de acceso (Por defecto: <strong>demo</strong> o clave maestra).</p>
+        <input id="passwordInput" type="password" class="glass-input" placeholder="Ingresa clave..." onkeydown="if(event.key==='Enter') verifyPassword()">
+        <div id="passwordError" style="color: #ff4466; font-size: 0.85rem; margin-bottom: 12px; display: none;">Contraseña incorrecta. Inténtalo de nuevo.</div>
+        <div class="modal-btn-row">
+          <button class="btn-glass" onclick="closePasswordModal()">Cancelar</button>
+          <button class="btn-glass btn-primary" onclick="verifyPassword()">Ingresar</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- Admin Dashboard Modal -->
+    <div id="adminModal" class="modal-backdrop">
+      <div class="glass-modal-card admin-dialog">
+        <div class="admin-header">
+          <div>
+            <div style="font-size: 0.7rem; font-weight: 800; letter-spacing: 2px; color: var(--primary); text-transform: uppercase;">ZENIT NATIVE</div>
+            <h2 style="font-size: 1.3rem;">Configuración de Vitrina</h2>
+          </div>
+          <button style="background: transparent; border: none; color: #fff; font-size: 1.8rem; cursor: pointer;" onclick="closeAdminModal()">&times;</button>
+        </div>
+
+        <div class="admin-tabs">
+          <button id="tabBtn_colors" class="admin-tab active" onclick="switchAdminTab('colors')">🎨 Colores</button>
+          <button id="tabBtn_hardware" class="admin-tab" onclick="switchAdminTab('hardware')">💻 Hardware</button>
+          <button id="tabBtn_pricing" class="admin-tab" onclick="switchAdminTab('pricing')">🏷️ Precios</button>
+          <button id="tabBtn_videos" class="admin-tab" onclick="switchAdminTab('videos')">🎬 Baúl de Videos</button>
+        </div>
+
+        <div class="admin-body">
+          <!-- Tab 1: Colors -->
+          <div id="tabPane_colors" class="admin-tab-pane">
+            <h3 style="margin-bottom: 12px;">Paleta de Colores</h3>
+            <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 14px;">
+              <div style="background: rgba(255,255,255,0.03); padding: 12px; border-radius: 10px;">
+                <label style="font-size: 0.8rem; color: var(--text-muted); display: block; margin-bottom: 6px;">Color Primario</label>
+                <input id="cfg_primary_color" type="color" style="width: 100%; height: 38px; border: none; background: transparent; cursor: pointer;">
+              </div>
+              <div style="background: rgba(255,255,255,0.03); padding: 12px; border-radius: 10px;">
+                <label style="font-size: 0.8rem; color: var(--text-muted); display: block; margin-bottom: 6px;">Color Secundario</label>
+                <input id="cfg_secondary_color" type="color" style="width: 100%; height: 38px; border: none; background: transparent; cursor: pointer;">
+              </div>
+              <div style="background: rgba(255,255,255,0.03); padding: 12px; border-radius: 10px;">
+                <label style="font-size: 0.8rem; color: var(--text-muted); display: block; margin-bottom: 6px;">Color Acento</label>
+                <input id="cfg_accent_color" type="color" style="width: 100%; height: 38px; border: none; background: transparent; cursor: pointer;">
+              </div>
+            </div>
+          </div>
+
+          <!-- Tab 2: Hardware -->
+          <div id="tabPane_hardware" class="admin-tab-pane" style="display: none;">
+            <h3 style="margin-bottom: 12px;">Especificaciones</h3>
+            <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 12px;">
+              <div>
+                <label style="font-size: 0.8rem; color: var(--text-muted);">Marca</label>
+                <div style="display: flex; gap: 6px;">
+                  <input id="cfg_brand" type="text" class="glass-input" style="text-align: left; margin-bottom: 0;">
+                  <button class="btn-glass" onclick="restoreAdminField('brand')">↺</button>
+                </div>
+              </div>
+              <div>
+                <label style="font-size: 0.8rem; color: var(--text-muted);">Modelo</label>
+                <div style="display: flex; gap: 6px;">
+                  <input id="cfg_model" type="text" class="glass-input" style="text-align: left; margin-bottom: 0;">
+                  <button class="btn-glass" onclick="restoreAdminField('model')">↺</button>
+                </div>
+              </div>
+              <div>
+                <label style="font-size: 0.8rem; color: var(--text-muted);">Procesador</label>
+                <div style="display: flex; gap: 6px;">
+                  <input id="cfg_processor" type="text" class="glass-input" style="text-align: left; margin-bottom: 0;">
+                  <button class="btn-glass" onclick="restoreAdminField('processor')">↺</button>
+                </div>
+              </div>
+              <div>
+                <label style="font-size: 0.8rem; color: var(--text-muted);">Memoria RAM</label>
+                <div style="display: flex; gap: 6px;">
+                  <input id="cfg_ram" type="text" class="glass-input" style="text-align: left; margin-bottom: 0;">
+                  <button class="btn-glass" onclick="restoreAdminField('ram')">↺</button>
+                </div>
+              </div>
+              <div>
+                <label style="font-size: 0.8rem; color: var(--text-muted);">Almacenamiento</label>
+                <div style="display: flex; gap: 6px;">
+                  <input id="cfg_storage" type="text" class="glass-input" style="text-align: left; margin-bottom: 0;">
+                  <button class="btn-glass" onclick="restoreAdminField('storage')">↺</button>
+                </div>
+              </div>
+              <div>
+                <label style="font-size: 0.8rem; color: var(--text-muted);">Pantalla (Hz)</label>
+                <div style="display: flex; gap: 6px;">
+                  <input id="cfg_display" type="text" class="glass-input" style="text-align: left; margin-bottom: 0;">
+                  <button class="btn-glass" onclick="restoreAdminField('display')">↺</button>
+                </div>
+              </div>
+              <div>
+                <label style="font-size: 0.8rem; color: var(--text-muted);">Gráficos (GPU)</label>
+                <div style="display: flex; gap: 6px;">
+                  <input id="cfg_gpu" type="text" class="glass-input" style="text-align: left; margin-bottom: 0;">
+                  <button class="btn-glass" onclick="restoreAdminField('gpu')">↺</button>
+                </div>
+              </div>
+              <div>
+                <label style="font-size: 0.8rem; color: var(--text-muted);">Batería</label>
+                <div style="display: flex; gap: 6px;">
+                  <input id="cfg_battery" type="text" class="glass-input" style="text-align: left; margin-bottom: 0;">
+                  <button class="btn-glass" onclick="restoreAdminField('battery')">↺</button>
+                </div>
+              </div>
+              <div style="grid-column: 1 / -1;">
+                <label style="font-size: 0.8rem; color: var(--text-muted);">Otros (Personalizable)</label>
+                <input id="cfg_other_specs" type="text" class="glass-input" style="text-align: left; margin-bottom: 0;" placeholder="Wi-Fi 6E / Teclado en Español...">
+              </div>
+            </div>
+          </div>
+
+          <!-- Tab 3: Pricing -->
+          <div id="tabPane_pricing" class="admin-tab-pane" style="display: none;">
+            <h3 style="margin-bottom: 6px;">Precios y SKU (Optativos)</h3>
+            <p style="font-size: 0.85rem; color: var(--text-muted); margin-bottom: 16px;">Si se dejan vacíos, no aparecerán en la pantalla principal.</p>
+            <div style="display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 14px;">
+              <div>
+                <label style="font-size: 0.8rem; color: var(--text-muted);">Precio Tarjeta</label>
+                <input id="cfg_price_card" type="text" class="glass-input" placeholder="Ej: $599.990" style="text-align: left;">
+              </div>
+              <div>
+                <label style="font-size: 0.8rem; color: var(--text-muted);">Todo Medio de Pago</label>
+                <input id="cfg_price_all_methods" type="text" class="glass-input" placeholder="Ej: $649.990" style="text-align: left;">
+              </div>
+              <div>
+                <label style="font-size: 0.8rem; color: var(--text-muted);">Código SKU</label>
+                <input id="cfg_sku" type="text" class="glass-input" placeholder="Ej: SKU-892184" style="text-align: left;">
+              </div>
+            </div>
+          </div>
+
+          <!-- Tab 4: Vault -->
+          <div id="tabPane_videos" class="admin-tab-pane" style="display: none;">
+            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 14px;">
+              <div>
+                <h3>Baúl Seguro de Videos</h3>
+                <p style="font-size: 0.82rem; color: var(--text-muted);">Los videos quedan protegidos en %APPDATA%/Zenit/vault contra borrados accidentales.</p>
+              </div>
+              <button class="btn-glass btn-primary" onclick="importVideoVault()">+ Importar Video al Baúl</button>
+            </div>
+
+            <div style="display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 12px; margin-bottom: 16px;">
+              <div style="background: rgba(255,255,255,0.03); padding: 10px; border-radius: 8px;">
+                <label style="font-size: 0.75rem; color: var(--text-muted);">Video Central</label>
+                <input id="cfg_central_video_path" type="text" class="glass-input" style="font-size: 0.75rem; text-align: left; margin-bottom: 6px;">
+                <button class="btn-glass" style="font-size: 0.7rem; padding: 2px 8px;" onclick="setVal('cfg_central_video_path', 'assets/videos/landing.mp4')">Predeterminado</button>
+              </div>
+              <div style="background: rgba(255,255,255,0.03); padding: 10px; border-radius: 8px;">
+                <label style="font-size: 0.75rem; color: var(--text-muted);">Video de Fondo</label>
+                <input id="cfg_bg_video_path" type="text" class="glass-input" style="font-size: 0.75rem; text-align: left; margin-bottom: 6px;">
+                <button class="btn-glass" style="font-size: 0.7rem; padding: 2px 8px;" onclick="setVal('cfg_bg_video_path', 'assets/images/fallback-bg/bg.mp4')">Predeterminado</button>
+              </div>
+              <div style="background: rgba(255,255,255,0.03); padding: 10px; border-radius: 8px;">
+                <label style="font-size: 0.75rem; color: var(--text-muted);">Salvapantallas</label>
+                <input id="cfg_inactivity_video_path" type="text" class="glass-input" style="font-size: 0.75rem; text-align: left; margin-bottom: 6px;">
+                <div style="display: flex; align-items: center; gap: 6px; margin-top: 4px;">
+                  <span style="font-size: 0.7rem; color: var(--text-dim);">Segundos:</span>
+                  <input id="cfg_inactivity_timeout_sec" type="number" class="glass-input" style="width: 70px; font-size: 0.75rem; padding: 2px 6px; margin-bottom: 0;">
+                </div>
+              </div>
+            </div>
+
+            <h4 style="font-size: 0.9rem; margin-bottom: 8px;">Videos en el Baúl</h4>
+            <div id="vaultListContainer"></div>
+          </div>
+        </div>
+
+        <div class="admin-footer">
+          <button class="btn-glass" onclick="closeAdminModal()">Cancelar</button>
+          <button class="btn-glass btn-primary" onclick="saveAdminModal()">Guardar Configuración</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <script src="js/app.js"></script>
+</body>
+</html>
