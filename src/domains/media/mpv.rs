@@ -7,10 +7,10 @@ use std::sync::Arc;
 
 pub const MPV_RENDER_PARAM_INVALID: u32 = 0;
 pub const MPV_RENDER_PARAM_API_TYPE: u32 = 1;
-pub const MPV_RENDER_PARAM_SW_SIZE: u32 = 7;
-pub const MPV_RENDER_PARAM_SW_FORMAT: u32 = 8;
-pub const MPV_RENDER_PARAM_SW_STRIDE: u32 = 9;
-pub const MPV_RENDER_PARAM_SW_POINTER: u32 = 10;
+pub const MPV_RENDER_PARAM_SW_SIZE: u32 = 17;
+pub const MPV_RENDER_PARAM_SW_FORMAT: u32 = 18;
+pub const MPV_RENDER_PARAM_SW_STRIDE: u32 = 19;
+pub const MPV_RENDER_PARAM_SW_POINTER: u32 = 20;
 
 pub const MPV_RENDER_API_TYPE_SW: &str = "sw";
 
