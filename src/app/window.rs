@@ -9,7 +9,7 @@ use windows_sys::Win32::Foundation::{HWND, LPARAM};
 use windows_sys::Win32::System::Threading::GetCurrentThreadId;
 #[cfg(target_os = "windows")]
 use windows_sys::Win32::UI::WindowsAndMessaging::{
-    EnumThreadWindows, GetParent, GetSystemMetrics, SetForegroundWindow, SetWindowPos,
+    EnumThreadWindows, GetParent, GetSystemMetrics, IsWindow, SetForegroundWindow, SetWindowPos,
     ShowWindow, HWND_TOP, HWND_TOPMOST, SM_CXSCREEN, SM_CYSCREEN, SWP_SHOWWINDOW, SW_HIDE,
     SW_MINIMIZE, SW_RESTORE, SW_SHOW,
 };
@@ -76,7 +76,7 @@ pub fn position_floating_button() {
         let main_hwnd = MAIN_HWND.load(Ordering::SeqCst) as HWND;
         let mut floating_hwnd = FLOATING_HWND.load(Ordering::SeqCst) as HWND;
 
-        if floating_hwnd.is_null() {
+        if floating_hwnd.is_null() || IsWindow(floating_hwnd) == 0 {
             unsafe extern "system" fn enum_btn(hwnd: HWND, lparam: LPARAM) -> i32 {
                 let main_hwnd = lparam as HWND;
                 if hwnd != main_hwnd && unsafe { GetParent(hwnd) }.is_null() {

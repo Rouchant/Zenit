@@ -1,7 +1,6 @@
 pub mod app;
 pub mod domains;
 
-use slint::ComponentHandle;
 use std::rc::Rc;
 use std::sync::{Arc, Mutex};
 
@@ -46,6 +45,6 @@ pub fn run() {
     // 6. Spawn Background Inactivity Watcher
     app::watcher::spawn_inactivity_watcher(&main_window, &floating_btn, player_shared.clone());
 
-    // 7. Start native Slint event loop
-    main_window.run().expect("Error running Slint application");
+    // 7. Start native Slint event loop (global loop keeps running even when main_window is minimized/hidden)
+    slint::run_event_loop().expect("Error running Slint application");
 }

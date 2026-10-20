@@ -45,19 +45,29 @@ pub fn setup_try_pc_handlers(
     // 2. Try PC Mode Clicked on Main Window
     let try_pc_mw_handle = main_window.as_weak();
     let try_pc_fb_handle = floating_btn.as_weak();
+    let player_try = player_shared.clone();
+
     main_window.on_try_pc_clicked(move || {
         println!("[TryPC] Botón 'Probar esta PC' activado. Minimizando showroom...");
         IS_IN_TRY_PC_MODE.store(true, Ordering::SeqCst);
 
-        if let Some(mw) = try_pc_mw_handle.upgrade() {
-            let _ = mw.hide();
+        if let Ok(mut guard) = player_try.lock() {
+            if let Some(ref mut p) = *guard {
+                p.pause();
+            }
         }
 
-        minimize_main_window();
-
+        // Show floating restore button first
         if let Some(fb) = try_pc_fb_handle.upgrade() {
             let _ = fb.show();
             position_floating_button();
+        }
+
+        // Minimize and hide main window
+        minimize_main_window();
+
+        if let Some(mw) = try_pc_mw_handle.upgrade() {
+            let _ = mw.hide();
         }
     });
 }
