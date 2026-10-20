@@ -1,6 +1,6 @@
 use serde::{Deserialize, Serialize};
-use crate::config::load_config;
-use crate::hardware::detect_hardware;
+use super::config::load_config;
+use crate::domains::hardware::detect_hardware;
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct DisplaySpecCard {

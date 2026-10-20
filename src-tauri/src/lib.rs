@@ -1,17 +1,12 @@
-mod config;
-mod hardware;
-mod inactivity;
-mod state;
-mod vault;
+pub mod domains;
 
-use config::{load_config, save_config, verify_password, AppConfig};
-use hardware::{detect_hardware, SystemSpecs};
-use inactivity::get_system_idle_seconds;
-use state::{build_ui_state, ZenitUiState};
+use domains::hardware::{detect_hardware, SystemSpecs};
+use domains::kiosk::get_system_idle_seconds;
+use domains::media::{delete_vault_video, import_video_to_vault, list_vault_videos, VaultVideo};
+use domains::showcase::{build_ui_state, load_config, save_config, verify_password, AppConfig, ZenitUiState};
 use std::sync::atomic::{AtomicBool, Ordering};
 use tauri::{AppHandle, Emitter, Manager, PhysicalPosition, PhysicalSize};
 use tauri_plugin_global_shortcut::{GlobalShortcutExt, Shortcut};
-use vault::{delete_vault_video, import_video_to_vault, list_vault_videos, VaultVideo};
 
 static IS_IN_TRY_PC_MODE: AtomicBool = AtomicBool::new(false);
 static IS_SCREENSAVER_ACTIVE: AtomicBool = AtomicBool::new(false);
