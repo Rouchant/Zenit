@@ -25,6 +25,7 @@ export component MainWindow inherits Window {
     in-out property <string> normal_price: "";
     in-out property <string> normal_label: "Todo medio de pago";
     in-out property <string> sku_code: "";
+    in-out property <image> store_logo;
 
     // Specs
     in-out property <[SpecItem]> left_specs: [
@@ -141,6 +142,7 @@ export component MainWindow inherits Window {
         has_video_stream: root.has_video_stream;
         screen_width: root.screen_width;
         screen_height: root.screen_height;
+        store_logo: root.store_logo;
         try_pc_clicked => { root.try_pc_clicked(); }
         corner_tap_clicked => { root.corner_tap_clicked(); }
     }

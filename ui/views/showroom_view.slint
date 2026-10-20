@@ -11,6 +11,7 @@ export component ShowroomView inherits Rectangle {
     in property <string> normal_price: "";
     in property <string> normal_label: "Todo medio de pago";
     in property <string> sku_code: "";
+    in property <image> store_logo;
 
     in property <[SpecItem]> left_specs;
     in property <[SpecItem]> right_specs;
@@ -315,83 +316,177 @@ export component ShowroomView inherits Rectangle {
 
                     // PRICING & SKU BANNER (Debajo del botón)
                     if root.card_price != "" || root.normal_price != "" || root.sku_code != "" || root.retail_name != "": Rectangle {
-                        height: 72px;
-                        background: #0f172a99;
-                        border-radius: 14px;
+                        height: 82px;
+                        background: @linear-gradient(180deg, #0f172ae6 0%, #090e1adc 100%);
+                        border-radius: 16px;
                         border-width: 1px;
-                        border-color: #38bdf826;
+                        border-color: #38bdf833;
+                        drop-shadow-blur: 16px;
+                        drop-shadow-color: #00000066;
 
-                        HorizontalLayout {
-                            padding-left: 32px;
-                            padding-right: 32px;
-                            alignment: space-around;
+                        VerticalLayout {
+                            alignment: center;
 
-                            // Card Price
-                            if root.card_price != "": VerticalLayout {
+                            HorizontalLayout {
+                                padding-left: 28px;
+                                padding-right: 28px;
                                 alignment: center;
-                                spacing: 4px;
-                                Text {
-                                    text: root.card_label;
-                                    font-size: 11px;
-                                    font-weight: 700;
-                                    color: #38bdf8;
-                                    letter-spacing: 1px;
-                                }
-                                Text {
-                                    text: root.card_price;
-                                    font-size: 32px;
-                                    font-weight: 900;
-                                    color: #ffffff;
-                                }
-                            }
+                                spacing: 28px;
 
-                            // Other Means Price (shows alone as "Todo medio de pago" if no card price)
-                            if root.normal_price != "": VerticalLayout {
-                                alignment: center;
-                                spacing: 4px;
-                                Text {
-                                    text: root.normal_label;
-                                    font-size: 12px;
-                                    font-weight: 600;
-                                    color: #94a3b8;
-                                }
-                                Text {
-                                    text: root.normal_price;
-                                    font-size: 24px;
-                                    font-weight: 800;
-                                    color: #cbd5e1;
-                                }
-                            }
+                                // Card Price Block (Featured Promo)
+                                if root.card_price != "": HorizontalLayout {
+                                    alignment: center;
+                                    spacing: 12px;
 
-                            // SKU & Retail Store
-                            if root.sku_code != "" || root.retail_name != "": VerticalLayout {
-                                alignment: center;
-                                spacing: 6px;
-                                if root.sku_code != "": Rectangle {
-                                    background: #1e293b;
-                                    border-radius: 8px;
-                                    border-width: 1px;
-                                    border-color: #334155;
-                                    HorizontalLayout {
-                                        padding-left: 12px;
-                                        padding-right: 12px;
-                                        padding-top: 6px;
-                                        padding-bottom: 6px;
+                                    VerticalLayout {
+                                        alignment: center;
+                                        Rectangle {
+                                            width: 38px;
+                                            height: 38px;
+                                            border-radius: 19px;
+                                            background: #0284c726;
+                                            border-width: 1px;
+                                            border-color: #38bdf84d;
+
+                                            Text {
+                                                text: "💳";
+                                                font-size: 18px;
+                                                horizontal-alignment: center;
+                                                vertical-alignment: center;
+                                            }
+                                        }
+                                    }
+
+                                    VerticalLayout {
+                                        alignment: center;
+                                        spacing: 2px;
+
                                         Text {
-                                            text: "SKU: " + root.sku_code;
-                                            font-size: 13px;
-                                            font-weight: 700;
-                                            color: #f8fafc;
+                                            text: root.card_label;
+                                            font-size: 11px;
+                                            font-weight: 800;
+                                            color: #38bdf8;
+                                            letter-spacing: 0.8px;
+                                        }
+                                        Text {
+                                            text: root.card_price;
+                                            font-size: 32px;
+                                            font-weight: 900;
+                                            color: #ffffff;
                                         }
                                     }
                                 }
-                                if root.retail_name != "": Text {
-                                    text: root.retail_name;
-                                    font-size: 11px;
-                                    font-weight: 700;
-                                    color: #64748b;
-                                    letter-spacing: 1px;
-                                    horizontal-alignment: center;
+
+                                // Divider between Card and Normal Price
+                                if root.card_price != "" && root.normal_price != "": VerticalLayout {
+                                    alignment: center;
+                                    Rectangle {
+                                        width: 1px;
+                                        height: 42px;
+                                        background: #33415580;
+                                    }
+                                }
+
+                                // Normal Price Block
+                                if root.normal_price != "": VerticalLayout {
+                                    alignment: center;
+                                    spacing: 2px;
+
+                                    Text {
+                                        text: root.normal_label;
+                                        font-size: 11px;
+                                        font-weight: 700;
+                                        color: #94a3b8;
+                                        letter-spacing: 0.5px;
+                                    }
+                                    Text {
+                                        text: root.normal_price;
+                                        font-size: 22px;
+                                        font-weight: 800;
+                                        color: #cbd5e1;
+                                    }
+                                }
+
+                                // Divider between Prices and Store/SKU
+                                if (root.card_price != "" || root.normal_price != "") && (root.sku_code != "" || root.retail_name != ""): VerticalLayout {
+                                    alignment: center;
+                                    Rectangle {
+                                        width: 1px;
+                                        height: 42px;
+                                        background: #33415580;
+                                    }
+                                }
+
+                                // Store & SKU Block
+                                if root.sku_code != "" || root.retail_name != "": HorizontalLayout {
+                                    alignment: center;
+                                    spacing: 14px;
+
+                                    // Store Logo or Name Badge
+                                    if root.store_logo.width > 0: Image {
+                                        source: root.store_logo;
+                                        height: 32px;
+                                        image-fit: contain;
+                                        vertical-alignment: center;
+                                    }
+                                    if root.store_logo.width <= 0 && root.retail_name != "": VerticalLayout {
+                                        alignment: center;
+                                        Rectangle {
+                                            height: 30px;
+                                            background: #1e293b;
+                                            border-radius: 8px;
+                                            border-width: 1px;
+                                            border-color: #334155;
+
+                                            HorizontalLayout {
+                                                padding-left: 12px;
+                                                padding-right: 12px;
+                                                alignment: center;
+                                                Text {
+                                                    text: root.retail_name;
+                                                    font-size: 12px;
+                                                    font-weight: 800;
+                                                    color: #94a3b8;
+                                                    letter-spacing: 1px;
+                                                    vertical-alignment: center;
+                                                }
+                                            }
+                                        }
+                                    }
+
+                                    // SKU Pill Badge
+                                    if root.sku_code != "": VerticalLayout {
+                                        alignment: center;
+                                        Rectangle {
+                                            height: 30px;
+                                            background: #1e293b;
+                                            border-radius: 8px;
+                                            border-width: 1px;
+                                            border-color: #38bdf833;
+
+                                            HorizontalLayout {
+                                                padding-left: 12px;
+                                                padding-right: 12px;
+                                                alignment: center;
+                                                spacing: 4px;
+
+                                                Text {
+                                                    text: "SKU:";
+                                                    font-size: 11px;
+                                                    font-weight: 700;
+                                                    color: #64748b;
+                                                    vertical-alignment: center;
+                                                }
+                                                Text {
+                                                    text: root.sku_code;
+                                                    font-size: 13px;
+                                                    font-weight: 800;
+                                                    color: #f1f5f9;
+                                                    vertical-alignment: center;
+                                                }
+                                            }
+                                        }
+                                    }
                                 }
                             }
                         }

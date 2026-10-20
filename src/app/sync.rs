@@ -18,6 +18,31 @@ pub fn populate_vault_videos(window: &MainWindow) {
     window.set_vault_videos(ModelRc::new(VecModel::from(items)));
 }
 
+pub fn format_clp_currency(input: &str) -> String {
+    let trimmed = input.trim();
+    if trimmed.is_empty() {
+        return String::new();
+    }
+
+    let digits: String = trimmed.chars().filter(|c| c.is_ascii_digit()).collect();
+    if digits.is_empty() {
+        return trimmed.to_string();
+    }
+
+    let mut result = String::new();
+    let chars: Vec<char> = digits.chars().collect();
+    let len = chars.len();
+
+    for (i, ch) in chars.into_iter().enumerate() {
+        if i > 0 && (len - i) % 3 == 0 {
+            result.push('.');
+        }
+        result.push(ch);
+    }
+
+    format!("$ {}", result)
+}
+
 pub fn populate_ui_state(window: &MainWindow) {
     let state = build_ui_state();
     let cfg = load_config();
@@ -55,7 +80,7 @@ pub fn populate_ui_state(window: &MainWindow) {
         "Precio Tarjeta".to_string()
     };
     window.set_card_label(card_label.into());
-    window.set_card_price(card_trim.into());
+    window.set_card_price(format_clp_currency(card_trim).into());
 
     let normal_label = if card_trim.is_empty() {
         "Todo medio de pago".to_string()
@@ -63,9 +88,17 @@ pub fn populate_ui_state(window: &MainWindow) {
         "Otros medios de pago".to_string()
     };
     window.set_normal_label(normal_label.into());
-    window.set_normal_price(normal_trim.into());
+    window.set_normal_price(format_clp_currency(normal_trim).into());
 
     window.set_sku_code(sku_trim.into());
+
+    // Store Logo
+    if let Some(ref logo_path) = state.store_logo {
+        let logo_img = slint::Image::load_from_path(std::path::Path::new(logo_path)).unwrap_or_default();
+        window.set_store_logo(logo_img);
+    } else {
+        window.set_store_logo(slint::Image::default());
+    }
 
     // Populate Left Column Specs
     let left_items: Vec<SpecItem> = state
@@ -235,4 +268,21 @@ pub fn populate_ui_state(window: &MainWindow) {
     window.set_cfg_inactivity_timeout(cfg.inactivity_timeout_sec.to_string().into());
 
     populate_vault_videos(window);
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn test_format_clp_currency() {
+        assert_eq!(format_clp_currency(""), "");
+        assert_eq!(format_clp_currency("   "), "");
+        assert_eq!(format_clp_currency("123123"), "$ 123.123");
+        assert_eq!(format_clp_currency("1299990"), "$ 1.299.990");
+        assert_eq!(format_clp_currency("$1.299.990"), "$ 1.299.990");
+        assert_eq!(format_clp_currency("$ 599.990"), "$ 599.990");
+        assert_eq!(format_clp_currency("84990"), "$ 84.990");
+        assert_eq!(format_clp_currency("Consultar"), "Consultar");
+    }
 }
