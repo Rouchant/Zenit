@@ -276,6 +276,11 @@ export component MainWindow inherits Window {
     callback reset_specs_defaults();
     callback reset_videos_defaults();
     callback reset_system_defaults();
+    callback pick_central_video_clicked();
+    callback pick_bg_video_clicked();
+    callback pick_inactivity_1_clicked();
+    callback pick_inactivity_2_clicked();
+    callback pick_inactivity_3_clicked();
 
     // Root Fullscreen Showroom Surface
     Rectangle {
@@ -1325,19 +1330,73 @@ export component MainWindow inherits Window {
                             VerticalLayout {
                                 spacing: 3px;
                                 Text { text: "Video Central Landing:"; font-size: 11px; color: #cbd5e1; }
-                                LineEdit {
-                                    text: root.cfg_central_video;
-                                    placeholder-text: "assets/videos/landing.mp4";
-                                    edited => { root.cfg_central_video = self.text; }
+                                HorizontalLayout {
+                                    spacing: 6px;
+                                    LineEdit {
+                                        horizontal-stretch: 1;
+                                        text: root.cfg_central_video;
+                                        placeholder-text: "assets/videos/landing.mp4";
+                                        edited => { root.cfg_central_video = self.text; }
+                                    }
+                                    Rectangle {
+                                        width: 36px;
+                                        height: 32px;
+                                        background: #1e293b;
+                                        border-radius: 6px;
+                                        border-width: 1px;
+                                        border-color: #475569;
+                                        touch_pick_central := TouchArea {
+                                            clicked => { root.pick_central_video_clicked(); }
+                                        }
+                                        states [
+                                            hover when touch_pick_central.has-hover: {
+                                                background: #0284c7;
+                                                border-color: #38bdf8;
+                                            }
+                                        ]
+                                        Text {
+                                            text: "📁";
+                                            font-size: 14px;
+                                            horizontal-alignment: center;
+                                            vertical-alignment: center;
+                                        }
+                                    }
                                 }
                             }
                             VerticalLayout {
                                 spacing: 3px;
                                 Text { text: "Video Fondo Pantalla Completa:"; font-size: 11px; color: #cbd5e1; }
-                                LineEdit {
-                                    text: root.cfg_bg_video;
-                                    placeholder-text: "assets/videos/bg.mp4";
-                                    edited => { root.cfg_bg_video = self.text; }
+                                HorizontalLayout {
+                                    spacing: 6px;
+                                    LineEdit {
+                                        horizontal-stretch: 1;
+                                        text: root.cfg_bg_video;
+                                        placeholder-text: "assets/videos/bg.mp4";
+                                        edited => { root.cfg_bg_video = self.text; }
+                                    }
+                                    Rectangle {
+                                        width: 36px;
+                                        height: 32px;
+                                        background: #1e293b;
+                                        border-radius: 6px;
+                                        border-width: 1px;
+                                        border-color: #475569;
+                                        touch_pick_bg := TouchArea {
+                                            clicked => { root.pick_bg_video_clicked(); }
+                                        }
+                                        states [
+                                            hover when touch_pick_bg.has-hover: {
+                                                background: #0284c7;
+                                                border-color: #38bdf8;
+                                            }
+                                        ]
+                                        Text {
+                                            text: "📁";
+                                            font-size: 14px;
+                                            horizontal-alignment: center;
+                                            vertical-alignment: center;
+                                        }
+                                    }
                                 }
                             }
                             VerticalLayout {
@@ -1365,28 +1424,109 @@ export component MainWindow inherits Window {
                             VerticalLayout {
                                 spacing: 3px;
                                 Text { text: "Video Inactividad #1:"; font-size: 10px; color: #94a3b8; }
-                                LineEdit {
-                                    text: root.cfg_inactivity_video_1;
-                                    placeholder-text: "assets/videos/promo2.mp4";
-                                    edited => { root.cfg_inactivity_video_1 = self.text; }
+                                HorizontalLayout {
+                                    spacing: 6px;
+                                    LineEdit {
+                                        horizontal-stretch: 1;
+                                        text: root.cfg_inactivity_video_1;
+                                        placeholder-text: "assets/videos/promo2.mp4";
+                                        edited => { root.cfg_inactivity_video_1 = self.text; }
+                                    }
+                                    Rectangle {
+                                        width: 32px;
+                                        height: 30px;
+                                        background: #1e293b;
+                                        border-radius: 6px;
+                                        border-width: 1px;
+                                        border-color: #475569;
+                                        touch_pick_inact1 := TouchArea {
+                                            clicked => { root.pick_inactivity_1_clicked(); }
+                                        }
+                                        states [
+                                            hover when touch_pick_inact1.has-hover: {
+                                                background: #0284c7;
+                                                border-color: #38bdf8;
+                                            }
+                                        ]
+                                        Text {
+                                            text: "📁";
+                                            font-size: 13px;
+                                            horizontal-alignment: center;
+                                            vertical-alignment: center;
+                                        }
+                                    }
                                 }
                             }
                             VerticalLayout {
                                 spacing: 3px;
                                 Text { text: "Video Inactividad #2:"; font-size: 10px; color: #94a3b8; }
-                                LineEdit {
-                                    text: root.cfg_inactivity_video_2;
-                                    placeholder-text: "assets/videos/promo.mp4";
-                                    edited => { root.cfg_inactivity_video_2 = self.text; }
+                                HorizontalLayout {
+                                    spacing: 6px;
+                                    LineEdit {
+                                        horizontal-stretch: 1;
+                                        text: root.cfg_inactivity_video_2;
+                                        placeholder-text: "assets/videos/promo.mp4";
+                                        edited => { root.cfg_inactivity_video_2 = self.text; }
+                                    }
+                                    Rectangle {
+                                        width: 32px;
+                                        height: 30px;
+                                        background: #1e293b;
+                                        border-radius: 6px;
+                                        border-width: 1px;
+                                        border-color: #475569;
+                                        touch_pick_inact2 := TouchArea {
+                                            clicked => { root.pick_inactivity_2_clicked(); }
+                                        }
+                                        states [
+                                            hover when touch_pick_inact2.has-hover: {
+                                                background: #0284c7;
+                                                border-color: #38bdf8;
+                                            }
+                                        ]
+                                        Text {
+                                            text: "📁";
+                                            font-size: 13px;
+                                            horizontal-alignment: center;
+                                            vertical-alignment: center;
+                                        }
+                                    }
                                 }
                             }
                             VerticalLayout {
                                 spacing: 3px;
                                 Text { text: "Video Inactividad #3:"; font-size: 10px; color: #94a3b8; }
-                                LineEdit {
-                                    text: root.cfg_inactivity_video_3;
-                                    placeholder-text: "Opcional / Vacío";
-                                    edited => { root.cfg_inactivity_video_3 = self.text; }
+                                HorizontalLayout {
+                                    spacing: 6px;
+                                    LineEdit {
+                                        horizontal-stretch: 1;
+                                        text: root.cfg_inactivity_video_3;
+                                        placeholder-text: "Opcional / Vacío";
+                                        edited => { root.cfg_inactivity_video_3 = self.text; }
+                                    }
+                                    Rectangle {
+                                        width: 32px;
+                                        height: 30px;
+                                        background: #1e293b;
+                                        border-radius: 6px;
+                                        border-width: 1px;
+                                        border-color: #475569;
+                                        touch_pick_inact3 := TouchArea {
+                                            clicked => { root.pick_inactivity_3_clicked(); }
+                                        }
+                                        states [
+                                            hover when touch_pick_inact3.has-hover: {
+                                                background: #0284c7;
+                                                border-color: #38bdf8;
+                                            }
+                                        ]
+                                        Text {
+                                            text: "📁";
+                                            font-size: 13px;
+                                            horizontal-alignment: center;
+                                            vertical-alignment: center;
+                                        }
+                                    }
                                 }
                             }
                         }
