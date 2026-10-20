@@ -956,3 +956,58 @@ export component MainWindow inherits Window {
         }
     }
 }
+
+export component FloatingDetailsButton inherits Window {
+    title: "Zenit - Ver Detalles";
+    no-frame: true;
+    always-on-top: true;
+    width: 200px;
+    height: 54px;
+    background: transparent;
+
+    callback restore_clicked();
+
+    Rectangle {
+        width: 100%;
+        height: 100%;
+        background: #0f172af5;
+        border-radius: 27px;
+        border-width: 2px;
+        border-color: #38bdf8;
+        clip: true;
+
+        touch := TouchArea {
+            clicked => {
+                root.restore_clicked();
+            }
+        }
+
+        states [
+            hover when touch.has-hover: {
+                background: #0284c7;
+                border-color: #7dd3fc;
+            }
+        ]
+
+        HorizontalLayout {
+            alignment: center;
+            spacing: 10px;
+            padding-left: 18px;
+            padding-right: 18px;
+
+            Text {
+                text: "📋";
+                font-size: 16px;
+                vertical-alignment: center;
+            }
+            Text {
+                text: "Ver detalles";
+                font-size: 15px;
+                font-weight: 800;
+                color: #ffffff;
+                letter-spacing: 0.5px;
+                vertical-alignment: center;
+            }
+        }
+    }
+}

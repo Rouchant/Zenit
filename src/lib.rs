@@ -229,12 +229,62 @@ pub fn run() {
         }
     });
 
+    // Floating "Ver Detalles" Button Widget
+    let floating_btn = Rc::new(FloatingDetailsButton::new().expect("Failed to initialize FloatingDetailsButton"));
+    let restore_mw_handle = main_window.as_weak();
+    let restore_fb_handle = floating_btn.as_weak();
+
+    floating_btn.on_restore_clicked(move || {
+        IS_IN_TRY_PC_MODE.store(false, Ordering::SeqCst);
+        if let Some(fb) = restore_fb_handle.upgrade() {
+            let _ = fb.hide();
+        }
+        if let Some(mw) = restore_mw_handle.upgrade() {
+            mw.window().set_fullscreen(true);
+            #[cfg(target_os = "windows")]
+            unsafe {
+                use windows_sys::Win32::UI::WindowsAndMessaging::{
+                    FindWindowA, SetForegroundWindow, ShowWindow, SW_RESTORE,
+                };
+                let title = b"Showroom PC - Modo Exhibici\xc3\xb3n\0";
+                let hwnd = FindWindowA(std::ptr::null(), title.as_ptr());
+                if !hwnd.is_null() {
+                    ShowWindow(hwnd, SW_RESTORE);
+                    SetForegroundWindow(hwnd);
+                }
+            }
+        }
+    });
+
     // Try PC Mode
-    let try_pc_handle = main_window.as_weak();
+    let try_pc_mw_handle = main_window.as_weak();
+    let try_pc_fb_handle = floating_btn.as_weak();
     main_window.on_try_pc_clicked(move || {
         IS_IN_TRY_PC_MODE.store(true, Ordering::SeqCst);
-        if let Some(_ui) = try_pc_handle.upgrade() {
-            // Under Windows, minimizing or lowering window to let user test PC
+        if let Some(fb) = try_pc_fb_handle.upgrade() {
+            let _ = fb.show();
+            #[cfg(target_os = "windows")]
+            unsafe {
+                use windows_sys::Win32::UI::WindowsAndMessaging::{
+                    FindWindowA, GetSystemMetrics, SetWindowPos, HWND_TOPMOST, SM_CXSCREEN,
+                    SM_CYSCREEN, SWP_SHOWWINDOW,
+                };
+                let btn_title = b"Zenit - Ver Detalles\0";
+                let btn_hwnd = FindWindowA(std::ptr::null(), btn_title.as_ptr());
+                if !btn_hwnd.is_null() {
+                    let screen_w = GetSystemMetrics(SM_CXSCREEN);
+                    let screen_h = GetSystemMetrics(SM_CYSCREEN);
+                    let w = 220;
+                    let h = 60;
+                    let x = screen_w - w - 40;
+                    let y = screen_h - h - 60;
+                    SetWindowPos(btn_hwnd, HWND_TOPMOST, x, y, w, h, SWP_SHOWWINDOW);
+                }
+            }
+        }
+
+        if let Some(_ui) = try_pc_mw_handle.upgrade() {
+            // Under Windows, minimize main window so user can interact with the desktop
             #[cfg(target_os = "windows")]
             unsafe {
                 use windows_sys::Win32::UI::WindowsAndMessaging::{FindWindowA, ShowWindow, SW_MINIMIZE};
@@ -271,6 +321,7 @@ pub fn run() {
 
     // Background Inactivity Watcher (Zero JS Overhead, 100% Native Rust)
     let watcher_handle = main_window.as_weak();
+    let watcher_fb_handle = floating_btn.as_weak();
     std::thread::spawn(move || {
         loop {
             std::thread::sleep(std::time::Duration::from_millis(500));
@@ -302,16 +353,24 @@ pub fn run() {
             if IS_IN_TRY_PC_MODE.load(Ordering::SeqCst) && idle_seconds >= 120 {
                 IS_IN_TRY_PC_MODE.store(false, Ordering::SeqCst);
                 let wh = watcher_handle.clone();
+                let fbh = watcher_fb_handle.clone();
                 let _ = slint::invoke_from_event_loop(move || {
+                    if let Some(fb) = fbh.upgrade() {
+                        let _ = fb.hide();
+                    }
                     if let Some(ui) = wh.upgrade() {
+                        ui.window().set_fullscreen(true);
                         ui.set_is_screensaver_active(false);
                         #[cfg(target_os = "windows")]
                         unsafe {
-                            use windows_sys::Win32::UI::WindowsAndMessaging::{FindWindowA, ShowWindow, SW_RESTORE};
+                            use windows_sys::Win32::UI::WindowsAndMessaging::{
+                                FindWindowA, SetForegroundWindow, ShowWindow, SW_RESTORE,
+                            };
                             let title = b"Showroom PC - Modo Exhibici\xc3\xb3n\0";
                             let hwnd = FindWindowA(std::ptr::null(), title.as_ptr());
                             if !hwnd.is_null() {
                                 ShowWindow(hwnd, SW_RESTORE);
+                                SetForegroundWindow(hwnd);
                             }
                         }
                     }
