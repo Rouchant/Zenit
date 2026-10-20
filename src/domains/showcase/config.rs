@@ -89,7 +89,7 @@ impl Default for AppConfig {
             central_video_path: "assets/videos/landing.mp4".to_string(),
             bg_video_path: "assets/videos/bg.mp4".to_string(),
             inactivity_video_path: "assets/videos/promo2.mp4".to_string(),
-            inactivity_video_path_2: "assets/videos/promo.mp4".to_string(),
+            inactivity_video_path_2: "".to_string(),
             inactivity_video_path_3: "".to_string(),
             inactivity_timeout_sec: 120,
 
@@ -225,6 +225,8 @@ mod tests {
         assert_eq!(cfg.store_theme, "default");
         assert_eq!(cfg.bg_video_path, "assets/videos/bg.mp4");
         assert_eq!(cfg.inactivity_video_path, "assets/videos/promo2.mp4");
+        assert_eq!(cfg.inactivity_video_path_2, "");
+        assert_eq!(cfg.inactivity_video_path_3, "");
         assert_eq!(cfg.inactivity_timeout_sec, 120);
         assert!(!cfg.setup_completed);
     }

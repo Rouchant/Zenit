@@ -83,7 +83,7 @@ pub fn setup_defaults_handlers(main_window: &MainWindow) {
         if let Some(ui) = reset_videos_handle.upgrade() {
             ui.set_cfg_central_video("assets/videos/landing.mp4".into());
             ui.set_cfg_bg_video("assets/videos/bg.mp4".into());
-            ui.set_cfg_inactivity_video_1("assets/videos/inactivity.mp4".into());
+            ui.set_cfg_inactivity_video_1("assets/videos/promo2.mp4".into());
             ui.set_cfg_inactivity_video_2("".into());
             ui.set_cfg_inactivity_video_3("".into());
             ui.set_cfg_inactivity_timeout("120".into());
