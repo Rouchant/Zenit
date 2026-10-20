@@ -65,7 +65,7 @@ impl Default for AppConfig {
 
             central_video_path: "assets/videos/landing.mp4".to_string(),
             bg_video_path: "assets/images/fallback-bg/bg.mp4".to_string(),
-            inactivity_video_path: "assets/videos/promo.mp4".to_string(),
+            inactivity_video_path: "assets/videos/promo2.mp4".to_string(),
             inactivity_timeout_sec: 120,
 
             setup_completed: false,
@@ -86,7 +86,11 @@ pub fn load_config() -> AppConfig {
     let path = get_config_file_path();
     if path.exists() {
         if let Ok(content) = fs::read_to_string(&path) {
-            if let Ok(cfg) = serde_json::from_str::<AppConfig>(&content) {
+            if let Ok(mut cfg) = serde_json::from_str::<AppConfig>(&content) {
+                if cfg.inactivity_video_path == "assets/videos/promo.mp4" {
+                    cfg.inactivity_video_path = "assets/videos/promo2.mp4".to_string();
+                    let _ = save_config(&cfg);
+                }
                 return cfg;
             }
         }
@@ -141,6 +145,7 @@ mod tests {
         let cfg = AppConfig::default();
         assert_eq!(cfg.primary_color, "#00f2ff");
         assert_eq!(cfg.store_theme, "default");
+        assert_eq!(cfg.inactivity_video_path, "assets/videos/promo2.mp4");
         assert_eq!(cfg.inactivity_timeout_sec, 120);
         assert!(!cfg.setup_completed);
     }

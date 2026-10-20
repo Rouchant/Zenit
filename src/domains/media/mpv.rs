@@ -327,6 +327,7 @@ impl Drop for SlintMpvPlayer {
 pub fn resolve_showroom_video_path() -> PathBuf {
     let candidate_paths = [
         PathBuf::from("assets/videos/landing.mp4"),
+        PathBuf::from("assets/videos/promo2.mp4"),
         PathBuf::from("assets/videos/promo.mp4"),
         PathBuf::from("assets/videos/bg.mp4"),
     ];
