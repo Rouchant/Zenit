@@ -89,10 +89,15 @@ function renderUI(state) {
     brandBadgeEl.textContent = state.brand_name || 'Zenit Showcase';
   }
 
-  // 3. Left Column
+  // 3. Left Column (Hardware Core)
   const leftColEl = document.getElementById('leftColumn');
   if (leftColEl && state.left_specs) {
-    leftColEl.innerHTML = state.left_specs.map(renderCard).join('');
+    const titlePill = `
+      <div class="column-title-pill">
+        <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"/></svg>
+        <span>Rendimiento Principal</span>
+      </div>`;
+    leftColEl.innerHTML = titlePill + state.left_specs.map(renderCard).join('');
   }
 
   // 4. Center Column
@@ -113,18 +118,26 @@ function renderUI(state) {
       pricingContainer.style.display = 'flex';
       const cardHtml = state.price_card ? `
         <div class="price-item">
-          <span class="price-label">Precio con Tarjeta</span>
+          <div class="price-header-row">
+            <span class="price-badge-exclusive">Exclusivo</span>
+            <span class="price-label">Precio con Tarjeta</span>
+          </div>
           <span class="price-card-val">${state.price_card}</span>
         </div>` : '';
+      const dividerHtml = (state.price_card && state.price_all_methods) ? '<div class="price-divider"></div>' : '';
       const allHtml = state.price_all_methods ? `
         <div class="price-item">
           <span class="price-label">Todo Medio de Pago</span>
           <span class="price-all-val">${state.price_all_methods}</span>
         </div>` : '';
-      const skuHtml = state.sku ? `<div class="sku-pill">SKU: <strong>${state.sku}</strong></div>` : '';
+      const skuHtml = state.sku ? `
+        <div class="sku-pill">
+          <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 7V4h16v3M4 17v3h16v-3M9 12h6"/></svg>
+          SKU: <strong>${state.sku}</strong>
+        </div>` : '';
 
       pricingContainer.innerHTML = `
-        <div class="pricing-row">${cardHtml}${allHtml}</div>
+        <div class="pricing-row">${cardHtml}${dividerHtml}${allHtml}</div>
         ${skuHtml}
       `;
     } else {
@@ -133,10 +146,15 @@ function renderUI(state) {
     }
   }
 
-  // 5. Right Column
+  // 5. Right Column (Pantalla y Multimedia)
   const rightColEl = document.getElementById('rightColumn');
   if (rightColEl && state.right_specs) {
-    rightColEl.innerHTML = state.right_specs.map(renderCard).join('');
+    const titlePill = `
+      <div class="column-title-pill">
+        <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><rect x="2" y="3" width="20" height="14" rx="2"/><line x1="8" y1="21" x2="16" y2="21"/><line x1="12" y1="17" x2="12" y2="21"/></svg>
+        <span>Pantalla & Multimedia</span>
+      </div>`;
+    rightColEl.innerHTML = titlePill + state.right_specs.map(renderCard).join('');
   }
 
   // 6. Background Video
@@ -340,6 +358,18 @@ window.saveAdminModal = async function() {
   const updatedState = await invoke('get_zenit_ui_state');
   if (updatedState) renderUI(updatedState);
   closeAdminModal();
+  showToast('✓ Configuración guardada correctamente');
+};
+
+window.applyColorPreset = function(prim, sec, acc) {
+  setVal('cfg_primary_color', prim);
+  setVal('cfg_secondary_color', sec);
+  setVal('cfg_accent_color', acc);
+  const root = document.documentElement;
+  root.style.setProperty('--primary', prim);
+  root.style.setProperty('--secondary', sec);
+  root.style.setProperty('--accent', acc);
+  showToast('🎨 Tema aplicado en vista previa');
 };
 
 window.switchAdminTab = function(tabName) {
@@ -359,9 +389,11 @@ window.importVideoVault = async function() {
         filters: [{ name: 'Videos', extensions: ['mp4', 'webm', 'mov', 'mkv'] }]
       });
       if (selected) {
+        showToast('⏳ Importando video al baúl...');
         await invoke('import_video', { sourcePath: selected });
         vaultVideos = await invoke('get_vault_videos') || [];
         renderVaultList();
+        showToast('✓ Video protegido en el baúl');
       }
     }
   } catch (e) {
@@ -370,9 +402,9 @@ window.importVideoVault = async function() {
 };
 
 window.assignVaultVideo = function(path, target) {
-  if (target === 'central') setVal('cfg_central_video_path', path);
-  if (target === 'bg') setVal('cfg_bg_video_path', path);
-  if (target === 'inactivity') setVal('cfg_inactivity_video_path', path);
+  if (target === 'central') { setVal('cfg_central_video_path', path); showToast('✓ Asignado como Video Central'); }
+  if (target === 'bg') { setVal('cfg_bg_video_path', path); showToast('✓ Asignado como Video de Fondo'); }
+  if (target === 'inactivity') { setVal('cfg_inactivity_video_path', path); showToast('✓ Asignado como Salvapantallas'); }
 };
 
 window.deleteVaultVideo = async function(filename) {
@@ -380,6 +412,7 @@ window.deleteVaultVideo = async function(filename) {
     await invoke('remove_vault_video', { filename });
     vaultVideos = await invoke('get_vault_videos') || [];
     renderVaultList();
+    showToast('🗑️ Video eliminado del baúl');
   }
 };
 
@@ -406,6 +439,55 @@ function renderVaultList() {
       </div>
     </div>
   `).join('');
+}
+
+// Toast Notification System
+function showToast(msg, type = 'info') {
+  let c = document.getElementById('toastContainer');
+  if (!c) {
+    c = document.createElement('div');
+    c.id = 'toastContainer';
+    c.className = 'toast-notification-container';
+    document.body.appendChild(c);
+  }
+  const toast = document.createElement('div');
+  toast.className = `glass-toast-item ${type}`;
+  toast.innerHTML = `<span>${msg}</span>`;
+  c.appendChild(toast);
+  setTimeout(() => {
+    toast.classList.add('hide');
+    setTimeout(() => toast.remove(), 350);
+  }, 2400);
+}
+
+// Hero Video Sound Toggle
+window.toggleHeroSound = function(e) {
+  if (e) e.stopPropagation();
+  const v = document.getElementById('heroVideo');
+  const iconMuted = document.getElementById('soundIconMuted');
+  const iconActive = document.getElementById('soundIconActive');
+  if (!v) return;
+
+  v.muted = !v.muted;
+  if (!v.muted) {
+    if (iconMuted) iconMuted.style.display = 'none';
+    if (iconActive) iconActive.style.display = 'block';
+    showToast('🔊 Sonido activado');
+  } else {
+    if (iconMuted) iconMuted.style.display = 'block';
+    if (iconActive) iconActive.style.display = 'none';
+    showToast('🔇 Sonido silenciado');
+  }
+};
+
+// Live Clock for Showroom Terminal
+function updateLiveClock() {
+  const el = document.getElementById('headerClock');
+  if (!el) return;
+  const now = new Date();
+  const hours = String(now.getHours()).padStart(2, '0');
+  const mins = String(now.getMinutes()).padStart(2, '0');
+  el.textContent = `${hours}:${mins}`;
 }
 
 // Display Scale & Zoom Immunity System
@@ -464,6 +546,10 @@ window.addEventListener('DOMContentLoaded', async () => {
   enforceScaleImmunity();
   preventAccidentalZoom();
   window.addEventListener('resize', enforceScaleImmunity);
+
+  // Live Showroom Clock
+  updateLiveClock();
+  setInterval(updateLiveClock, 1000);
 
   // Load initial UI state from Rust
   const state = await invoke('get_zenit_ui_state');

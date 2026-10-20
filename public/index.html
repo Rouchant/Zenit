@@ -17,9 +17,19 @@
     <header class="app-header">
       <div class="brand-group">
         <img id="brandLogo" class="brand-logo-img" src="assets/logo.png" alt="Zenit">
-        <div id="storeContainer" style="display: flex; align-items: center; gap: 20px;"></div>
+        <div id="storeContainer" style="display: flex; align-items: center; gap: 18px;"></div>
       </div>
-      <div id="brandBadge" class="brand-badge" onclick="handleHotspot(event)" ontouchend="handleHotspot(event)">Zenit Showcase</div>
+
+      <!-- Live Showroom Status & Clock -->
+      <div class="header-center-info">
+        <div class="live-status-pill">
+          <span class="live-pulse-dot"></span>
+          <span class="live-status-text">MODO EXHIBICIÓN</span>
+        </div>
+        <div id="headerClock" class="header-clock">--:--</div>
+      </div>
+
+      <div id="brandBadge" class="brand-badge" onclick="handleHotspot(event)" ontouchend="handleHotspot(event)" title="Admin (4 toques)">Zenit Showcase</div>
     </header>
 
     <!-- Main 3-Column Layout -->
@@ -29,19 +39,45 @@
 
       <!-- Columna Central: Hero Video + Precios + Botón Prueba esta PC -->
       <section class="center-column">
-        <div class="hero-video-frame">
-          <video id="heroVideo" class="hero-video-player" autoplay loop muted playsinline poster="assets/images/background.png"></video>
+        <!-- Hero Video with Ambient Glow and Audio Controls -->
+        <div class="hero-video-wrapper">
+          <div class="hero-ambient-glow"></div>
+          <div class="hero-video-frame">
+            <video id="heroVideo" class="hero-video-player" autoplay loop muted playsinline poster="assets/images/background.png"></video>
+            <div class="hero-video-overlay-bar">
+              <div class="hero-live-badge">
+                <span class="hero-live-dot"></span>
+                <span>Vitrina Interactiva</span>
+              </div>
+              <button id="soundToggleBtn" class="sound-toggle-btn" onclick="toggleHeroSound(event)" title="Activar / Silenciar Sonido">
+                <svg id="soundIconMuted" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M11 5L6 9H2v6h4l5 4V5z"/><line x1="23" y1="9" x2="17" y2="15"/><line x1="17" y1="9" x2="23" y2="15"/></svg>
+                <svg id="soundIconActive" style="display: none;" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polygon points="11 5 6 9 2 9 2 15 6 15 11 19 11 5"/><path d="M19.07 4.93a10 10 0 0 1 0 14.14M15.54 8.46a5 5 0 0 1 0 7.07"/></svg>
+              </button>
+            </div>
+          </div>
         </div>
 
         <div id="pricingContainer" class="pricing-glass-banner" style="display: none;"></div>
 
-        <button class="try-pc-button" onclick="tryPc()">
-          <svg xmlns="http://www.w3.org/2000/svg" width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
-            <rect x="2" y="3" width="20" height="14" rx="2" ry="2"/>
-            <line x1="8" y1="21" x2="16" y2="21"/>
-            <line x1="12" y1="17" x2="12" y2="21"/>
-          </svg>
-          <span>Prueba esta PC</span>
+        <!-- Super Modern & Inviting "Prueba esta PC" Button -->
+        <button class="try-pc-button" onclick="tryPc()" title="Explora aplicaciones y rendimiento">
+          <div class="try-pc-glow-ring"></div>
+          <div class="try-pc-icon-wrapper">
+            <svg xmlns="http://www.w3.org/2000/svg" width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+              <rect x="2" y="3" width="20" height="14" rx="2" ry="2"/>
+              <line x1="8" y1="21" x2="16" y2="21"/>
+              <line x1="12" y1="17" x2="12" y2="21"/>
+            </svg>
+          </div>
+          <div class="try-pc-text-col">
+            <span class="try-pc-headline">Prueba esta PC</span>
+            <span class="try-pc-subheadline">Toca aquí para abrir aplicaciones y probar el equipo</span>
+          </div>
+          <div class="try-pc-action-arrow">
+            <svg xmlns="http://www.w3.org/2000/svg" width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round">
+              <polyline points="9 18 15 12 9 6"></polyline>
+            </svg>
+          </div>
         </button>
       </section>
 
@@ -55,7 +91,11 @@
     <!-- Fullscreen Inactivity Screensaver -->
     <div id="screensaverContainer" class="screensaver-container">
       <video id="screensaverVideo" class="screensaver-video" loop muted playsinline></video>
-      <div class="screensaver-hint">Toca la pantalla o mueve el mouse para explorar</div>
+      <div class="screensaver-hint">
+        <div class="screensaver-pulse-circle"></div>
+        <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 2a10 10 0 1 0 10 10A10 10 0 0 0 12 2zm1 14.93V17a1 1 0 0 1-2 0v-.07A7 7 0 1 1 18.93 13H19a1 1 0 0 1 0 2h-.07A7 7 0 0 1 13 16.93z"/></svg>
+        <span>Toca la pantalla o mueve el mouse para explorar</span>
+      </div>
     </div>
 
     <!-- Password Modal -->
@@ -107,6 +147,16 @@
                 <label style="font-size: 0.8rem; color: var(--text-muted); display: block; margin-bottom: 6px;">Color Acento</label>
                 <input id="cfg_accent_color" type="color" style="width: 100%; height: 38px; border: none; background: transparent; cursor: pointer;">
               </div>
+            </div>
+
+            <h4 style="margin-top: 18px; margin-bottom: 8px; font-size: 0.88rem; color: var(--text-muted);">Temas Predefinidos (1 Clic)</h4>
+            <div style="display: flex; gap: 8px; flex-wrap: wrap;">
+              <button class="btn-glass" style="font-size: 0.78rem;" onclick="applyColorPreset('#00f2ff', '#0072ff', '#00e5ff')">💎 Cyber Cyan</button>
+              <button class="btn-glass" style="font-size: 0.78rem;" onclick="applyColorPreset('#a855f7', '#6366f1', '#ec4899')">🟣 Neon Violet</button>
+              <button class="btn-glass" style="font-size: 0.78rem;" onclick="applyColorPreset('#10b981', '#059669', '#34d399')">🟢 ROG Emerald</button>
+              <button class="btn-glass" style="font-size: 0.78rem;" onclick="applyColorPreset('#f59e0b', '#d97706', '#fbbf24')">🟡 Sunset Gold</button>
+              <button class="btn-glass" style="font-size: 0.78rem;" onclick="applyColorPreset('#ff0055', '#cc0044', '#ff3377')">🔴 Crimson ROG</button>
+              <button class="btn-glass" style="font-size: 0.78rem;" onclick="applyColorPreset('#e2e8f0', '#64748b', '#94a3b8')">⚪ Silver Luxury</button>
             </div>
           </div>
 
