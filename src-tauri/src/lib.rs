@@ -1,269 +1,287 @@
 pub mod domains;
 
-use domains::hardware::{detect_hardware, SystemSpecs};
+use domains::hardware::detect_hardware;
 use domains::kiosk::get_system_idle_seconds;
-use domains::media::{delete_vault_video, import_video_to_vault, list_vault_videos, VaultVideo};
-use domains::showcase::{build_ui_state, load_config, save_config, verify_password, AppConfig, ZenitUiState};
+use domains::showcase::{build_ui_state, load_config, save_config, verify_password};
+use slint::{ComponentHandle, ModelRc, VecModel};
+use std::cell::RefCell;
+use std::rc::Rc;
 use std::sync::atomic::{AtomicBool, Ordering};
-use tauri::{AppHandle, Emitter, Manager, PhysicalPosition, PhysicalSize};
-use tauri_plugin_global_shortcut::{GlobalShortcutExt, Shortcut};
+use std::time::Instant;
+
+slint::include_modules!();
 
 static IS_IN_TRY_PC_MODE: AtomicBool = AtomicBool::new(false);
 static IS_SCREENSAVER_ACTIVE: AtomicBool = AtomicBool::new(false);
 
-#[derive(Debug, Clone, serde::Serialize, serde::Deserialize)]
-pub struct InactivityStatus {
-    pub idle_seconds: u64,
-    pub timeout_seconds: u64,
-    pub is_screensaver: bool,
-    pub is_in_try_pc_mode: bool,
-}
-
-#[tauri::command]
-fn get_inactivity_status() -> InactivityStatus {
-    let cfg = load_config();
-    InactivityStatus {
-        idle_seconds: get_system_idle_seconds(),
-        timeout_seconds: cfg.inactivity_timeout_sec,
-        is_screensaver: IS_SCREENSAVER_ACTIVE.load(Ordering::SeqCst),
-        is_in_try_pc_mode: IS_IN_TRY_PC_MODE.load(Ordering::SeqCst),
-    }
-}
-
-#[tauri::command]
-fn get_zenit_ui_state() -> ZenitUiState {
-    build_ui_state()
-}
-
-#[tauri::command]
-fn get_system_specs() -> SystemSpecs {
-    let mut specs = detect_hardware();
+fn populate_ui_state(window: &MainWindow) {
+    let state = build_ui_state();
     let cfg = load_config();
 
-    if let Some(ref brand) = cfg.brand_override {
-        if !brand.trim().is_empty() { specs.brand = brand.clone(); }
-    }
-    if let Some(ref model) = cfg.model_override {
-        if !model.trim().is_empty() { specs.model = model.clone(); }
-    }
-    if let Some(ref proc) = cfg.processor_override {
-        if !proc.trim().is_empty() { specs.processor = proc.clone(); }
-    }
-    if let Some(ref ram) = cfg.ram_override {
-        if !ram.trim().is_empty() { specs.ram = ram.clone(); }
-    }
-    if let Some(ref storage) = cfg.storage_override {
-        if !storage.trim().is_empty() { specs.storage = storage.clone(); }
-    }
-    if let Some(ref display) = cfg.display_override {
-        if !display.trim().is_empty() { specs.display = display.clone(); }
-    }
-    if let Some(ref gpu) = cfg.gpu_override {
-        if !gpu.trim().is_empty() { specs.gpu = gpu.clone(); }
-    }
-    if let Some(ref os) = cfg.os_override {
-        if !os.trim().is_empty() { specs.os = os.clone(); }
-    }
-    if let Some(ref battery) = cfg.battery_override {
-        if !battery.trim().is_empty() { specs.battery = battery.clone(); }
-    }
-
-    specs
-}
-
-#[tauri::command]
-fn get_raw_hardware_specs() -> SystemSpecs {
-    detect_hardware()
-}
-
-#[tauri::command]
-fn get_app_config() -> AppConfig {
-    load_config()
-}
-
-#[tauri::command]
-fn save_app_config(app: AppHandle, config: AppConfig) -> Result<(), String> {
-    save_config(&config)?;
-    // Broadcast newly computed state to all windows
-    let new_state = build_ui_state();
-    let _ = app.emit("zenit://state-changed", new_state);
-    Ok(())
-}
-
-#[tauri::command]
-fn complete_quick_setup(app: AppHandle, mut config: AppConfig) -> Result<(), String> {
-    config.setup_completed = true;
-    save_config(&config)?;
-    let new_state = build_ui_state();
-    let _ = app.emit("zenit://state-changed", new_state);
-    Ok(())
-}
-
-#[tauri::command]
-fn check_admin_password(password: String) -> bool {
-    verify_password(&password)
-}
-
-#[tauri::command]
-fn try_pc_minimize(app: AppHandle) -> Result<(), String> {
-    IS_IN_TRY_PC_MODE.store(true, Ordering::SeqCst);
-
-    if let Some(main_win) = app.get_webview_window("main") {
-        let _ = main_win.minimize();
-    }
-
-    if let Some(return_win) = app.get_webview_window("return_window") {
-        if let Ok(Some(monitor)) = return_win.primary_monitor() {
-            let screen_size = monitor.size();
-            let win_width = 240;
-            let win_height = 90;
-
-            // Position at vertical center on right edge
-            let x = (screen_size.width as i32) - win_width - 15;
-            let y = ((screen_size.height as i32) - win_height) / 2;
-
-            let _ = return_win.set_size(PhysicalSize::new(win_width as u32, win_height as u32));
-            let _ = return_win.set_position(PhysicalPosition::new(x, y));
+    window.set_brand_name(state.brand_name.clone().into());
+    let model_display = cfg.model_override.clone().unwrap_or_else(|| {
+        if !state.right_specs.is_empty() {
+            state.right_specs.iter()
+                .find(|s| s.id == "card-model")
+                .map(|s| s.value.clone())
+                .unwrap_or_else(|| "PC Showroom".to_string())
+        } else {
+            "PC Showroom".to_string()
         }
+    });
+    window.set_model_name(model_display.into());
 
-        let _ = return_win.set_always_on_top(true);
-        let _ = return_win.show();
-        let _ = return_win.set_focus();
-    }
-    Ok(())
-}
+    let retail_upper = if cfg.store_theme.is_empty() || cfg.store_theme == "default" {
+        "SHOWROOM".to_string()
+    } else {
+        cfg.store_theme.to_uppercase()
+    };
+    window.set_retail_name(retail_upper.clone().into());
 
-#[tauri::command]
-fn restore_main_window(app: AppHandle) -> Result<(), String> {
-    IS_IN_TRY_PC_MODE.store(false, Ordering::SeqCst);
+    let card_p = if cfg.price_card.trim().is_empty() {
+        "$1.299.990".to_string()
+    } else {
+        cfg.price_card.clone()
+    };
+    window.set_card_price(card_p.into());
+    window.set_card_label(format!("Tarjeta {}", retail_upper).into());
 
-    if let Some(return_win) = app.get_webview_window("return_window") {
-        let _ = return_win.hide();
-    }
+    let normal_p = if cfg.price_all_methods.trim().is_empty() {
+        "$1.349.990".to_string()
+    } else {
+        cfg.price_all_methods.clone()
+    };
+    window.set_normal_price(normal_p.into());
+    window.set_normal_label("Otros medios de pago".into());
 
-    if let Some(main_win) = app.get_webview_window("main") {
-        let _ = main_win.unminimize();
-        let _ = main_win.show();
-        let _ = main_win.set_fullscreen(true);
-        let _ = main_win.set_always_on_top(true);
-        let _ = main_win.set_focus();
-    }
-    Ok(())
-}
+    let sku_code = if cfg.sku.trim().is_empty() {
+        "8493021".to_string()
+    } else {
+        cfg.sku.clone()
+    };
+    window.set_sku_code(sku_code.into());
 
-#[tauri::command]
-fn emergency_exit() {
-    std::process::exit(0);
-}
+    // Populate Left Column Specs
+    let left_items: Vec<SpecItem> = state.left_specs.into_iter().map(|s| SpecItem {
+        category: s.label.to_uppercase().into(),
+        value: s.value.into(),
+        subvalue: s.sub_value.unwrap_or_default().into(),
+        tag: s.tag.unwrap_or_default().into(),
+    }).collect();
+    window.set_left_specs(ModelRc::new(VecModel::from(left_items)));
 
-#[tauri::command]
-fn emergency_restart(app: AppHandle) {
-    if let Ok(current_exe) = std::env::current_exe() {
-        let _ = std::process::Command::new(current_exe).spawn();
-    }
-    app.exit(0);
-}
+    // Populate Right Column Specs
+    let right_items: Vec<SpecItem> = state.right_specs.into_iter().map(|s| SpecItem {
+        category: s.label.to_uppercase().into(),
+        value: s.value.into(),
+        subvalue: s.sub_value.unwrap_or_default().into(),
+        tag: s.tag.unwrap_or_default().into(),
+    }).collect();
+    window.set_right_specs(ModelRc::new(VecModel::from(right_items)));
 
-#[tauri::command]
-fn import_video(source_path: String) -> Result<VaultVideo, String> {
-    import_video_to_vault(&source_path)
-}
-
-#[tauri::command]
-fn get_vault_videos() -> Vec<VaultVideo> {
-    list_vault_videos()
-}
-
-#[tauri::command]
-fn remove_vault_video(filename: String) -> Result<(), String> {
-    delete_vault_video(&filename)
+    // Quick Setup Initial State
+    window.set_is_quick_setup_open(!cfg.setup_completed);
+    window.set_setup_brand(state.brand_name.into());
+    window.set_setup_model(cfg.model_override.unwrap_or_default().into());
+    window.set_setup_card_price(cfg.price_card.into());
+    window.set_setup_normal_price(cfg.price_all_methods.into());
+    window.set_setup_sku(cfg.sku.into());
+    window.set_setup_retail(cfg.store_theme.into());
 }
 
 pub fn run() {
-    // Enforce 1:1 display scale immunity and disable zoom gestures/hotkeys in WebView2
-    unsafe {
-        std::env::set_var(
-            "WEBVIEW2_ADDITIONAL_BROWSER_ARGUMENTS",
-            "--force-device-scale-factor=1 --disable-pinch --disable-features=msWebview2ZoomHotkeys",
-        );
-    }
+    let main_window = MainWindow::new().expect("Failed to initialize Slint MainWindow");
 
-    tauri::Builder::default()
-        .plugin(tauri_plugin_log::Builder::default().build())
-        .plugin(tauri_plugin_dialog::init())
-        .plugin(tauri_plugin_global_shortcut::Builder::new().build())
-        .setup(|app| {
-            // Main Window setup
-            if let Some(main_win) = app.get_webview_window("main") {
-                let _ = main_win.set_fullscreen(true);
-                let _ = main_win.set_always_on_top(true);
-                let _ = main_win.set_focus();
+    populate_ui_state(&main_window);
+
+    // Initial Live Clock
+    let now = chrono::Local::now();
+    main_window.set_live_clock(now.format("%H:%M:%S").to_string().into());
+
+    // Live Clock Timer (updates every 1s)
+    let clock_timer = slint::Timer::default();
+    let clock_handle = main_window.as_weak();
+    clock_timer.start(slint::TimerMode::Repeated, std::time::Duration::from_secs(1), move || {
+        if let Some(ui) = clock_handle.upgrade() {
+            let current = chrono::Local::now();
+            ui.set_live_clock(current.format("%H:%M:%S").to_string().into());
+        }
+    });
+
+    // 4-Tap Admin Trigger in top-right corner
+    let tap_state = Rc::new(RefCell::new((0u32, Instant::now())));
+    let tap_handle = main_window.as_weak();
+    let tap_state_clone = tap_state.clone();
+    main_window.on_corner_tap_clicked(move || {
+        let mut st = tap_state_clone.borrow_mut();
+        let now = Instant::now();
+        if now.duration_since(st.1).as_millis() < 2000 {
+            st.0 += 1;
+        } else {
+            st.0 = 1;
+        }
+        st.1 = now;
+
+        if st.0 >= 4 {
+            st.0 = 0;
+            if let Some(ui) = tap_handle.upgrade() {
+                ui.set_is_admin_open(true);
+                ui.set_is_admin_authenticated(false);
+                ui.set_admin_error_msg("".into());
+                ui.set_admin_password_input("".into());
+            }
+        }
+    });
+
+    // Close Admin Panel
+    let close_admin_handle = main_window.as_weak();
+    main_window.on_close_admin_clicked(move || {
+        if let Some(ui) = close_admin_handle.upgrade() {
+            ui.set_is_admin_open(false);
+            ui.set_is_admin_authenticated(false);
+            ui.set_admin_error_msg("".into());
+        }
+    });
+
+    // Verify Admin Password
+    let pwd_handle = main_window.as_weak();
+    main_window.on_check_admin_password(move |pwd| {
+        if let Some(ui) = pwd_handle.upgrade() {
+            if verify_password(&pwd) {
+                ui.set_is_admin_authenticated(true);
+                ui.set_admin_error_msg("".into());
+            } else {
+                ui.set_admin_error_msg("Contraseña incorrecta. Intente nuevamente.".into());
+            }
+        }
+    });
+
+    // Auto-detect Hardware for Quick Setup
+    let detect_handle = main_window.as_weak();
+    main_window.on_auto_detect_clicked(move || {
+        if let Some(ui) = detect_handle.upgrade() {
+            let hw = detect_hardware();
+            ui.set_setup_brand(hw.brand.into());
+            ui.set_setup_model(hw.model.into());
+        }
+    });
+
+    // Save Quick Setup Form
+    let save_setup_handle = main_window.as_weak();
+    main_window.on_save_quick_setup(move |brand, model, card_p, normal_p, sku, retail| {
+        if let Some(ui) = save_setup_handle.upgrade() {
+            let mut cfg = load_config();
+            if !brand.trim().is_empty() {
+                cfg.brand_override = Some(brand.to_string());
+            }
+            if !model.trim().is_empty() {
+                cfg.model_override = Some(model.to_string());
+            }
+            cfg.price_card = card_p.to_string();
+            cfg.price_all_methods = normal_p.to_string();
+            cfg.sku = sku.to_string();
+            if !retail.trim().is_empty() {
+                cfg.store_theme = retail.to_string();
+            }
+            cfg.setup_completed = true;
+            let _ = save_config(&cfg);
+
+            ui.set_is_quick_setup_open(false);
+            populate_ui_state(&ui);
+        }
+    });
+
+    // Try PC Mode
+    let try_pc_handle = main_window.as_weak();
+    main_window.on_try_pc_clicked(move || {
+        IS_IN_TRY_PC_MODE.store(true, Ordering::SeqCst);
+        if let Some(_ui) = try_pc_handle.upgrade() {
+            // Under Windows, minimizing or lowering window to let user test PC
+            #[cfg(target_os = "windows")]
+            unsafe {
+                use windows_sys::Win32::UI::WindowsAndMessaging::{FindWindowA, ShowWindow, SW_MINIMIZE};
+                let title = b"Showroom PC - Modo Exhibici\xc3\xb3n\0";
+                let hwnd = FindWindowA(std::ptr::null(), title.as_ptr());
+                if !hwnd.is_null() {
+                    ShowWindow(hwnd, SW_MINIMIZE);
+                }
+            }
+        }
+    });
+
+    // Screensaver Dismiss
+    let dismiss_handle = main_window.as_weak();
+    main_window.on_dismiss_screensaver(move || {
+        if let Some(ui) = dismiss_handle.upgrade() {
+            ui.set_is_screensaver_active(false);
+            IS_SCREENSAVER_ACTIVE.store(false, Ordering::SeqCst);
+        }
+    });
+
+    // Emergency Exit
+    main_window.on_emergency_exit_clicked(|| {
+        std::process::exit(0);
+    });
+
+    // Emergency Restart
+    main_window.on_emergency_restart_clicked(|| {
+        if let Ok(current_exe) = std::env::current_exe() {
+            let _ = std::process::Command::new(current_exe).spawn();
+        }
+        std::process::exit(0);
+    });
+
+    // Background Inactivity Watcher (Zero JS Overhead, 100% Native Rust)
+    let watcher_handle = main_window.as_weak();
+    std::thread::spawn(move || {
+        loop {
+            std::thread::sleep(std::time::Duration::from_millis(500));
+            let idle_seconds = get_system_idle_seconds();
+            let cfg = load_config();
+            let timeout = cfg.inactivity_timeout_sec;
+
+            // 1. Screensaver state toggle
+            let was_screensaver = IS_SCREENSAVER_ACTIVE.load(Ordering::SeqCst);
+            if !was_screensaver && idle_seconds >= timeout {
+                IS_SCREENSAVER_ACTIVE.store(true, Ordering::SeqCst);
+                let wh = watcher_handle.clone();
+                let _ = slint::invoke_from_event_loop(move || {
+                    if let Some(ui) = wh.upgrade() {
+                        ui.set_is_screensaver_active(true);
+                    }
+                });
+            } else if was_screensaver && idle_seconds < 2 {
+                IS_SCREENSAVER_ACTIVE.store(false, Ordering::SeqCst);
+                let wh = watcher_handle.clone();
+                let _ = slint::invoke_from_event_loop(move || {
+                    if let Some(ui) = wh.upgrade() {
+                        ui.set_is_screensaver_active(false);
+                    }
+                });
             }
 
-            // Global Shortcuts for emergency exit and restart
-            let handle_exit = app.handle().clone();
-            let handle_restart = app.handle().clone();
-
-            let exit_shortcut: Shortcut = "Control+Shift+Alt+KeyZ".parse().unwrap();
-            let restart_shortcut: Shortcut = "Control+Shift+Alt+KeyR".parse().unwrap();
-
-            let _ = app.global_shortcut().on_shortcut(exit_shortcut, move |_app, _shortcut, _event| {
-                handle_exit.exit(0);
-            });
-
-            let _ = app.global_shortcut().on_shortcut(restart_shortcut, move |_app, _shortcut, _event| {
-                if let Ok(current_exe) = std::env::current_exe() {
-                    let _ = std::process::Command::new(current_exe).spawn();
-                }
-                handle_restart.exit(0);
-            });
-
-            // Native Rust Background Inactivity Watcher (Zero JS Overhead)
-            let watcher_handle = app.handle().clone();
-            std::thread::spawn(move || {
-                loop {
-                    std::thread::sleep(std::time::Duration::from_millis(500));
-                    let idle_seconds = get_system_idle_seconds();
-                    let cfg = load_config();
-                    let timeout = cfg.inactivity_timeout_sec;
-
-                    // 1. Screensaver state toggle
-                    let was_screensaver = IS_SCREENSAVER_ACTIVE.load(Ordering::SeqCst);
-                    if !was_screensaver && idle_seconds >= timeout {
-                        IS_SCREENSAVER_ACTIVE.store(true, Ordering::SeqCst);
-                        let _ = watcher_handle.emit("zenit://screensaver-change", true);
-                    } else if was_screensaver && idle_seconds < 2 {
-                        IS_SCREENSAVER_ACTIVE.store(false, Ordering::SeqCst);
-                        let _ = watcher_handle.emit("zenit://screensaver-change", false);
+            // 2. Try-PC Auto-restore after 120s of no desktop activity
+            if IS_IN_TRY_PC_MODE.load(Ordering::SeqCst) && idle_seconds >= 120 {
+                IS_IN_TRY_PC_MODE.store(false, Ordering::SeqCst);
+                let wh = watcher_handle.clone();
+                let _ = slint::invoke_from_event_loop(move || {
+                    if let Some(ui) = wh.upgrade() {
+                        ui.set_is_screensaver_active(false);
+                        #[cfg(target_os = "windows")]
+                        unsafe {
+                            use windows_sys::Win32::UI::WindowsAndMessaging::{FindWindowA, ShowWindow, SW_RESTORE};
+                            let title = b"Showroom PC - Modo Exhibici\xc3\xb3n\0";
+                            let hwnd = FindWindowA(std::ptr::null(), title.as_ptr());
+                            if !hwnd.is_null() {
+                                ShowWindow(hwnd, SW_RESTORE);
+                            }
+                        }
                     }
+                });
+            }
+        }
+    });
 
-                    // 2. Try-PC Auto-restore after 120s of no desktop activity
-                    if IS_IN_TRY_PC_MODE.load(Ordering::SeqCst) && idle_seconds >= 120 {
-                        IS_IN_TRY_PC_MODE.store(false, Ordering::SeqCst);
-                        let _ = restore_main_window(watcher_handle.clone());
-                    }
-                }
-            });
-
-            Ok(())
-        })
-        .invoke_handler(tauri::generate_handler![
-            get_zenit_ui_state,
-            get_inactivity_status,
-            get_system_specs,
-            get_raw_hardware_specs,
-            get_app_config,
-            save_app_config,
-            complete_quick_setup,
-            check_admin_password,
-            try_pc_minimize,
-            restore_main_window,
-            emergency_exit,
-            emergency_restart,
-            import_video,
-            get_vault_videos,
-            remove_vault_video,
-        ])
-        .run(tauri::generate_context!())
-        .expect("Error al ejecutar la aplicación Zenit");
+    // Start native event loop
+    main_window.run().expect("Error running Slint application");
 }

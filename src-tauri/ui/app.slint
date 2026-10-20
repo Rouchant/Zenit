@@ -1,0 +1,938 @@
+import { Button, LineEdit, ScrollView } from "std-widgets.slint";
+
+export struct SpecItem {
+    category: string,
+    value: string,
+    subvalue: string,
+    tag: string,
+}
+
+component SpecCard inherits Rectangle {
+    in property <string> category: "CATEGORÍA";
+    in property <string> value: "Valor Principal";
+    in property <string> subvalue: "Detalle adicional";
+    in property <string> tag: "TOP";
+    in property <color> accent_color: #38bdf8;
+
+    background: #0f172a99;
+    border-radius: 12px;
+    border-width: 1px;
+    border-color: #38bdf826;
+    clip: true;
+
+    touch := TouchArea {}
+
+    animate border-color { duration: 200ms; }
+    animate background { duration: 200ms; }
+
+    states [
+        hover when touch.has-hover: {
+            background: #1e293bcc;
+            border-color: #38bdf880;
+        }
+    ]
+
+    VerticalLayout {
+        padding-left: 16px;
+        padding-right: 16px;
+        padding-top: 14px;
+        padding-bottom: 14px;
+        spacing: 6px;
+
+        HorizontalLayout {
+            alignment: space-between;
+            Text {
+                text: root.category;
+                font-size: 11px;
+                font-weight: 700;
+                color: #94a3b8;
+                letter-spacing: 1px;
+            }
+            if root.tag != "": Rectangle {
+                background: #0369a140;
+                border-radius: 6px;
+                border-width: 1px;
+                border-color: #38bdf840;
+                HorizontalLayout {
+                    padding-left: 6px;
+                    padding-right: 6px;
+                    padding-top: 2px;
+                    padding-bottom: 2px;
+                    Text {
+                        text: root.tag;
+                        font-size: 10px;
+                        font-weight: 700;
+                        color: #38bdf8;
+                    }
+                }
+            }
+        }
+
+        Text {
+            text: root.value;
+            font-size: 16px;
+            font-weight: 700;
+            color: #ffffff;
+            wrap: word-wrap;
+        }
+
+        if root.subvalue != "": Text {
+            text: root.subvalue;
+            font-size: 12px;
+            color: #cbd5e1;
+            wrap: word-wrap;
+        }
+    }
+}
+
+export component MainWindow inherits Window {
+    title: "Showroom PC - Modo Exhibición";
+    min-width: 1280px;
+    min-height: 720px;
+    background: #070a13;
+
+    // Showroom Properties
+    in-out property <string> brand_name: "ASUS";
+    in-out property <string> model_name: "ROG STRIX G16";
+    in-out property <string> live_clock: "12:00:00";
+    in-out property <string> retail_name: "RIPLEY";
+    in-out property <string> card_price: "$1.299.990";
+    in-out property <string> card_label: "Tarjeta Ripley";
+    in-out property <string> normal_price: "$1.349.990";
+    in-out property <string> normal_label: "Otros medios de pago";
+    in-out property <string> sku_code: "8493021";
+
+    // Specs
+    in-out property <[SpecItem]> left_specs: [
+        { category: "PROCESADOR", value: "Intel Core i7-13650HX", subvalue: "14 núcleos, 20 hilos", tag: "GEN 13" },
+        { category: "MEMORIA RAM", value: "16 GB DDR5 4800MHz", subvalue: "Expandible a 32 GB", tag: "DDR5" },
+        { category: "ALMACENAMIENTO", value: "512 GB SSD NVMe M.2", subvalue: "PCIe 4.0 de alta velocidad", tag: "NVMe" },
+        { category: "GRÁFICOS", value: "NVIDIA GeForce RTX 4060", subvalue: "8 GB GDDR6 dedicados", tag: "RTX" }
+    ];
+    in-out property <[SpecItem]> right_specs: [
+        { category: "PANTALLA", value: "16\" FHD+ 165Hz IPS", subvalue: "100% sRGB, 7ms, G-Sync", tag: "165Hz" },
+        { category: "SISTEMA OPERATIVO", value: "Windows 11 Home", subvalue: "64-bit con licencia oficial", tag: "OFICIAL" },
+        { category: "BATERÍA Y CONECTIVIDAD", value: "90Wh / Wi-Fi 6E + BT 5.3", subvalue: "Carga rápida 50% en 30m", tag: "Wi-Fi 6E" },
+        { category: "GARANTÍA", value: "1 Año Oficial", subvalue: "Soporte técnico directo de marca", tag: "OFICIAL" }
+    ];
+
+    // Modals & State
+    in-out property <bool> is_quick_setup_open: false;
+    in-out property <bool> is_admin_open: false;
+    in-out property <bool> is_admin_authenticated: false;
+    in-out property <bool> is_screensaver_active: false;
+    in-out property <string> admin_error_msg: "";
+
+    // Quick Setup Form Fields
+    in-out property <string> setup_brand: "";
+    in-out property <string> setup_model: "";
+    in-out property <string> setup_retail: "Ripley";
+    in-out property <string> setup_card_price: "";
+    in-out property <string> setup_normal_price: "";
+    in-out property <string> setup_sku: "";
+
+    // Admin Inputs
+    in-out property <string> admin_password_input: "";
+
+    // Callbacks
+    callback try_pc_clicked();
+    callback corner_tap_clicked();
+    callback close_admin_clicked();
+    callback check_admin_password(string);
+    callback emergency_exit_clicked();
+    callback emergency_restart_clicked();
+    callback auto_detect_clicked();
+    callback save_quick_setup(string, string, string, string, string, string);
+    callback dismiss_screensaver();
+
+    // Background Ambient Glow Gradients
+    Rectangle {
+        width: 600px;
+        height: 600px;
+        x: (parent.width - self.width) / 2;
+        y: (parent.height - self.height) / 2 - 80px;
+        border-radius: 300px;
+        background: #0284c710;
+    }
+
+    // MAIN LAYOUT
+    VerticalLayout {
+        padding-left: 28px;
+        padding-right: 28px;
+        padding-top: 20px;
+        padding-bottom: 20px;
+        spacing: 16px;
+
+        // TOP HEADER BAR
+        HorizontalLayout {
+            height: 56px;
+            alignment: space-between;
+
+            // Brand & Model
+            HorizontalLayout {
+                spacing: 12px;
+                alignment: start;
+
+                Rectangle {
+                    width: 4px;
+                    height: 40px;
+                    background: #38bdf8;
+                    border-radius: 2px;
+                }
+
+                VerticalLayout {
+                    alignment: center;
+                    Text {
+                        text: root.brand_name;
+                        font-size: 13px;
+                        font-weight: 800;
+                        color: #38bdf8;
+                        letter-spacing: 2px;
+                    }
+                    Text {
+                        text: root.model_name;
+                        font-size: 22px;
+                        font-weight: 800;
+                        color: #ffffff;
+                    }
+                }
+            }
+
+            // Center Pill: MODO EXHIBICIÓN
+            HorizontalLayout {
+                alignment: center;
+                Rectangle {
+                    background: #0f172a8c;
+                    border-radius: 20px;
+                    border-width: 1px;
+                    border-color: #22c55e40;
+
+                    HorizontalLayout {
+                        padding-left: 14px;
+                        padding-right: 14px;
+                        padding-top: 6px;
+                        padding-bottom: 6px;
+                        spacing: 8px;
+                        alignment: center;
+                        Rectangle {
+                            width: 8px;
+                            height: 8px;
+                            border-radius: 4px;
+                            background: #22c55e;
+                        }
+                        Text {
+                            text: "MODO EXHIBICIÓN";
+                            font-size: 11px;
+                            font-weight: 700;
+                            color: #86efac;
+                            letter-spacing: 1px;
+                        }
+                    }
+                }
+            }
+
+            // Right: Clock & Hidden Trigger
+            HorizontalLayout {
+                spacing: 16px;
+                alignment: end;
+
+                Rectangle {
+                    background: #0f172a8c;
+                    border-radius: 10px;
+                    border-width: 1px;
+                    border-color: #ffffff14;
+
+                    HorizontalLayout {
+                        padding-left: 14px;
+                        padding-right: 14px;
+                        padding-top: 6px;
+                        padding-bottom: 6px;
+
+                        Text {
+                            text: root.live_clock;
+                            font-size: 15px;
+                            font-weight: 700;
+                            color: #94a3b8;
+                            vertical-alignment: center;
+                        }
+                    }
+                }
+
+                // 4-tap trigger target (corner)
+                Rectangle {
+                    width: 40px;
+                    height: 40px;
+                    border-radius: 8px;
+                    background: #ffffff05;
+                    border-width: 1px;
+                    border-color: #ffffff0a;
+
+                    TouchArea {
+                        clicked => {
+                            root.corner_tap_clicked();
+                        }
+                    }
+
+                    Text {
+                        text: "⚙";
+                        font-size: 14px;
+                        color: #475569;
+                        horizontal-alignment: center;
+                        vertical-alignment: center;
+                    }
+                }
+            }
+        }
+
+        // 3-COLUMN SHOWROOM BODY
+        HorizontalLayout {
+            spacing: 20px;
+
+            // LEFT COLUMN (Specs 1 to 4)
+            VerticalLayout {
+                width: 320px;
+                spacing: 12px;
+
+                for item in root.left_specs: SpecCard {
+                    category: item.category;
+                    value: item.value;
+                    subvalue: item.subvalue;
+                    tag: item.tag;
+                    accent_color: #38bdf8;
+                }
+            }
+
+            // CENTER HERO (Media & Pricing)
+            VerticalLayout {
+                horizontal-stretch: 1;
+                spacing: 16px;
+
+                // Hero Frame
+                Rectangle {
+                    height: 430px;
+                    background: #090e1a;
+                    border-radius: 20px;
+                    border-width: 1.5px;
+                    border-color: #38bdf833;
+                    clip: true;
+
+                    // Glow background
+                    Rectangle {
+                        width: parent.width;
+                        height: parent.height;
+                        background: @linear-gradient(180deg, #0284c726 0%, #00000000 100%);
+                    }
+
+                    VerticalLayout {
+                        alignment: center;
+                        spacing: 20px;
+                        padding-left: 30px;
+                        padding-right: 30px;
+
+                        // Center Showcase Badge
+                        Rectangle {
+                            height: 64px;
+                            width: 64px;
+                            border-radius: 32px;
+                            background: #0284c733;
+                            border-width: 2px;
+                            border-color: #38bdf880;
+
+                            Text {
+                                text: "▶";
+                                font-size: 26px;
+                                color: #38bdf8;
+                                horizontal-alignment: center;
+                                vertical-alignment: center;
+                            }
+                        }
+
+                        Text {
+                            text: "EQUIPO DISPONIBLE PARA PRUEBA INMEDIATA";
+                            font-size: 12px;
+                            font-weight: 800;
+                            color: #38bdf8;
+                            letter-spacing: 2px;
+                            horizontal-alignment: center;
+                        }
+
+                        Text {
+                            text: root.brand_name + " " + root.model_name;
+                            font-size: 28px;
+                            font-weight: 800;
+                            color: #ffffff;
+                            horizontal-alignment: center;
+                            wrap: word-wrap;
+                        }
+
+                        Text {
+                            text: "Experimenta la velocidad, potencia de gráficos y fluidez en tiempo real";
+                            font-size: 14px;
+                            color: #94a3b8;
+                            horizontal-alignment: center;
+                        }
+
+                        // PROBAR ESTA PC Button
+                        Rectangle {
+                            height: 56px;
+                            width: 280px;
+                            border-radius: 28px;
+                            background: #0284c7;
+                            border-width: 1px;
+                            border-color: #7dd3fc80;
+
+                            btn_touch := TouchArea {
+                                clicked => {
+                                    root.try_pc_clicked();
+                                }
+                            }
+
+                            states [
+                                hover when btn_touch.has-hover: {
+                                    background: #0369a1;
+                                }
+                            ]
+
+                            HorizontalLayout {
+                                alignment: center;
+                                spacing: 10px;
+
+                                Text {
+                                    text: "🚀";
+                                    font-size: 18px;
+                                    vertical-alignment: center;
+                                }
+                                Text {
+                                    text: "PROBAR ESTA PC";
+                                    font-size: 16px;
+                                    font-weight: 800;
+                                    color: #ffffff;
+                                    letter-spacing: 1px;
+                                    vertical-alignment: center;
+                                }
+                            }
+                        }
+                    }
+                }
+
+                // PRICING & SKU BANNER
+                Rectangle {
+                    height: 110px;
+                    background: #0f172acc;
+                    border-radius: 16px;
+                    border-width: 1px;
+                    border-color: #38bdf833;
+
+                    HorizontalLayout {
+                        alignment: space-between;
+                        padding-left: 24px;
+                        padding-right: 24px;
+                        padding-top: 14px;
+                        padding-bottom: 14px;
+
+                        // Retail Card Price
+                        VerticalLayout {
+                            alignment: center;
+                            spacing: 4px;
+                            Text {
+                                text: root.card_label;
+                                font-size: 12px;
+                                font-weight: 700;
+                                color: #38bdf8;
+                                letter-spacing: 1px;
+                            }
+                            Text {
+                                text: root.card_price;
+                                font-size: 32px;
+                                font-weight: 900;
+                                color: #ffffff;
+                            }
+                        }
+
+                        // Other Means Price
+                        VerticalLayout {
+                            alignment: center;
+                            spacing: 4px;
+                            Text {
+                                text: root.normal_label;
+                                font-size: 12px;
+                                font-weight: 600;
+                                color: #94a3b8;
+                            }
+                            Text {
+                                text: root.normal_price;
+                                font-size: 24px;
+                                font-weight: 800;
+                                color: #cbd5e1;
+                            }
+                        }
+
+                        // SKU & Retail Store
+                        VerticalLayout {
+                            alignment: center;
+                            spacing: 6px;
+                            Rectangle {
+                                background: #1e293b;
+                                border-radius: 8px;
+                                border-width: 1px;
+                                border-color: #334155;
+                                HorizontalLayout {
+                                    padding-left: 12px;
+                                    padding-right: 12px;
+                                    padding-top: 6px;
+                                    padding-bottom: 6px;
+                                    Text {
+                                        text: "SKU: " + root.sku_code;
+                                        font-size: 13px;
+                                        font-weight: 700;
+                                        color: #f8fafc;
+                                    }
+                                }
+                            }
+                            Text {
+                                text: root.retail_name;
+                                font-size: 11px;
+                                font-weight: 700;
+                                color: #64748b;
+                                letter-spacing: 1px;
+                                horizontal-alignment: center;
+                            }
+                        }
+                    }
+                }
+            }
+
+            // RIGHT COLUMN (Specs 5 to 8)
+            VerticalLayout {
+                width: 320px;
+                spacing: 12px;
+
+                for item in root.right_specs: SpecCard {
+                    category: item.category;
+                    value: item.value;
+                    subvalue: item.subvalue;
+                    tag: item.tag;
+                    accent_color: #818cf8;
+                }
+            }
+        }
+    }
+
+    // MODAL 1: QUICK SETUP WIZARD (First Launch)
+    if root.is_quick_setup_open: Rectangle {
+        width: 100%;
+        height: 100%;
+        background: #000000df;
+
+        Rectangle {
+            width: 620px;
+            height: 560px;
+            background: #0f172a;
+            border-radius: 20px;
+            border-width: 1px;
+            border-color: #38bdf880;
+
+            VerticalLayout {
+                padding-left: 36px;
+                padding-right: 36px;
+                padding-top: 30px;
+                padding-bottom: 30px;
+                spacing: 16px;
+
+                Text {
+                    text: "Configuración Rápida de Exhibición";
+                    font-size: 22px;
+                    font-weight: 800;
+                    color: #ffffff;
+                }
+
+                Text {
+                    text: "Ingresa los datos comerciales del equipo para iniciar el showroom en tienda.";
+                    font-size: 13px;
+                    color: #94a3b8;
+                }
+
+                // Auto-detect Button
+                Rectangle {
+                    height: 38px;
+                    background: #1e293b;
+                    border-radius: 8px;
+                    border-width: 1px;
+                    border-color: #38bdf840;
+
+                    detect_touch := TouchArea {
+                        clicked => {
+                            root.auto_detect_clicked();
+                        }
+                    }
+
+                    Text {
+                        text: "⚡ Auto-detectar Hardware del Equipo";
+                        font-size: 13px;
+                        font-weight: 700;
+                        color: #38bdf8;
+                        horizontal-alignment: center;
+                        vertical-alignment: center;
+                    }
+                }
+
+                HorizontalLayout {
+                    spacing: 12px;
+                    VerticalLayout {
+                        spacing: 4px;
+                        Text { text: "Marca:"; font-size: 12px; color: #cbd5e1; }
+                        brand_ed := LineEdit {
+                            text: root.setup_brand;
+                            placeholder-text: "Ej: ASUS, LENOVO, HP";
+                            edited => { root.setup_brand = self.text; }
+                        }
+                    }
+                    VerticalLayout {
+                        spacing: 4px;
+                        Text { text: "Modelo:"; font-size: 12px; color: #cbd5e1; }
+                        model_ed := LineEdit {
+                            text: root.setup_model;
+                            placeholder-text: "Ej: ROG Strix G16";
+                            edited => { root.setup_model = self.text; }
+                        }
+                    }
+                }
+
+                HorizontalLayout {
+                    spacing: 12px;
+                    VerticalLayout {
+                        spacing: 4px;
+                        Text { text: "Precio Tarjeta:"; font-size: 12px; color: #cbd5e1; }
+                        cprice_ed := LineEdit {
+                            text: root.setup_card_price;
+                            placeholder-text: "Ej: $1.299.990";
+                            edited => { root.setup_card_price = self.text; }
+                        }
+                    }
+                    VerticalLayout {
+                        spacing: 4px;
+                        Text { text: "Precio Normal:"; font-size: 12px; color: #cbd5e1; }
+                        nprice_ed := LineEdit {
+                            text: root.setup_normal_price;
+                            placeholder-text: "Ej: $1.349.990";
+                            edited => { root.setup_normal_price = self.text; }
+                        }
+                    }
+                }
+
+                HorizontalLayout {
+                    spacing: 12px;
+                    VerticalLayout {
+                        spacing: 4px;
+                        Text { text: "SKU Tienda:"; font-size: 12px; color: #cbd5e1; }
+                        sku_ed := LineEdit {
+                            text: root.setup_sku;
+                            placeholder-text: "Ej: 8493021";
+                            edited => { root.setup_sku = self.text; }
+                        }
+                    }
+                    VerticalLayout {
+                        spacing: 4px;
+                        Text { text: "Tienda Retail:"; font-size: 12px; color: #cbd5e1; }
+                        retail_ed := LineEdit {
+                            text: root.setup_retail;
+                            placeholder-text: "Ej: Ripley, Falabella, Paris";
+                            edited => { root.setup_retail = self.text; }
+                        }
+                    }
+                }
+
+                // Submit button
+                Rectangle {
+                    height: 48px;
+                    background: #0284c7;
+                    border-radius: 10px;
+
+                    TouchArea {
+                        clicked => {
+                            root.save_quick_setup(
+                                root.setup_brand,
+                                root.setup_model,
+                                root.setup_card_price,
+                                root.setup_normal_price,
+                                root.setup_sku,
+                                root.setup_retail
+                            );
+                        }
+                    }
+
+                    Text {
+                        text: "Guardar y Comenzar Showroom";
+                        font-size: 15px;
+                        font-weight: 800;
+                        color: #ffffff;
+                        horizontal-alignment: center;
+                        vertical-alignment: center;
+                    }
+                }
+            }
+        }
+    }
+
+    // MODAL 2: ADMIN DIALOG
+    if root.is_admin_open: Rectangle {
+        width: 100%;
+        height: 100%;
+        background: #000000e6;
+
+        Rectangle {
+            width: 540px;
+            height: 460px;
+            background: #0f172a;
+            border-radius: 20px;
+            border-width: 1px;
+            border-color: #38bdf880;
+
+            if !root.is_admin_authenticated: VerticalLayout {
+                padding-left: 32px;
+                padding-right: 32px;
+                padding-top: 28px;
+                padding-bottom: 28px;
+                spacing: 18px;
+                alignment: center;
+
+                Text {
+                    text: "Acceso de Administración";
+                    font-size: 20px;
+                    font-weight: 800;
+                    color: #ffffff;
+                    horizontal-alignment: center;
+                }
+
+                Text {
+                    text: "Ingresa la contraseña para configurar opciones avanzadas o salir.";
+                    font-size: 13px;
+                    color: #94a3b8;
+                    horizontal-alignment: center;
+                }
+
+                pwd_ed := LineEdit {
+                    placeholder-text: "Contraseña (demo / z3n1t)";
+                    text: root.admin_password_input;
+                    input-type: password;
+                    accepted => {
+                        root.check_admin_password(self.text);
+                    }
+                    edited => {
+                        root.admin_password_input = self.text;
+                    }
+                }
+
+                if root.admin_error_msg != "": Text {
+                    text: root.admin_error_msg;
+                    font-size: 12px;
+                    color: #f87171;
+                    horizontal-alignment: center;
+                }
+
+                HorizontalLayout {
+                    spacing: 12px;
+
+                    Rectangle {
+                        height: 42px;
+                        background: #0284c7;
+                        border-radius: 8px;
+
+                        TouchArea {
+                            clicked => {
+                                root.check_admin_password(root.admin_password_input);
+                            }
+                        }
+
+                        Text {
+                            text: "Desbloquear";
+                            font-size: 14px;
+                            font-weight: 700;
+                            color: #ffffff;
+                            horizontal-alignment: center;
+                            vertical-alignment: center;
+                        }
+                    }
+
+                    Rectangle {
+                        height: 42px;
+                        background: #1e293b;
+                        border-radius: 8px;
+
+                        TouchArea {
+                            clicked => {
+                                root.close_admin_clicked();
+                            }
+                        }
+
+                        Text {
+                            text: "Cancelar";
+                            font-size: 14px;
+                            color: #94a3b8;
+                            horizontal-alignment: center;
+                            vertical-alignment: center;
+                        }
+                    }
+                }
+            }
+
+            if root.is_admin_authenticated: VerticalLayout {
+                padding-left: 32px;
+                padding-right: 32px;
+                padding-top: 28px;
+                padding-bottom: 28px;
+                spacing: 18px;
+
+                HorizontalLayout {
+                    alignment: space-between;
+                    Text {
+                        text: "Panel de Control";
+                        font-size: 20px;
+                        font-weight: 800;
+                        color: #ffffff;
+                    }
+                    Rectangle {
+                        width: 32px;
+                        height: 32px;
+                        background: #1e293b;
+                        border-radius: 16px;
+                        TouchArea {
+                            clicked => {
+                                root.close_admin_clicked();
+                            }
+                        }
+                        Text {
+                            text: "✕";
+                            color: #ffffff;
+                            horizontal-alignment: center;
+                            vertical-alignment: center;
+                        }
+                    }
+                }
+
+                Text {
+                    text: "Acciones de Emergencia y Mantenimiento:";
+                    font-size: 13px;
+                    color: #94a3b8;
+                }
+
+                // Emergency Exit to Windows
+                Rectangle {
+                    height: 44px;
+                    background: #dc2626;
+                    border-radius: 8px;
+
+                    TouchArea {
+                        clicked => {
+                            root.emergency_exit_clicked();
+                        }
+                    }
+
+                    Text {
+                        text: "Salir a Windows (Cerrar Aplicación)";
+                        font-size: 14px;
+                        font-weight: 700;
+                        color: #ffffff;
+                        horizontal-alignment: center;
+                        vertical-alignment: center;
+                    }
+                }
+
+                // Restart App
+                Rectangle {
+                    height: 44px;
+                    background: #d97706;
+                    border-radius: 8px;
+
+                    TouchArea {
+                        clicked => {
+                            root.emergency_restart_clicked();
+                        }
+                    }
+
+                    Text {
+                        text: "Reiniciar Aplicación";
+                        font-size: 14px;
+                        font-weight: 700;
+                        color: #ffffff;
+                        horizontal-alignment: center;
+                        vertical-alignment: center;
+                    }
+                }
+
+                // Re-open Quick Setup
+                Rectangle {
+                    height: 44px;
+                    background: #0284c7;
+                    border-radius: 8px;
+
+                    TouchArea {
+                        clicked => {
+                            root.is_admin_open = false;
+                            root.is_quick_setup_open = true;
+                        }
+                    }
+
+                    Text {
+                        text: "Reconfigurar Precios / SKU / Marca";
+                        font-size: 14px;
+                        font-weight: 700;
+                        color: #ffffff;
+                        horizontal-alignment: center;
+                        vertical-alignment: center;
+                    }
+                }
+            }
+        }
+    }
+
+    // MODAL 3: SCREENSAVER OVERLAY
+    if root.is_screensaver_active: Rectangle {
+        width: 100%;
+        height: 100%;
+        background: #030712f2;
+
+        TouchArea {
+            clicked => {
+                root.dismiss_screensaver();
+            }
+        }
+
+        VerticalLayout {
+            alignment: center;
+            spacing: 24px;
+
+            Rectangle {
+                width: 90px;
+                height: 90px;
+                border-radius: 45px;
+                background: #0284c726;
+                border-width: 2px;
+                border-color: #38bdf880;
+
+                Text {
+                    text: "✨";
+                    font-size: 40px;
+                    horizontal-alignment: center;
+                    vertical-alignment: center;
+                }
+            }
+
+            Text {
+                text: root.brand_name + " " + root.model_name;
+                font-size: 36px;
+                font-weight: 900;
+                color: #ffffff;
+                horizontal-alignment: center;
+            }
+
+            Text {
+                text: "Toca la pantalla o presiona cualquier tecla para interactuar";
+                font-size: 16px;
+                font-weight: 600;
+                color: #38bdf8;
+                horizontal-alignment: center;
+            }
+        }
+    }
+}
