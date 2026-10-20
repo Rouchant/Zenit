@@ -30,7 +30,7 @@ fn populate_ui_state(window: &MainWindow) {
             "PC Showroom".to_string()
         }
     });
-    window.set_model_name(model_display.into());
+    window.set_model_name(model_display.clone().into());
 
     let retail_upper = if cfg.store_theme.is_empty() || cfg.store_theme == "default" {
         "SHOWROOM".to_string()
@@ -90,12 +90,34 @@ fn populate_ui_state(window: &MainWindow) {
 
     // Quick Setup Initial State
     window.set_is_quick_setup_open(!cfg.setup_completed);
-    window.set_setup_brand(state.brand_name.into());
-    window.set_setup_model(cfg.model_override.unwrap_or_default().into());
-    window.set_setup_card_price(cfg.price_card.into());
-    window.set_setup_normal_price(cfg.price_all_methods.into());
-    window.set_setup_sku(cfg.sku.into());
-    window.set_setup_retail(cfg.store_theme.into());
+    window.set_setup_brand(state.brand_name.clone().into());
+    window.set_setup_model(cfg.model_override.clone().unwrap_or_default().into());
+    window.set_setup_card_price(cfg.price_card.clone().into());
+    window.set_setup_normal_price(cfg.price_all_methods.clone().into());
+    window.set_setup_sku(cfg.sku.clone().into());
+    window.set_setup_retail(cfg.store_theme.clone().into());
+
+    // Admin Configuration Initial State
+    window.set_cfg_brand(cfg.brand_override.clone().unwrap_or_else(|| state.brand_name.clone()).into());
+    window.set_cfg_model(cfg.model_override.clone().unwrap_or(model_display).into());
+    window.set_cfg_retail(cfg.store_theme.clone().into());
+    window.set_cfg_card_price(cfg.price_card.clone().into());
+    window.set_cfg_normal_price(cfg.price_all_methods.clone().into());
+    window.set_cfg_sku(cfg.sku.clone().into());
+
+    window.set_cfg_cpu(cfg.processor_override.clone().unwrap_or_default().into());
+    window.set_cfg_ram(cfg.ram_override.clone().unwrap_or_default().into());
+    window.set_cfg_storage(cfg.storage_override.clone().unwrap_or_default().into());
+    window.set_cfg_gpu(cfg.gpu_override.clone().unwrap_or_default().into());
+    window.set_cfg_display(cfg.display_override.clone().unwrap_or_default().into());
+    window.set_cfg_os(cfg.os_override.clone().unwrap_or_default().into());
+    window.set_cfg_battery(cfg.battery_override.clone().unwrap_or_default().into());
+    window.set_cfg_others(cfg.other_specs.clone().into());
+
+    window.set_cfg_central_video(cfg.central_video_path.clone().into());
+    window.set_cfg_inactivity_video(cfg.inactivity_video_path.clone().into());
+    window.set_cfg_bg_video(cfg.bg_video_path.clone().into());
+    window.set_cfg_inactivity_timeout(cfg.inactivity_timeout_sec.to_string().into());
 }
 
 pub fn run() {
@@ -228,13 +250,61 @@ pub fn run() {
         }
     });
 
-    // Auto-detect Hardware for Quick Setup
+    // Auto-detect Hardware for Quick Setup & Admin Panel
     let detect_handle = main_window.as_weak();
     main_window.on_auto_detect_clicked(move || {
         if let Some(ui) = detect_handle.upgrade() {
             let hw = detect_hardware();
-            ui.set_setup_brand(hw.brand.into());
-            ui.set_setup_model(hw.model.into());
+            ui.set_setup_brand(hw.brand.clone().into());
+            ui.set_setup_model(hw.model.clone().into());
+
+            // Also fill Admin inputs
+            ui.set_cfg_brand(hw.brand.into());
+            ui.set_cfg_model(hw.model.into());
+            ui.set_cfg_cpu(hw.processor.into());
+            ui.set_cfg_ram(hw.ram.into());
+            ui.set_cfg_storage(hw.storage.into());
+            ui.set_cfg_gpu(hw.gpu.into());
+            ui.set_cfg_display(hw.display.into());
+            ui.set_cfg_os(hw.os.into());
+            ui.set_cfg_battery(hw.battery.into());
+        }
+    });
+
+    // Save Admin Configuration Form (Tienda, Especificaciones, Videos, Sistema)
+    let save_admin_handle = main_window.as_weak();
+    main_window.on_save_admin_config(move |brand, model, retail, card_p, normal_p, sku,
+                                           cpu, ram, storage, gpu, display, os, battery, others,
+                                           central_vid, inact_vid, bg_vid, timeout_str| {
+        if let Some(ui) = save_admin_handle.upgrade() {
+            let mut cfg = load_config();
+            if !brand.trim().is_empty() { cfg.brand_override = Some(brand.to_string()); } else { cfg.brand_override = None; }
+            if !model.trim().is_empty() { cfg.model_override = Some(model.to_string()); } else { cfg.model_override = None; }
+            cfg.store_theme = retail.to_string();
+            cfg.price_card = card_p.to_string();
+            cfg.price_all_methods = normal_p.to_string();
+            cfg.sku = sku.to_string();
+
+            if !cpu.trim().is_empty() { cfg.processor_override = Some(cpu.to_string()); } else { cfg.processor_override = None; }
+            if !ram.trim().is_empty() { cfg.ram_override = Some(ram.to_string()); } else { cfg.ram_override = None; }
+            if !storage.trim().is_empty() { cfg.storage_override = Some(storage.to_string()); } else { cfg.storage_override = None; }
+            if !gpu.trim().is_empty() { cfg.gpu_override = Some(gpu.to_string()); } else { cfg.gpu_override = None; }
+            if !display.trim().is_empty() { cfg.display_override = Some(display.to_string()); } else { cfg.display_override = None; }
+            if !os.trim().is_empty() { cfg.os_override = Some(os.to_string()); } else { cfg.os_override = None; }
+            if !battery.trim().is_empty() { cfg.battery_override = Some(battery.to_string()); } else { cfg.battery_override = None; }
+            cfg.other_specs = others.to_string();
+
+            if !central_vid.trim().is_empty() { cfg.central_video_path = central_vid.to_string(); }
+            if !inact_vid.trim().is_empty() { cfg.inactivity_video_path = inact_vid.to_string(); }
+            if !bg_vid.trim().is_empty() { cfg.bg_video_path = bg_vid.to_string(); }
+            if let Ok(t) = timeout_str.trim().parse::<u64>() {
+                if t > 0 { cfg.inactivity_timeout_sec = t; }
+            }
+
+            let _ = save_config(&cfg);
+            ui.set_is_admin_open(false);
+            ui.set_is_admin_authenticated(false);
+            populate_ui_state(&ui);
         }
     });
 
