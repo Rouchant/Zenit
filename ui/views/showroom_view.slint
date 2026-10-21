@@ -268,53 +268,7 @@ export component ShowroomView inherits Rectangle {
                         }
                     }
 
-                    // Botón PROBAR ESTA PC (Debajo del componente de video)
-                    HorizontalLayout {
-                        alignment: center;
-
-                        Rectangle {
-                            height: 52px;
-                            width: 300px;
-                            border-radius: 26px;
-                            background: @linear-gradient(135deg, #0284c7 0%, #0369a1 100%);
-                            border-width: 1.5px;
-                            border-color: #7dd3fc80;
-
-                            btn_touch := TouchArea {
-                                clicked => {
-                                    root.try_pc_clicked();
-                                }
-                            }
-
-                            states [
-                                hover when btn_touch.has-hover: {
-                                    background: @linear-gradient(135deg, #0284c7 0%, #0284c7 100%);
-                                    border-color: #ffffff;
-                                }
-                            ]
-
-                            HorizontalLayout {
-                                alignment: center;
-                                spacing: 10px;
-
-                                Text {
-                                    text: "⚡";
-                                    font-size: 18px;
-                                    vertical-alignment: center;
-                                }
-                                Text {
-                                    text: "PROBAR ESTA PC";
-                                    font-size: 16px;
-                                    font-weight: 900;
-                                    color: #ffffff;
-                                    letter-spacing: 1px;
-                                    vertical-alignment: center;
-                                }
-                            }
-                        }
-                    }
-
-                    // PRICING & SKU BANNER (Debajo del botón)
+                    // PRICING & SKU BANNER (Barra de precios)
                     if root.card_price != "" || root.normal_price != "" || root.sku_code != "" || root.retail_name != "": Rectangle {
                         height: 82px;
                         background: @linear-gradient(180deg, #0f172ae6 0%, #090e1adc 100%);
@@ -489,6 +443,52 @@ export component ShowroomView inherits Rectangle {
                                             }
                                         }
                                     }
+                                }
+                            }
+                        }
+                    }
+
+                    // Botón PROBAR ESTA PC (Debajo de la barra que recibe los precios)
+                    HorizontalLayout {
+                        alignment: center;
+
+                        Rectangle {
+                            height: 52px;
+                            width: 300px;
+                            border-radius: 26px;
+                            background: @linear-gradient(135deg, #0284c7 0%, #0369a1 100%);
+                            border-width: 1.5px;
+                            border-color: #7dd3fc80;
+
+                            btn_touch := TouchArea {
+                                clicked => {
+                                    root.try_pc_clicked();
+                                }
+                            }
+
+                            states [
+                                hover when btn_touch.has-hover: {
+                                    background: @linear-gradient(135deg, #0284c7 0%, #0284c7 100%);
+                                    border-color: #ffffff;
+                                }
+                            ]
+
+                            HorizontalLayout {
+                                alignment: center;
+                                spacing: 10px;
+
+                                Text {
+                                    text: "⚡";
+                                    font-size: 18px;
+                                    vertical-alignment: center;
+                                }
+                                Text {
+                                    text: "PROBAR ESTA PC";
+                                    font-size: 16px;
+                                    font-weight: 900;
+                                    color: #ffffff;
+                                    letter-spacing: 1px;
+                                    vertical-alignment: center;
                                 }
                             }
                         }
