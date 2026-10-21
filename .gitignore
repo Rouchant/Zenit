@@ -9,3 +9,5 @@
 *.dll
 *.lib
 *.exp
+dist/
+
