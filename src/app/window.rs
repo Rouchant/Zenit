@@ -8,6 +8,10 @@ use windows_sys::Win32::Foundation::{HWND, LPARAM};
 #[cfg(target_os = "windows")]
 use windows_sys::Win32::System::Threading::GetCurrentThreadId;
 #[cfg(target_os = "windows")]
+use windows_sys::Win32::System::Power::{
+    SetThreadExecutionState, ES_CONTINUOUS, ES_DISPLAY_REQUIRED, ES_SYSTEM_REQUIRED,
+};
+#[cfg(target_os = "windows")]
 use windows_sys::Win32::UI::WindowsAndMessaging::{
     EnumThreadWindows, GetParent, GetSystemMetrics, IsWindow, SetForegroundWindow, SetWindowPos,
     ShowWindow, HWND_TOP, HWND_TOPMOST, SM_CXSCREEN, SM_CYSCREEN, SWP_SHOWWINDOW, SW_HIDE,
@@ -20,6 +24,9 @@ pub fn init_main_window(window: &MainWindow) {
 
     #[cfg(target_os = "windows")]
     unsafe {
+        // Prevent Windows from sleeping or turning off the display
+        SetThreadExecutionState(ES_CONTINUOUS | ES_DISPLAY_REQUIRED | ES_SYSTEM_REQUIRED);
+
         unsafe extern "system" fn enum_main_win(hwnd: HWND, _: LPARAM) -> i32 {
             if unsafe { GetParent(hwnd) }.is_null() {
                 MAIN_HWND.store(hwnd as isize, Ordering::SeqCst);
@@ -61,6 +68,7 @@ pub fn minimize_main_window() {
 pub fn restore_main_window() {
     #[cfg(target_os = "windows")]
     unsafe {
+        SetThreadExecutionState(ES_CONTINUOUS | ES_DISPLAY_REQUIRED | ES_SYSTEM_REQUIRED);
         let main_hwnd = MAIN_HWND.load(Ordering::SeqCst) as HWND;
         if !main_hwnd.is_null() {
             ShowWindow(main_hwnd, SW_SHOW);
