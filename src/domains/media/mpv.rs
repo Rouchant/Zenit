@@ -185,6 +185,19 @@ impl SlintMpvPlayer {
             let opt_no = CString::new("no").unwrap();
             (lib.mpv_set_option_string)(mpv, opt_osc.as_ptr(), opt_no.as_ptr());
 
+            // Mute all video audio completely
+            let opt_mute = CString::new("mute").unwrap();
+            let opt_yes = CString::new("yes").unwrap();
+            (lib.mpv_set_option_string)(mpv, opt_mute.as_ptr(), opt_yes.as_ptr());
+
+            let opt_volume = CString::new("volume").unwrap();
+            let opt_zero = CString::new("0").unwrap();
+            (lib.mpv_set_option_string)(mpv, opt_volume.as_ptr(), opt_zero.as_ptr());
+
+            let opt_ao = CString::new("ao").unwrap();
+            let opt_null = CString::new("null").unwrap();
+            (lib.mpv_set_option_string)(mpv, opt_ao.as_ptr(), opt_null.as_ptr());
+
             if (lib.mpv_initialize)(mpv) < 0 {
                 (lib.mpv_destroy)(mpv);
                 return Err("Fallo al inicializar mpv".to_string());
@@ -329,11 +342,15 @@ impl SlintMpvPlayer {
             "set keep-open yes"
         }).unwrap();
         let unpause_cmd = CString::new("set pause no").unwrap();
+        let mute_cmd = CString::new("set mute yes").unwrap();
+        let vol_cmd = CString::new("set volume 0").unwrap();
 
         unsafe {
             (self.lib.mpv_command_string)(self.mpv, loop_cmd.as_ptr());
             (self.lib.mpv_command_string)(self.mpv, keep_cmd.as_ptr());
             (self.lib.mpv_command_string)(self.mpv, unpause_cmd.as_ptr());
+            (self.lib.mpv_command_string)(self.mpv, mute_cmd.as_ptr());
+            (self.lib.mpv_command_string)(self.mpv, vol_cmd.as_ptr());
         }
         self.is_playing.store(true, Ordering::SeqCst);
 
