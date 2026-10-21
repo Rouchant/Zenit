@@ -453,7 +453,16 @@ impl Drop for SlintMpvPlayer {
 }
 
 pub fn resolve_showroom_video_path() -> PathBuf {
+    let cfg = crate::domains::showcase::config::load_config();
+    if !cfg.central_video_path.trim().is_empty() {
+        let p = resolve_video_path(&cfg.central_video_path);
+        if p.exists() {
+            return p;
+        }
+    }
+
     let candidate_paths = [
+        PathBuf::from("assets/videos/landing2.mp4"),
         PathBuf::from("assets/videos/landing.mp4"),
         PathBuf::from("assets/videos/promo2.mp4"),
         PathBuf::from("assets/videos/promo.mp4"),
@@ -472,7 +481,7 @@ pub fn resolve_showroom_video_path() -> PathBuf {
         }
     }
 
-    base.join("assets/videos/landing.mp4")
+    base.join("assets/videos/landing2.mp4")
 }
 
 pub fn resolve_video_path(configured_path: &str) -> PathBuf {

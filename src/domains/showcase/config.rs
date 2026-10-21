@@ -86,7 +86,7 @@ impl Default for AppConfig {
             battery_override: None,
             other_specs: "Wi-Fi 6 / Bluetooth 5.3 / Teclado en Español".to_string(),
 
-            central_video_path: "assets/videos/landing.mp4".to_string(),
+            central_video_path: "assets/videos/landing2.mp4".to_string(),
             bg_video_path: "assets/videos/bg.mp4".to_string(),
             inactivity_video_path: "assets/videos/promo2.mp4".to_string(),
             inactivity_video_path_2: "".to_string(),
@@ -131,6 +131,10 @@ fn load_config_from_disk() -> AppConfig {
         if let Ok(content) = fs::read_to_string(&path) {
             if let Ok(mut cfg) = serde_json::from_str::<AppConfig>(&content) {
                 let mut modified = false;
+                if cfg.central_video_path == "assets/videos/landing.mp4" || cfg.central_video_path.is_empty() {
+                    cfg.central_video_path = "assets/videos/landing2.mp4".to_string();
+                    modified = true;
+                }
                 if cfg.inactivity_video_path == "assets/videos/promo.mp4" {
                     cfg.inactivity_video_path = "assets/videos/promo2.mp4".to_string();
                     modified = true;
@@ -223,6 +227,7 @@ mod tests {
         let cfg = AppConfig::default();
         assert_eq!(cfg.primary_color, "#00f2ff");
         assert_eq!(cfg.store_theme, "default");
+        assert_eq!(cfg.central_video_path, "assets/videos/landing2.mp4");
         assert_eq!(cfg.bg_video_path, "assets/videos/bg.mp4");
         assert_eq!(cfg.inactivity_video_path, "assets/videos/promo2.mp4");
         assert_eq!(cfg.inactivity_video_path_2, "");
