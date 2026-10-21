@@ -9,7 +9,7 @@ fn default_bg_end() -> String {
     "#f3e8ff".to_string()
 }
 fn default_card_bg() -> String {
-    "#ffffff".to_string()
+    "#E0E0E0".to_string()
 }
 fn default_card_border() -> String {
     "#e2e8f0".to_string()
@@ -27,7 +27,7 @@ fn default_btn_bg() -> String {
     "#0284c7".to_string()
 }
 fn default_btn_text() -> String {
-    "#ffffff".to_string()
+    "#E0E0E0".to_string()
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
@@ -119,12 +119,12 @@ impl Default for AppConfig {
 
             bg_start_color: "#e0f2fe".to_string(),
             bg_end_color: "#f3e8ff".to_string(),
-            card_bg_color: "#ffffff".to_string(),
+            card_bg_color: "#E0E0E0".to_string(),
             card_border_color: "#e2e8f0".to_string(),
             text_primary_color: "#0f172a".to_string(),
             text_secondary_color: "#64748b".to_string(),
             btn_bg_color: "#0284c7".to_string(),
-            btn_text_color: "#ffffff".to_string(),
+            btn_text_color: "#E0E0E0".to_string(),
 
             price_card: "".to_string(),
             price_all_methods: "".to_string(),
@@ -242,6 +242,22 @@ fn load_config_from_disk() -> AppConfig {
                     cfg.bg_end_color = "#f3e8ff".to_string();
                     modified = true;
                 }
+                if cfg.card_bg_color.eq_ignore_ascii_case("#ffffff") {
+                    cfg.card_bg_color = "#E0E0E0".to_string();
+                    modified = true;
+                }
+                if cfg.btn_text_color.eq_ignore_ascii_case("#ffffff") {
+                    cfg.btn_text_color = "#E0E0E0".to_string();
+                    modified = true;
+                }
+                if cfg.bg_start_color.eq_ignore_ascii_case("#ffffff") {
+                    cfg.bg_start_color = "#E0E0E0".to_string();
+                    modified = true;
+                }
+                if cfg.bg_end_color.eq_ignore_ascii_case("#ffffff") {
+                    cfg.bg_end_color = "#E0E0E0".to_string();
+                    modified = true;
+                }
 
                 if modified {
                     let _ = save_config(&cfg);
@@ -312,11 +328,12 @@ mod tests {
         assert_eq!(cfg.inactivity_timeout_sec, 120);
         assert_eq!(cfg.bg_start_color, "#e0f2fe");
         assert_eq!(cfg.bg_end_color, "#f3e8ff");
-        assert_eq!(cfg.card_bg_color, "#ffffff");
+        assert_eq!(cfg.card_bg_color, "#E0E0E0");
         assert_eq!(cfg.card_border_color, "#e2e8f0");
         assert_eq!(cfg.text_primary_color, "#0f172a");
         assert_eq!(cfg.text_secondary_color, "#64748b");
         assert_eq!(cfg.btn_bg_color, "#0284c7");
+        assert_eq!(cfg.btn_text_color, "#E0E0E0");
         assert!(!cfg.setup_completed);
     }
 

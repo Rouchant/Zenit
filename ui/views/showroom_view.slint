@@ -24,13 +24,13 @@ export component ShowroomView inherits Rectangle {
     // Theme Colors
     in property <color> theme_bg_start: #e0f2fe;
     in property <color> theme_bg_end: #f3e8ff;
-    in property <color> theme_card_bg: #ffffff;
+    in property <color> theme_card_bg: #E0E0E0;
     in property <color> theme_card_border: #e2e8f0;
     in property <color> theme_text_primary: #0f172a;
     in property <color> theme_text_secondary: #64748b;
     in property <color> theme_accent: #0284c7;
     in property <color> theme_btn_bg: #0284c7;
-    in property <color> theme_btn_text: #ffffff;
+    in property <color> theme_btn_text: #E0E0E0;
 
     callback try_pc_clicked();
     callback corner_tap_clicked();
@@ -281,7 +281,7 @@ export component ShowroomView inherits Rectangle {
                                     text: root.brand_name + " " + root.model_name;
                                     font-size: 26px;
                                     font-weight: 800;
-                                    color: #ffffff;
+                                    color: #E0E0E0;
                                     horizontal-alignment: center;
                                     wrap: word-wrap;
                                 }
@@ -494,7 +494,7 @@ export component ShowroomView inherits Rectangle {
 
                             states [
                                 hover when btn_touch.has-hover: {
-                                    border-color: #ffffff;
+                                    border-color: #E0E0E0;
                                 }
                             ]
 

@@ -296,13 +296,13 @@ pub fn populate_ui_state(window: &MainWindow) {
     // Theme Colors Synchronization
     let bg_start = parse_hex_color(&cfg.bg_start_color, slint::Color::from_rgb_u8(224, 242, 254)); // #e0f2fe
     let bg_end = parse_hex_color(&cfg.bg_end_color, slint::Color::from_rgb_u8(243, 232, 255)); // #f3e8ff
-    let card_bg = parse_hex_color(&cfg.card_bg_color, slint::Color::from_rgb_u8(255, 255, 255));
+    let card_bg = parse_hex_color(&cfg.card_bg_color, slint::Color::from_rgb_u8(224, 224, 224));
     let card_border = parse_hex_color(&cfg.card_border_color, slint::Color::from_rgb_u8(226, 232, 240));
     let text_primary = parse_hex_color(&cfg.text_primary_color, slint::Color::from_rgb_u8(15, 23, 42));
     let text_secondary = parse_hex_color(&cfg.text_secondary_color, slint::Color::from_rgb_u8(100, 116, 139));
     let accent = parse_hex_color(&cfg.accent_color, slint::Color::from_rgb_u8(2, 132, 199));
     let btn_bg = parse_hex_color(&cfg.btn_bg_color, slint::Color::from_rgb_u8(2, 132, 199));
-    let btn_text = parse_hex_color(&cfg.btn_text_color, slint::Color::from_rgb_u8(255, 255, 255));
+    let btn_text = parse_hex_color(&cfg.btn_text_color, slint::Color::from_rgb_u8(224, 224, 224));
 
     window.set_theme_bg_start(bg_start);
     window.set_theme_bg_end(bg_end);

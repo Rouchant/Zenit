@@ -37,13 +37,13 @@ export component AdminView inherits Rectangle {
     // Tab Interfaz
     in-out property <string> cfg_bg_start: "#e0f2fe";
     in-out property <string> cfg_bg_end: "#f3e8ff";
-    in-out property <string> cfg_card_bg: "#ffffff";
+    in-out property <string> cfg_card_bg: "#E0E0E0";
     in-out property <string> cfg_card_border: "#e2e8f0";
     in-out property <string> cfg_text_primary: "#0f172a";
     in-out property <string> cfg_text_secondary: "#64748b";
     in-out property <string> cfg_accent: "#0284c7";
     in-out property <string> cfg_btn_bg: "#0284c7";
-    in-out property <string> cfg_btn_text: "#ffffff";
+    in-out property <string> cfg_btn_text: "#E0E0E0";
 
     // Callbacks
     callback close_admin_clicked();
@@ -96,7 +96,7 @@ export component AdminView inherits Rectangle {
                         text: "Acceso de Administración";
                         font-size: 20px;
                         font-weight: 800;
-                        color: #ffffff;
+                        color: #E0E0E0;
                         vertical-alignment: center;
                     }
                     Rectangle {
@@ -169,7 +169,7 @@ export component AdminView inherits Rectangle {
                             text: "Desbloquear";
                             font-size: 14px;
                             font-weight: 700;
-                            color: #ffffff;
+                            color: #E0E0E0;
                             horizontal-alignment: center;
                             vertical-alignment: center;
                         }
@@ -212,7 +212,7 @@ export component AdminView inherits Rectangle {
                         text: "Panel de Control y Configuración";
                         font-size: 20px;
                         font-weight: 800;
-                        color: #ffffff;
+                        color: #E0E0E0;
                         vertical-alignment: center;
                     }
                     Rectangle {
@@ -256,7 +256,7 @@ export component AdminView inherits Rectangle {
                             text: "🏪 Tienda";
                             font-size: 13px;
                             font-weight: 700;
-                            color: #ffffff;
+                            color: #E0E0E0;
                             horizontal-alignment: center;
                             vertical-alignment: center;
                         }
@@ -273,7 +273,7 @@ export component AdminView inherits Rectangle {
                             text: "⚙️ Especificaciones";
                             font-size: 13px;
                             font-weight: 700;
-                            color: #ffffff;
+                            color: #E0E0E0;
                             horizontal-alignment: center;
                             vertical-alignment: center;
                         }
@@ -290,7 +290,7 @@ export component AdminView inherits Rectangle {
                             text: "🎬 Videos";
                             font-size: 13px;
                             font-weight: 700;
-                            color: #ffffff;
+                            color: #E0E0E0;
                             horizontal-alignment: center;
                             vertical-alignment: center;
                         }
@@ -307,7 +307,7 @@ export component AdminView inherits Rectangle {
                             text: "🎨 Interfaz";
                             font-size: 13px;
                             font-weight: 700;
-                            color: #ffffff;
+                            color: #E0E0E0;
                             horizontal-alignment: center;
                             vertical-alignment: center;
                         }
@@ -324,7 +324,7 @@ export component AdminView inherits Rectangle {
                             text: "🛠️ Sistema";
                             font-size: 13px;
                             font-weight: 700;
-                            color: #ffffff;
+                            color: #E0E0E0;
                             horizontal-alignment: center;
                             vertical-alignment: center;
                         }
@@ -856,7 +856,7 @@ export component AdminView inherits Rectangle {
                                 text: "📦 Baúl Seguro (%APPDATA%/Zenit/vault):";
                                 font-size: 12px;
                                 font-weight: 700;
-                                color: #ffffff;
+                                color: #E0E0E0;
                                 vertical-alignment: center;
                             }
                             HorizontalLayout {
@@ -915,7 +915,7 @@ export component AdminView inherits Rectangle {
                                         text: "+ 📁 Importar Video...";
                                         font-size: 12px;
                                         font-weight: 700;
-                                        color: #ffffff;
+                                        color: #E0E0E0;
                                         horizontal-alignment: center;
                                         vertical-alignment: center;
                                     }
@@ -994,7 +994,7 @@ export component AdminView inherits Rectangle {
                                                         text: "Slot 1";
                                                         font-size: 10px;
                                                         font-weight: 700;
-                                                        color: #ffffff;
+                                                        color: #E0E0E0;
                                                         horizontal-alignment: center;
                                                         vertical-alignment: center;
                                                     }
@@ -1016,7 +1016,7 @@ export component AdminView inherits Rectangle {
                                                         text: "Slot 2";
                                                         font-size: 10px;
                                                         font-weight: 700;
-                                                        color: #ffffff;
+                                                        color: #E0E0E0;
                                                         horizontal-alignment: center;
                                                         vertical-alignment: center;
                                                     }
@@ -1038,7 +1038,7 @@ export component AdminView inherits Rectangle {
                                                         text: "Slot 3";
                                                         font-size: 10px;
                                                         font-weight: 700;
-                                                        color: #ffffff;
+                                                        color: #E0E0E0;
                                                         horizontal-alignment: center;
                                                         vertical-alignment: center;
                                                     }
@@ -1106,16 +1106,16 @@ export component AdminView inherits Rectangle {
                                             clicked => {
                                                 root.cfg_bg_start = "#e0f2fe";
                                                 root.cfg_bg_end = "#f3e8ff";
-                                                root.cfg_card_bg = "#ffffff";
+                                                root.cfg_card_bg = "#E0E0E0";
                                                 root.cfg_card_border = "#e2e8f0";
                                                 root.cfg_text_primary = "#0f172a";
                                                 root.cfg_text_secondary = "#64748b";
                                                 root.cfg_accent = "#0284c7";
                                                 root.cfg_btn_bg = "#0284c7";
-                                                root.cfg_btn_text = "#ffffff";
+                                                root.cfg_btn_text = "#E0E0E0";
                                             }
                                         }
-                                        Text { text: "🔵 Pastel Zenit"; font-size: 11px; font-weight: 700; color: #ffffff; horizontal-alignment: center; vertical-alignment: center; }
+                                        Text { text: "🔵 Pastel Zenit"; font-size: 11px; font-weight: 700; color: #E0E0E0; horizontal-alignment: center; vertical-alignment: center; }
                                     }
 
                                     // Preset 2: Dark Neon
@@ -1135,10 +1135,10 @@ export component AdminView inherits Rectangle {
                                                 root.cfg_text_secondary = "#9ca3af";
                                                 root.cfg_accent = "#a855f7";
                                                 root.cfg_btn_bg = "#a855f7";
-                                                root.cfg_btn_text = "#ffffff";
+                                                root.cfg_btn_text = "#E0E0E0";
                                             }
                                         }
-                                        Text { text: "🟣 Dark Neon"; font-size: 11px; font-weight: 700; color: #ffffff; horizontal-alignment: center; vertical-alignment: center; }
+                                        Text { text: "🟣 Dark Neon"; font-size: 11px; font-weight: 700; color: #E0E0E0; horizontal-alignment: center; vertical-alignment: center; }
                                     }
 
                                     // Preset 3: Esmeralda
@@ -1152,16 +1152,16 @@ export component AdminView inherits Rectangle {
                                             clicked => {
                                                 root.cfg_bg_start = "#f0fdf4";
                                                 root.cfg_bg_end = "#dcfce7";
-                                                root.cfg_card_bg = "#ffffff";
+                                                root.cfg_card_bg = "#E0E0E0";
                                                 root.cfg_card_border = "#bbf7d0";
                                                 root.cfg_text_primary = "#064e3b";
                                                 root.cfg_text_secondary = "#047857";
                                                 root.cfg_accent = "#059669";
                                                 root.cfg_btn_bg = "#059669";
-                                                root.cfg_btn_text = "#ffffff";
+                                                root.cfg_btn_text = "#E0E0E0";
                                             }
                                         }
-                                        Text { text: "🟢 Esmeralda"; font-size: 11px; font-weight: 700; color: #ffffff; horizontal-alignment: center; vertical-alignment: center; }
+                                        Text { text: "🟢 Esmeralda"; font-size: 11px; font-weight: 700; color: #E0E0E0; horizontal-alignment: center; vertical-alignment: center; }
                                     }
 
                                     // Preset 4: ROG Red
@@ -1181,10 +1181,10 @@ export component AdminView inherits Rectangle {
                                                 root.cfg_text_secondary = "#a1a1aa";
                                                 root.cfg_accent = "#e11d48";
                                                 root.cfg_btn_bg = "#e11d48";
-                                                root.cfg_btn_text = "#ffffff";
+                                                root.cfg_btn_text = "#E0E0E0";
                                             }
                                         }
-                                        Text { text: "🔴 ROG Red"; font-size: 11px; font-weight: 700; color: #ffffff; horizontal-alignment: center; vertical-alignment: center; }
+                                        Text { text: "🔴 ROG Red"; font-size: 11px; font-weight: 700; color: #E0E0E0; horizontal-alignment: center; vertical-alignment: center; }
                                     }
 
                                     // Preset 5: Minimal Pure
@@ -1196,18 +1196,18 @@ export component AdminView inherits Rectangle {
                                         TouchArea {
                                             mouse-cursor: pointer;
                                             clicked => {
-                                                root.cfg_bg_start = "#ffffff";
+                                                root.cfg_bg_start = "#E0E0E0";
                                                 root.cfg_bg_end = "#f1f5f9";
-                                                root.cfg_card_bg = "#ffffff";
+                                                root.cfg_card_bg = "#E0E0E0";
                                                 root.cfg_card_border = "#cbd5e1";
                                                 root.cfg_text_primary = "#1e293b";
                                                 root.cfg_text_secondary = "#475569";
                                                 root.cfg_accent = "#2563eb";
                                                 root.cfg_btn_bg = "#2563eb";
-                                                root.cfg_btn_text = "#ffffff";
+                                                root.cfg_btn_text = "#E0E0E0";
                                             }
                                         }
-                                        Text { text: "⚪ Minimal"; font-size: 11px; font-weight: 700; color: #ffffff; horizontal-alignment: center; vertical-alignment: center; }
+                                        Text { text: "⚪ Minimal"; font-size: 11px; font-weight: 700; color: #E0E0E0; horizontal-alignment: center; vertical-alignment: center; }
                                     }
 
                                     // Preset 6: Sunset
@@ -1221,16 +1221,16 @@ export component AdminView inherits Rectangle {
                                             clicked => {
                                                 root.cfg_bg_start = "#fff7ed";
                                                 root.cfg_bg_end = "#ffedd5";
-                                                root.cfg_card_bg = "#ffffff";
+                                                root.cfg_card_bg = "#E0E0E0";
                                                 root.cfg_card_border = "#fed7aa";
                                                 root.cfg_text_primary = "#431407";
                                                 root.cfg_text_secondary = "#7c2d12";
                                                 root.cfg_accent = "#ea580c";
                                                 root.cfg_btn_bg = "#ea580c";
-                                                root.cfg_btn_text = "#ffffff";
+                                                root.cfg_btn_text = "#E0E0E0";
                                             }
                                         }
-                                        Text { text: "🟠 Sunset"; font-size: 11px; font-weight: 700; color: #ffffff; horizontal-alignment: center; vertical-alignment: center; }
+                                        Text { text: "🟠 Sunset"; font-size: 11px; font-weight: 700; color: #E0E0E0; horizontal-alignment: center; vertical-alignment: center; }
                                     }
                                 }
                             }
@@ -1249,14 +1249,14 @@ export component AdminView inherits Rectangle {
                                     spacing: 12px;
                                     height: 32px;
 
-                                    Rectangle { width: 32px; height: 32px; border-radius: 16px; background: #0284c7; border-width: 2px; border-color: root.cfg_accent == "#0284c7" ? #ffffff : #334155; TouchArea { mouse-cursor: pointer; clicked => { root.cfg_accent = "#0284c7"; root.cfg_btn_bg = "#0284c7"; } } }
-                                    Rectangle { width: 32px; height: 32px; border-radius: 16px; background: #06b6d4; border-width: 2px; border-color: root.cfg_accent == "#06b6d4" ? #ffffff : #334155; TouchArea { mouse-cursor: pointer; clicked => { root.cfg_accent = "#06b6d4"; root.cfg_btn_bg = "#06b6d4"; } } }
-                                    Rectangle { width: 32px; height: 32px; border-radius: 16px; background: #6366f1; border-width: 2px; border-color: root.cfg_accent == "#6366f1" ? #ffffff : #334155; TouchArea { mouse-cursor: pointer; clicked => { root.cfg_accent = "#6366f1"; root.cfg_btn_bg = "#6366f1"; } } }
-                                    Rectangle { width: 32px; height: 32px; border-radius: 16px; background: #a855f7; border-width: 2px; border-color: root.cfg_accent == "#a855f7" ? #ffffff : #334155; TouchArea { mouse-cursor: pointer; clicked => { root.cfg_accent = "#a855f7"; root.cfg_btn_bg = "#a855f7"; } } }
-                                    Rectangle { width: 32px; height: 32px; border-radius: 16px; background: #ec4899; border-width: 2px; border-color: root.cfg_accent == "#ec4899" ? #ffffff : #334155; TouchArea { mouse-cursor: pointer; clicked => { root.cfg_accent = "#ec4899"; root.cfg_btn_bg = "#ec4899"; } } }
-                                    Rectangle { width: 32px; height: 32px; border-radius: 16px; background: #e11d48; border-width: 2px; border-color: root.cfg_accent == "#e11d48" ? #ffffff : #334155; TouchArea { mouse-cursor: pointer; clicked => { root.cfg_accent = "#e11d48"; root.cfg_btn_bg = "#e11d48"; } } }
-                                    Rectangle { width: 32px; height: 32px; border-radius: 16px; background: #f97316; border-width: 2px; border-color: root.cfg_accent == "#f97316" ? #ffffff : #334155; TouchArea { mouse-cursor: pointer; clicked => { root.cfg_accent = "#f97316"; root.cfg_btn_bg = "#f97316"; } } }
-                                    Rectangle { width: 32px; height: 32px; border-radius: 16px; background: #10b981; border-width: 2px; border-color: root.cfg_accent == "#10b981" ? #ffffff : #334155; TouchArea { mouse-cursor: pointer; clicked => { root.cfg_accent = "#10b981"; root.cfg_btn_bg = "#10b981"; } } }
+                                    Rectangle { width: 32px; height: 32px; border-radius: 16px; background: #0284c7; border-width: 2px; border-color: root.cfg_accent == "#0284c7" ? #E0E0E0 : #334155; TouchArea { mouse-cursor: pointer; clicked => { root.cfg_accent = "#0284c7"; root.cfg_btn_bg = "#0284c7"; } } }
+                                    Rectangle { width: 32px; height: 32px; border-radius: 16px; background: #06b6d4; border-width: 2px; border-color: root.cfg_accent == "#06b6d4" ? #E0E0E0 : #334155; TouchArea { mouse-cursor: pointer; clicked => { root.cfg_accent = "#06b6d4"; root.cfg_btn_bg = "#06b6d4"; } } }
+                                    Rectangle { width: 32px; height: 32px; border-radius: 16px; background: #6366f1; border-width: 2px; border-color: root.cfg_accent == "#6366f1" ? #E0E0E0 : #334155; TouchArea { mouse-cursor: pointer; clicked => { root.cfg_accent = "#6366f1"; root.cfg_btn_bg = "#6366f1"; } } }
+                                    Rectangle { width: 32px; height: 32px; border-radius: 16px; background: #a855f7; border-width: 2px; border-color: root.cfg_accent == "#a855f7" ? #E0E0E0 : #334155; TouchArea { mouse-cursor: pointer; clicked => { root.cfg_accent = "#a855f7"; root.cfg_btn_bg = "#a855f7"; } } }
+                                    Rectangle { width: 32px; height: 32px; border-radius: 16px; background: #ec4899; border-width: 2px; border-color: root.cfg_accent == "#ec4899" ? #E0E0E0 : #334155; TouchArea { mouse-cursor: pointer; clicked => { root.cfg_accent = "#ec4899"; root.cfg_btn_bg = "#ec4899"; } } }
+                                    Rectangle { width: 32px; height: 32px; border-radius: 16px; background: #e11d48; border-width: 2px; border-color: root.cfg_accent == "#e11d48" ? #E0E0E0 : #334155; TouchArea { mouse-cursor: pointer; clicked => { root.cfg_accent = "#e11d48"; root.cfg_btn_bg = "#e11d48"; } } }
+                                    Rectangle { width: 32px; height: 32px; border-radius: 16px; background: #f97316; border-width: 2px; border-color: root.cfg_accent == "#f97316" ? #E0E0E0 : #334155; TouchArea { mouse-cursor: pointer; clicked => { root.cfg_accent = "#f97316"; root.cfg_btn_bg = "#f97316"; } } }
+                                    Rectangle { width: 32px; height: 32px; border-radius: 16px; background: #10b981; border-width: 2px; border-color: root.cfg_accent == "#10b981" ? #E0E0E0 : #334155; TouchArea { mouse-cursor: pointer; clicked => { root.cfg_accent = "#10b981"; root.cfg_btn_bg = "#10b981"; } } }
                                 }
                             }
 
@@ -1389,7 +1389,7 @@ export component AdminView inherits Rectangle {
                                 text: "⚡ Auto-detectar Hardware del Equipo";
                                 font-size: 14px;
                                 font-weight: 700;
-                                color: #ffffff;
+                                color: #E0E0E0;
                                 horizontal-alignment: center;
                                 vertical-alignment: center;
                             }
@@ -1446,7 +1446,7 @@ export component AdminView inherits Rectangle {
                                 text: "🔄 Reiniciar Aplicación";
                                 font-size: 14px;
                                 font-weight: 700;
-                                color: #ffffff;
+                                color: #E0E0E0;
                                 horizontal-alignment: center;
                                 vertical-alignment: center;
                             }
@@ -1465,7 +1465,7 @@ export component AdminView inherits Rectangle {
                                 text: "🚪 Salir a Windows (Cerrar Aplicación)";
                                 font-size: 14px;
                                 font-weight: 700;
-                                color: #ffffff;
+                                color: #E0E0E0;
                                 horizontal-alignment: center;
                                 vertical-alignment: center;
                             }
@@ -1497,7 +1497,7 @@ export component AdminView inherits Rectangle {
                             text: "💾 Guardar Cambios";
                             font-size: 14px;
                             font-weight: 700;
-                            color: #ffffff;
+                            color: #E0E0E0;
                             horizontal-alignment: center;
                             vertical-alignment: center;
                         }

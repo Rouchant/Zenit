@@ -106,13 +106,13 @@ pub fn setup_defaults_handlers(main_window: &MainWindow) {
         if let Some(ui) = reset_ui_handle.upgrade() {
             ui.set_cfg_bg_start("#e0f2fe".into());
             ui.set_cfg_bg_end("#f3e8ff".into());
-            ui.set_cfg_card_bg("#ffffff".into());
+            ui.set_cfg_card_bg("#E0E0E0".into());
             ui.set_cfg_card_border("#e2e8f0".into());
             ui.set_cfg_text_primary("#0f172a".into());
             ui.set_cfg_text_secondary("#64748b".into());
             ui.set_cfg_accent("#0284c7".into());
             ui.set_cfg_btn_bg("#0284c7".into());
-            ui.set_cfg_btn_text("#ffffff".into());
+            ui.set_cfg_btn_text("#E0E0E0".into());
         }
     });
 }
