@@ -6,6 +6,10 @@ authors = ["Zenit"]
 edition = "2024"
 rust-version = "1.90"
 
+[package.metadata.wix]
+eula = false
+
+
 [lib]
 name = "zenit_showroom"
 path = "src/lib.rs"
