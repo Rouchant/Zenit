@@ -21,7 +21,7 @@ pub fn run() {
     let video_path_str = initial_video.to_string_lossy().to_string();
     let player_shared: Arc<Mutex<Option<domains::media::SlintMpvPlayer>>> = Arc::new(Mutex::new(None));
 
-    match domains::media::SlintMpvPlayer::new(&video_path_str, 854, 480) {
+    match domains::media::SlintMpvPlayer::new(&video_path_str, 1280, 720) {
         Ok(player) => {
             println!("[libmpv] Reproductor landing inicializado con video: {}", video_path_str);
             main_window.set_has_video_stream(true);

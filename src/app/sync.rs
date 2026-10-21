@@ -36,15 +36,10 @@ pub fn populate_vault_videos(window: &MainWindow) {
     window.set_vault_videos(ModelRc::new(VecModel::from(items)));
 }
 
-pub fn format_clp_currency(input: &str) -> String {
-    let trimmed = input.trim();
-    if trimmed.is_empty() {
-        return String::new();
-    }
-
-    let digits: String = trimmed.chars().filter(|c| c.is_ascii_digit()).collect();
+pub fn format_price_input(input: &str) -> String {
+    let digits: String = input.chars().filter(|c| c.is_ascii_digit()).take(11).collect();
     if digits.is_empty() {
-        return trimmed.to_string();
+        return String::new();
     }
 
     let mut result = String::new();
@@ -59,6 +54,20 @@ pub fn format_clp_currency(input: &str) -> String {
     }
 
     format!("$ {}", result)
+}
+
+pub fn format_clp_currency(input: &str) -> String {
+    let trimmed = input.trim();
+    if trimmed.is_empty() {
+        return String::new();
+    }
+
+    let has_digits = trimmed.chars().any(|c| c.is_ascii_digit());
+    if !has_digits {
+        return trimmed.to_string();
+    }
+
+    format_price_input(trimmed)
 }
 
 pub fn populate_ui_state(window: &MainWindow) {
@@ -301,5 +310,15 @@ mod tests {
         assert_eq!(format_clp_currency("$ 599.990"), "$ 599.990");
         assert_eq!(format_clp_currency("84990"), "$ 84.990");
         assert_eq!(format_clp_currency("Consultar"), "Consultar");
+    }
+
+    #[test]
+    fn test_format_price_input() {
+        assert_eq!(format_price_input(""), "");
+        assert_eq!(format_price_input("abc"), "");
+        assert_eq!(format_price_input("$"), "");
+        assert_eq!(format_price_input("699990"), "$ 699.990");
+        assert_eq!(format_price_input("$699.990"), "$ 699.990");
+        assert_eq!(format_price_input("$ 719.990"), "$ 719.990");
     }
 }

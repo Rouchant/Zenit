@@ -46,8 +46,8 @@ pub fn setup_save_handlers(
                     None
                 };
                 cfg.store_theme = retail.to_string();
-                cfg.price_card = card_p.to_string();
-                cfg.price_all_methods = normal_p.to_string();
+                cfg.price_card = crate::app::sync::format_price_input(&card_p);
+                cfg.price_all_methods = crate::app::sync::format_price_input(&normal_p);
                 cfg.sku = sku.to_string();
 
                 cfg.processor_override = if !cpu.trim().is_empty() {
@@ -164,8 +164,8 @@ pub fn setup_save_handlers(
             if !model.trim().is_empty() {
                 cfg.model_override = Some(model.to_string());
             }
-            cfg.price_card = card_p.to_string();
-            cfg.price_all_methods = normal_p.to_string();
+            cfg.price_card = crate::app::sync::format_price_input(&card_p);
+            cfg.price_all_methods = crate::app::sync::format_price_input(&normal_p);
             cfg.sku = sku.to_string();
             if !retail.trim().is_empty() {
                 cfg.store_theme = retail.to_string();

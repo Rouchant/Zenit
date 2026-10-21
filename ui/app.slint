@@ -107,6 +107,7 @@ export component MainWindow inherits Window {
     callback emergency_restart_clicked();
     callback auto_detect_clicked();
     callback save_quick_setup(string, string, string, string, string, string);
+    callback format_currency_input(string) -> string;
     callback save_admin_config(
         string, string, string, string, string, string,
         string, string, string, string, string, string, string, string,
@@ -156,6 +157,7 @@ export component MainWindow inherits Window {
         setup_normal_price <=> root.setup_normal_price;
         setup_sku <=> root.setup_sku;
         auto_detect_clicked => { root.auto_detect_clicked(); }
+        format_currency_input(val) => { return root.format_currency_input(val); }
         save_quick_setup(brand, model, card_price, normal_price, sku, retail) => {
             root.save_quick_setup(brand, model, card_price, normal_price, sku, retail);
         }
@@ -197,6 +199,7 @@ export component MainWindow inherits Window {
         emergency_exit_clicked => { root.emergency_exit_clicked(); }
         emergency_restart_clicked => { root.emergency_restart_clicked(); }
         auto_detect_clicked => { root.auto_detect_clicked(); }
+        format_currency_input(val) => { return root.format_currency_input(val); }
         save_admin_config(
             b, m, r, cp, np, sk,
             cpu, ram, st, gpu, disp, os, bat, oth,

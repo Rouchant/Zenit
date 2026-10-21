@@ -97,7 +97,7 @@ pub fn position_floating_button() {
             let w = 220;
             let h = 60;
             let x = screen_w - w - 40;
-            let y = screen_h - h - 60;
+            let y = (screen_h - h) / 2;
             SetWindowPos(floating_hwnd, HWND_TOPMOST, x, y, w, h, SWP_SHOWWINDOW);
             SetForegroundWindow(floating_hwnd);
         }

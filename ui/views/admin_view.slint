@@ -40,6 +40,7 @@ export component AdminView inherits Rectangle {
     callback emergency_exit_clicked();
     callback emergency_restart_clicked();
     callback auto_detect_clicked();
+    callback format_currency_input(string) -> string;
     callback save_admin_config(
         string, string, string, string, string, string,
         string, string, string, string, string, string, string, string,
@@ -309,15 +310,17 @@ export component AdminView inherits Rectangle {
                         HorizontalLayout {
                             spacing: 12px;
                             VerticalLayout {
+                                horizontal-stretch: 1;
                                 spacing: 4px;
                                 Text { text: "Marca del Equipo:"; font-size: 12px; color: #cbd5e1; }
                                 LineEdit {
                                     text: root.cfg_brand;
-                                    placeholder-text: "Ej: ASUS, Lenovo, HP";
+                                    placeholder-text: "Ej: ASUS, HP";
                                     edited => { root.cfg_brand = self.text; }
                                 }
                             }
                             VerticalLayout {
+                                horizontal-stretch: 1;
                                 spacing: 4px;
                                 Text { text: "Modelo:"; font-size: 12px; color: #cbd5e1; }
                                 LineEdit {
@@ -331,21 +334,29 @@ export component AdminView inherits Rectangle {
                         HorizontalLayout {
                             spacing: 12px;
                             VerticalLayout {
+                                horizontal-stretch: 1;
                                 spacing: 4px;
                                 Text { text: "Precio Tarjeta:"; font-size: 12px; color: #cbd5e1; }
                                 LineEdit {
                                     text: root.cfg_card_price;
-                                    placeholder-text: "Ej: $1.299.990";
-                                    edited => { root.cfg_card_price = self.text; }
+                                    placeholder-text: "Ej: 699990";
+                                    edited => {
+                                        root.cfg_card_price = root.format_currency_input(self.text);
+                                        self.text = root.cfg_card_price;
+                                    }
                                 }
                             }
                             VerticalLayout {
+                                horizontal-stretch: 1;
                                 spacing: 4px;
                                 Text { text: "Precio Otros Medios:"; font-size: 12px; color: #cbd5e1; }
                                 LineEdit {
                                     text: root.cfg_normal_price;
-                                    placeholder-text: "Ej: $1.349.990";
-                                    edited => { root.cfg_normal_price = self.text; }
+                                    placeholder-text: "Ej: 719990";
+                                    edited => {
+                                        root.cfg_normal_price = root.format_currency_input(self.text);
+                                        self.text = root.cfg_normal_price;
+                                    }
                                 }
                             }
                         }
@@ -353,6 +364,7 @@ export component AdminView inherits Rectangle {
                         HorizontalLayout {
                             spacing: 12px;
                             VerticalLayout {
+                                horizontal-stretch: 1;
                                 spacing: 4px;
                                 Text { text: "Código SKU:"; font-size: 12px; color: #cbd5e1; }
                                 LineEdit {
@@ -362,11 +374,12 @@ export component AdminView inherits Rectangle {
                                 }
                             }
                             VerticalLayout {
+                                horizontal-stretch: 1;
                                 spacing: 4px;
                                 Text { text: "Tienda / Retail:"; font-size: 12px; color: #cbd5e1; }
                                 LineEdit {
                                     text: root.cfg_retail;
-                                    placeholder-text: "ripley, falabella, paris, default";
+                                    placeholder-text: "falabella, ripley, paris";
                                     edited => { root.cfg_retail = self.text; }
                                 }
                             }
@@ -421,15 +434,17 @@ export component AdminView inherits Rectangle {
                         HorizontalLayout {
                             spacing: 12px;
                             VerticalLayout {
+                                horizontal-stretch: 1;
                                 spacing: 3px;
                                 Text { text: "Marca del Equipo:"; font-size: 11px; color: #cbd5e1; }
                                 LineEdit {
                                     text: root.cfg_brand;
-                                    placeholder-text: "Ej: ASUS, Lenovo, HP";
+                                    placeholder-text: "Ej: ASUS, HP";
                                     edited => { root.cfg_brand = self.text; }
                                 }
                             }
                             VerticalLayout {
+                                horizontal-stretch: 1;
                                 spacing: 3px;
                                 Text { text: "Modelo del Equipo:"; font-size: 11px; color: #cbd5e1; }
                                 LineEdit {
@@ -443,20 +458,22 @@ export component AdminView inherits Rectangle {
                         HorizontalLayout {
                             spacing: 12px;
                             VerticalLayout {
+                                horizontal-stretch: 1;
                                 spacing: 3px;
                                 Text { text: "Procesador (CPU):"; font-size: 11px; color: #cbd5e1; }
                                 LineEdit {
                                     text: root.cfg_cpu;
-                                    placeholder-text: "Auto / Vacío para sensor nativo";
+                                    placeholder-text: "Auto (sensor nativo)";
                                     edited => { root.cfg_cpu = self.text; }
                                 }
                             }
                             VerticalLayout {
+                                horizontal-stretch: 1;
                                 spacing: 3px;
                                 Text { text: "Memoria RAM:"; font-size: 11px; color: #cbd5e1; }
                                 LineEdit {
                                     text: root.cfg_ram;
-                                    placeholder-text: "Auto / Vacío para sensor nativo";
+                                    placeholder-text: "Auto (sensor nativo)";
                                     edited => { root.cfg_ram = self.text; }
                                 }
                             }
@@ -465,20 +482,22 @@ export component AdminView inherits Rectangle {
                         HorizontalLayout {
                             spacing: 12px;
                             VerticalLayout {
+                                horizontal-stretch: 1;
                                 spacing: 3px;
                                 Text { text: "Almacenamiento (SSD):"; font-size: 11px; color: #cbd5e1; }
                                 LineEdit {
                                     text: root.cfg_storage;
-                                    placeholder-text: "Auto / Vacío para sensor nativo";
+                                    placeholder-text: "Auto (sensor nativo)";
                                     edited => { root.cfg_storage = self.text; }
                                 }
                             }
                             VerticalLayout {
+                                horizontal-stretch: 1;
                                 spacing: 3px;
                                 Text { text: "Tarjeta Gráfica (GPU):"; font-size: 11px; color: #cbd5e1; }
                                 LineEdit {
                                     text: root.cfg_gpu;
-                                    placeholder-text: "Auto / Vacío para sensor nativo";
+                                    placeholder-text: "Auto (sensor nativo)";
                                     edited => { root.cfg_gpu = self.text; }
                                 }
                             }
@@ -487,20 +506,22 @@ export component AdminView inherits Rectangle {
                         HorizontalLayout {
                             spacing: 12px;
                             VerticalLayout {
+                                horizontal-stretch: 1;
                                 spacing: 3px;
                                 Text { text: "Pantalla:"; font-size: 11px; color: #cbd5e1; }
                                 LineEdit {
                                     text: root.cfg_display;
-                                    placeholder-text: "Auto / Vacío para sensor nativo";
+                                    placeholder-text: "Auto (sensor nativo)";
                                     edited => { root.cfg_display = self.text; }
                                 }
                             }
                             VerticalLayout {
+                                horizontal-stretch: 1;
                                 spacing: 3px;
                                 Text { text: "Sistema Operativo:"; font-size: 11px; color: #cbd5e1; }
                                 LineEdit {
                                     text: root.cfg_os;
-                                    placeholder-text: "Auto / Vacío para sensor nativo";
+                                    placeholder-text: "Auto (sensor nativo)";
                                     edited => { root.cfg_os = self.text; }
                                 }
                             }
@@ -509,20 +530,22 @@ export component AdminView inherits Rectangle {
                         HorizontalLayout {
                             spacing: 12px;
                             VerticalLayout {
+                                horizontal-stretch: 1;
                                 spacing: 3px;
                                 Text { text: "Duración Batería (Horas):"; font-size: 11px; color: #cbd5e1; }
                                 LineEdit {
                                     text: root.cfg_battery;
-                                    placeholder-text: "Ej: Hasta 10 horas (o solo ingresa: 8, 10)";
+                                    placeholder-text: "Ej: Hasta 8 horas o 8";
                                     edited => { root.cfg_battery = self.text; }
                                 }
                             }
                             VerticalLayout {
+                                horizontal-stretch: 1;
                                 spacing: 3px;
                                 Text { text: "Otros / Conectividad:"; font-size: 11px; color: #cbd5e1; }
                                 LineEdit {
                                     text: root.cfg_others;
-                                    placeholder-text: "Wi-Fi 6 / Bluetooth 5.3 / Teclado Español";
+                                    placeholder-text: "Ej: Wi-Fi 6 / BT 5.3";
                                     edited => { root.cfg_others = self.text; }
                                 }
                             }
