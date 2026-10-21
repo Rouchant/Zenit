@@ -221,6 +221,23 @@ fn load_config_from_disk() -> AppConfig {
                     }
                 }
 
+                if cfg.price_card == "$1.299.990" || cfg.price_card == "$ 1.299.990" {
+                    cfg.price_card = "".to_string();
+                    modified = true;
+                }
+                if cfg.price_all_methods == "$1.349.990" || cfg.price_all_methods == "$ 1.349.990" {
+                    cfg.price_all_methods = "".to_string();
+                    modified = true;
+                }
+                if cfg.sku == "8493021" {
+                    cfg.sku = "".to_string();
+                    modified = true;
+                }
+                if cfg.store_theme.eq_ignore_ascii_case("ripley") {
+                    cfg.store_theme = "".to_string();
+                    modified = true;
+                }
+
                 if modified {
                     let _ = save_config(&cfg);
                 }

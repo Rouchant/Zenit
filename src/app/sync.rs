@@ -191,7 +191,7 @@ pub fn populate_ui_state(window: &MainWindow) {
     window.set_setup_retail(if !cfg.store_theme.is_empty() && !cfg.store_theme.eq_ignore_ascii_case("default") {
         cfg.store_theme.clone().into()
     } else {
-        "Ripley".into()
+        "".into()
     });
     window.set_setup_card_price(card_trim.into());
     window.set_setup_normal_price(normal_trim.into());
@@ -204,7 +204,7 @@ pub fn populate_ui_state(window: &MainWindow) {
     window.set_cfg_retail(if !cfg.store_theme.is_empty() && !cfg.store_theme.eq_ignore_ascii_case("default") {
         cfg.store_theme.clone().into()
     } else {
-        "Ripley".into()
+        "".into()
     });
     window.set_cfg_card_price(card_trim.into());
     window.set_cfg_normal_price(normal_trim.into());

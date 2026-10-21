@@ -27,10 +27,10 @@ pub fn setup_defaults_handlers(main_window: &MainWindow) {
             };
             ui.set_cfg_brand(brand.into());
             ui.set_cfg_model(model.into());
-            ui.set_cfg_retail("ripley".into());
-            ui.set_cfg_card_price("$1.299.990".into());
-            ui.set_cfg_normal_price("$1.349.990".into());
-            ui.set_cfg_sku("8493021".into());
+            ui.set_cfg_retail("".into());
+            ui.set_cfg_card_price("".into());
+            ui.set_cfg_normal_price("".into());
+            ui.set_cfg_sku("".into());
         }
     });
 
