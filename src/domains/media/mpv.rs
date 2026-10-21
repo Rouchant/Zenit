@@ -28,6 +28,7 @@ type MpvCommandStringFn = unsafe extern "C" fn(*mut c_void, *const c_char) -> c_
 type MpvSetOptionStringFn = unsafe extern "C" fn(*mut c_void, *const c_char, *const c_char) -> c_int;
 type MpvRenderContextCreateFn = unsafe extern "C" fn(*mut *mut c_void, *mut c_void, *mut MpvRenderParam) -> c_int;
 type MpvRenderContextRenderFn = unsafe extern "C" fn(*mut c_void, *mut MpvRenderParam) -> c_int;
+type MpvRenderContextUpdateFn = unsafe extern "C" fn(*mut c_void) -> u64;
 type MpvRenderContextFreeFn = unsafe extern "C" fn(*mut c_void);
 type MpvGetPropertyStringFn = unsafe extern "C" fn(*mut c_void, *const c_char) -> *mut c_char;
 type MpvFreeFn = unsafe extern "C" fn(*mut c_void);
@@ -42,6 +43,7 @@ pub struct MpvLibrary {
     pub mpv_set_option_string: MpvSetOptionStringFn,
     pub mpv_render_context_create: MpvRenderContextCreateFn,
     pub mpv_render_context_render: MpvRenderContextRenderFn,
+    pub mpv_render_context_update: Option<MpvRenderContextUpdateFn>,
     pub mpv_render_context_free: MpvRenderContextFreeFn,
     pub mpv_get_property_string: Option<MpvGetPropertyStringFn>,
     pub mpv_free: Option<MpvFreeFn>,
@@ -106,6 +108,7 @@ impl MpvLibrary {
             let mpv_set_option_string: Symbol<MpvSetOptionStringFn> = lib.get(b"mpv_set_option_string\0").map_err(|e| e.to_string())?;
             let mpv_render_context_create: Symbol<MpvRenderContextCreateFn> = lib.get(b"mpv_render_context_create\0").map_err(|e| e.to_string())?;
             let mpv_render_context_render: Symbol<MpvRenderContextRenderFn> = lib.get(b"mpv_render_context_render\0").map_err(|e| e.to_string())?;
+            let mpv_render_context_update: Option<MpvRenderContextUpdateFn> = lib.get(b"mpv_render_context_update\0").ok().map(|s: Symbol<MpvRenderContextUpdateFn>| *s);
             let mpv_render_context_free: Symbol<MpvRenderContextFreeFn> = lib.get(b"mpv_render_context_free\0").map_err(|e| e.to_string())?;
             let mpv_get_property_string: Option<MpvGetPropertyStringFn> = lib.get(b"mpv_get_property_string\0").ok().map(|s: Symbol<MpvGetPropertyStringFn>| *s);
             let mpv_free: Option<MpvFreeFn> = lib.get(b"mpv_free\0").ok().map(|s: Symbol<MpvFreeFn>| *s);
@@ -119,6 +122,7 @@ impl MpvLibrary {
                 mpv_set_option_string: *mpv_set_option_string,
                 mpv_render_context_create: *mpv_render_context_create,
                 mpv_render_context_render: *mpv_render_context_render,
+                mpv_render_context_update,
                 mpv_render_context_free: *mpv_render_context_free,
                 mpv_get_property_string,
                 mpv_free,
@@ -140,6 +144,7 @@ pub struct SlintMpvPlayer {
     _api_type_cstr: CString,
     pixel_buffer: SharedPixelBuffer<Rgba8Pixel>,
     is_playing: Arc<AtomicBool>,
+    first_frame: bool,
 }
 
 unsafe impl Send for SlintMpvPlayer {}
@@ -161,8 +166,16 @@ impl SlintMpvPlayer {
             (lib.mpv_set_option_string)(mpv, opt_loop.as_ptr(), opt_inf.as_ptr());
 
             let opt_hwdec = CString::new("hwdec").unwrap();
-            let opt_auto = CString::new("auto").unwrap();
+            let opt_auto = CString::new("auto-safe").unwrap();
             (lib.mpv_set_option_string)(mpv, opt_hwdec.as_ptr(), opt_auto.as_ptr());
+
+            let opt_threads_key = CString::new("vd-lavc-threads").unwrap();
+            let opt_threads_val = CString::new("4").unwrap();
+            (lib.mpv_set_option_string)(mpv, opt_threads_key.as_ptr(), opt_threads_val.as_ptr());
+
+            let opt_framedrop_key = CString::new("framedrop").unwrap();
+            let opt_framedrop_val = CString::new("vo").unwrap();
+            (lib.mpv_set_option_string)(mpv, opt_framedrop_key.as_ptr(), opt_framedrop_val.as_ptr());
 
             let opt_vo = CString::new("vo").unwrap();
             let opt_libmpv = CString::new("libmpv").unwrap();
@@ -229,19 +242,32 @@ impl SlintMpvPlayer {
                 _api_type_cstr: api_type_cstr,
                 pixel_buffer,
                 is_playing: Arc::new(AtomicBool::new(true)),
+                first_frame: true,
             })
         }
     }
 
     pub fn render_frame(&mut self) -> Result<Image, String> {
-        let buf = self.render_frame_buffer()?;
+        let buf = self.render_frame_buffer()?.unwrap_or_else(|| self.pixel_buffer.clone());
         Ok(Image::from_rgba8(buf))
     }
 
-    pub fn render_frame_buffer(&mut self) -> Result<SharedPixelBuffer<Rgba8Pixel>, String> {
+    pub fn render_frame_buffer(&mut self) -> Result<Option<SharedPixelBuffer<Rgba8Pixel>>, String> {
         if !self.is_playing.load(Ordering::SeqCst) {
-            return Ok(self.pixel_buffer.clone());
+            return Ok(None);
         }
+
+        // Check if mpv has a new frame ready to render via mpv_render_context_update
+        if let Some(update_fn) = self.lib.mpv_render_context_update {
+            unsafe {
+                let flags = update_fn(self.render_ctx);
+                // MPV_RENDER_UPDATE_FRAME is bit 0 (1 << 0)
+                if (flags & 1) == 0 && !self.first_frame {
+                    return Ok(None);
+                }
+            }
+        }
+        self.first_frame = false;
 
         unsafe {
             let raw_bytes = self.pixel_buffer.make_mut_bytes();
@@ -282,7 +308,7 @@ impl SlintMpvPlayer {
                 *pixel |= 0xFF00_0000;
             }
 
-            Ok(self.pixel_buffer.clone())
+            Ok(Some(self.pixel_buffer.clone()))
         }
     }
 
@@ -291,6 +317,7 @@ impl SlintMpvPlayer {
     }
 
     pub fn change_video_looping(&mut self, video_path: &str, looping: bool) {
+        self.first_frame = true;
         let loop_cmd = CString::new(if looping {
             "set loop-file inf"
         } else {

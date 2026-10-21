@@ -29,7 +29,7 @@ pub fn setup_video_timer(
 
                 if let Ok(mut guard) = player_for_timer.try_lock() {
                     if let Some(ref mut p) = *guard {
-                        if let Ok(buffer) = p.render_frame_buffer() {
+                        if let Ok(Some(buffer)) = p.render_frame_buffer() {
                             ui.set_video_frame(slint::Image::from_rgba8(buffer));
                         }
                     }

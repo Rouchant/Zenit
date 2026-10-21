@@ -190,18 +190,15 @@ export component ShowroomView inherits Rectangle {
                     alignment: center;
                     spacing: 14px;
 
-                    // 16:9 Video Frame
-                    HorizontalLayout {
-                        alignment: center;
-
-                        Rectangle {
-                            width: min(parent.width - 24px, min(1080px, (root.screen_height - 270px) * 16 / 9));
-                            height: self.width * 9 / 16;
-                            background: #090e1a;
-                            border-radius: 18px;
-                            border-width: 1.5px;
-                            border-color: #38bdf833;
-                            clip: true;
+                    // 16:9 Video Frame (mismo ancho que la barra inferior)
+                    Rectangle {
+                        width: parent.width;
+                        height: self.width * 9 / 16;
+                        background: #090e1a;
+                        border-radius: 18px;
+                        border-width: 1.5px;
+                        border-color: #38bdf833;
+                        clip: true;
 
                             // Glow background
                             Rectangle {
@@ -271,7 +268,6 @@ export component ShowroomView inherits Rectangle {
                                 }
                             }
                         }
-                    }
 
                     // PRICING & SKU BANNER (Barra de precios)
                     if root.card_price != "" || root.normal_price != "" || root.sku_code != "" || root.retail_name != "": Rectangle {
