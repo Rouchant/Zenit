@@ -102,53 +102,57 @@ export component ShowroomView inherits Rectangle {
             }
 
             // Right: Clock & Hidden Trigger
-            HorizontalLayout {
-                spacing: 16px;
-                alignment: end;
+            VerticalLayout {
+                alignment: center;
 
-                Rectangle {
-                    background: #0f172a8c;
-                    border-radius: 10px;
-                    border-width: 1px;
-                    border-color: #ffffff14;
+                HorizontalLayout {
+                    spacing: 12px;
+                    alignment: end;
 
-                    HorizontalLayout {
-                        padding-left: 14px;
-                        padding-right: 14px;
-                        padding-top: 6px;
-                        padding-bottom: 6px;
+                    Rectangle {
+                        height: 40px;
+                        background: #0f172a8c;
+                        border-radius: 10px;
+                        border-width: 1px;
+                        border-color: #ffffff14;
+
+                        HorizontalLayout {
+                            padding-left: 14px;
+                            padding-right: 14px;
+                            alignment: center;
+
+                            Text {
+                                text: root.live_clock;
+                                font-size: 15px;
+                                font-weight: 700;
+                                color: #94a3b8;
+                                vertical-alignment: center;
+                            }
+                        }
+                    }
+
+                    // 4-tap trigger target (corner)
+                    Rectangle {
+                        width: 40px;
+                        height: 40px;
+                        border-radius: 10px;
+                        background: #ffffff05;
+                        border-width: 1px;
+                        border-color: #ffffff0a;
+
+                        TouchArea {
+                            clicked => {
+                                root.corner_tap_clicked();
+                            }
+                        }
 
                         Text {
-                            text: root.live_clock;
-                            font-size: 15px;
-                            font-weight: 700;
-                            color: #94a3b8;
+                            text: "⚙";
+                            font-size: 14px;
+                            color: #475569;
+                            horizontal-alignment: center;
                             vertical-alignment: center;
                         }
-                    }
-                }
-
-                // 4-tap trigger target (corner)
-                Rectangle {
-                    width: 40px;
-                    height: 40px;
-                    border-radius: 8px;
-                    background: #ffffff05;
-                    border-width: 1px;
-                    border-color: #ffffff0a;
-
-                    TouchArea {
-                        clicked => {
-                            root.corner_tap_clicked();
-                        }
-                    }
-
-                    Text {
-                        text: "⚙";
-                        font-size: 14px;
-                        color: #475569;
-                        horizontal-alignment: center;
-                        vertical-alignment: center;
                     }
                 }
             }
