@@ -80,6 +80,10 @@ pub fn spawn_inactivity_watcher(
                     if !video_list.is_empty() {
                         let promo_video = crate::domains::media::resolve_video_path(&video_list[0]);
                         if promo_video.exists() {
+                            println!(
+                                "[Inactividad] Inactividad de {}s alcanzada (idle: {}s, dismiss: {}s). Iniciando video: {}",
+                                timeout, idle_seconds, time_since_dismiss, promo_video.display()
+                            );
                             if let Ok(mut guard) = player_watcher.lock() {
                                 if let Some(ref mut p) = *guard {
                                     p.change_video_looping(&promo_video.to_string_lossy(), false);
@@ -102,6 +106,8 @@ pub fn spawn_inactivity_watcher(
                 // 3. Currently in Screensaver:
                 // A) Dismiss immediately if user interacts (< 2s idle)
                 if idle_seconds < 2 {
+                    println!("[Inactividad] Movimiento o interacción detectada. Regresando a ventana principal. Contador reiniciado.");
+                    playlist_slot = 0;
                     IS_SCREENSAVER_ACTIVE.store(false, Ordering::SeqCst);
                     if let Ok(mut t) = last_dismiss_watcher.lock() {
                         *t = Instant::now();
@@ -147,15 +153,30 @@ pub fn spawn_inactivity_watcher(
                         let next_rel = &video_list[playlist_slot];
                         let promo_video = crate::domains::media::resolve_video_path(next_rel);
                         if promo_video.exists() {
+                            println!(
+                                "[Inactividad] Reproduciendo siguiente video de lista (slot {}): {}",
+                                playlist_slot + 1, promo_video.display()
+                            );
                             if let Ok(mut guard) = player_watcher.lock() {
                                 if let Some(ref mut p) = *guard {
                                     p.change_video_looping(&promo_video.to_string_lossy(), false);
                                 }
                             }
+                            screensaver_start_time = Instant::now();
+                        } else {
+                            // Video file does not exist, finish playlist and return
+                            video_finished = false;
+                            playlist_slot = video_list.len();
                         }
-                        screensaver_start_time = Instant::now();
-                    } else {
+                    }
+                    
+                    if playlist_slot + 1 >= video_list.len() && video_finished {
                         // All inactivity videos completed: return to main showroom window!
+                        println!(
+                            "[Inactividad] Video de inactividad finalizado. Regresando a ventana principal. Contador de inactividad de {}s reiniciado.",
+                            timeout
+                        );
+                        playlist_slot = 0;
                         IS_SCREENSAVER_ACTIVE.store(false, Ordering::SeqCst);
                         if let Ok(mut t) = last_dismiss_watcher.lock() {
                             *t = Instant::now();
@@ -174,6 +195,7 @@ pub fn spawn_inactivity_watcher(
                                 ui.set_is_screensaver_active(false);
                             }
                         });
+                        continue;
                     }
                 }
             }
