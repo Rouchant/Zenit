@@ -104,8 +104,8 @@ pub fn setup_defaults_handlers(main_window: &MainWindow) {
     let reset_ui_handle = main_window.as_weak();
     main_window.on_reset_ui_defaults(move || {
         if let Some(ui) = reset_ui_handle.upgrade() {
-            ui.set_cfg_bg_start("#f8fafc".into());
-            ui.set_cfg_bg_end("#e2e8f0".into());
+            ui.set_cfg_bg_start("#e0f2fe".into());
+            ui.set_cfg_bg_end("#f3e8ff".into());
             ui.set_cfg_card_bg("#ffffff".into());
             ui.set_cfg_card_border("#e2e8f0".into());
             ui.set_cfg_text_primary("#0f172a".into());

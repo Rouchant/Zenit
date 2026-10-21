@@ -3,10 +3,10 @@ use std::fs;
 use std::path::{Path, PathBuf};
 
 fn default_bg_start() -> String {
-    "#f8fafc".to_string()
+    "#e0f2fe".to_string()
 }
 fn default_bg_end() -> String {
-    "#e2e8f0".to_string()
+    "#f3e8ff".to_string()
 }
 fn default_card_bg() -> String {
     "#ffffff".to_string()
@@ -117,8 +117,8 @@ impl Default for AppConfig {
             bg_gradient: "@linear-gradient(155deg, #f8fafc 0%, #e2e8f0 100%)".to_string(),
             store_theme: "default".to_string(),
 
-            bg_start_color: "#f8fafc".to_string(),
-            bg_end_color: "#e2e8f0".to_string(),
+            bg_start_color: "#e0f2fe".to_string(),
+            bg_end_color: "#f3e8ff".to_string(),
             card_bg_color: "#ffffff".to_string(),
             card_border_color: "#e2e8f0".to_string(),
             text_primary_color: "#0f172a".to_string(),
@@ -237,6 +237,11 @@ fn load_config_from_disk() -> AppConfig {
                     cfg.store_theme = "".to_string();
                     modified = true;
                 }
+                if cfg.bg_start_color == "#f8fafc" && cfg.bg_end_color == "#e2e8f0" {
+                    cfg.bg_start_color = "#e0f2fe".to_string();
+                    cfg.bg_end_color = "#f3e8ff".to_string();
+                    modified = true;
+                }
 
                 if modified {
                     let _ = save_config(&cfg);
@@ -305,7 +310,8 @@ mod tests {
         assert_eq!(cfg.inactivity_video_path_2, "");
         assert_eq!(cfg.inactivity_video_path_3, "");
         assert_eq!(cfg.inactivity_timeout_sec, 120);
-        assert_eq!(cfg.bg_start_color, "#f8fafc");
+        assert_eq!(cfg.bg_start_color, "#e0f2fe");
+        assert_eq!(cfg.bg_end_color, "#f3e8ff");
         assert_eq!(cfg.card_bg_color, "#ffffff");
         assert_eq!(cfg.card_border_color, "#e2e8f0");
         assert_eq!(cfg.text_primary_color, "#0f172a");

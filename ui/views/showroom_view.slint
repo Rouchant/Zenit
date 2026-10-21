@@ -22,8 +22,8 @@ export component ShowroomView inherits Rectangle {
     in property <length> screen_height: 1080px;
 
     // Theme Colors
-    in property <color> theme_bg_start: #f8fafc;
-    in property <color> theme_bg_end: #e2e8f0;
+    in property <color> theme_bg_start: #e0f2fe;
+    in property <color> theme_bg_end: #f3e8ff;
     in property <color> theme_card_bg: #ffffff;
     in property <color> theme_card_border: #e2e8f0;
     in property <color> theme_text_primary: #0f172a;
@@ -39,24 +39,34 @@ export component ShowroomView inherits Rectangle {
     height: 100%;
     background: @linear-gradient(155deg, root.theme_bg_start 0%, root.theme_bg_end 100%);
 
-    // Top-Left Ambient Cyan Aura
+    // Top-Left Ambient Pastel Sky Aura
     Rectangle {
-        width: 700px;
-        height: 700px;
+        width: 750px;
+        height: 750px;
         x: -200px;
         y: -200px;
-        border-radius: 350px;
-        background: @linear-gradient(135deg, #0284c712 0%, #00000000 75%);
+        border-radius: 375px;
+        background: @linear-gradient(135deg, #38bdf830 0%, #00000000 75%);
     }
 
-    // Bottom-Right Ambient Azure Aura
+    // Top-Right Ambient Pastel Mint Aura
     Rectangle {
-        width: 800px;
-        height: 800px;
+        width: 650px;
+        height: 650px;
+        x: parent.width - 400px;
+        y: -200px;
+        border-radius: 325px;
+        background: @linear-gradient(225deg, #34d39920 0%, #00000000 75%);
+    }
+
+    // Bottom-Right Ambient Pastel Lavender Aura
+    Rectangle {
+        width: 850px;
+        height: 850px;
         x: parent.width - 500px;
         y: parent.height - 450px;
-        border-radius: 400px;
-        background: @linear-gradient(315deg, #38bdf814 0%, #00000000 75%);
+        border-radius: 425px;
+        background: @linear-gradient(315deg, #c084fc2e 0%, #00000000 75%);
     }
 
     // Center Ambient Depth Aura behind Showcase Cards and Central Video

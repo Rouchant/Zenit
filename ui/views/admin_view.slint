@@ -35,8 +35,8 @@ export component AdminView inherits Rectangle {
     in-out property <[VaultVideoItem]> vault_videos: [];
 
     // Tab Interfaz
-    in-out property <string> cfg_bg_start: "#f8fafc";
-    in-out property <string> cfg_bg_end: "#e2e8f0";
+    in-out property <string> cfg_bg_start: "#e0f2fe";
+    in-out property <string> cfg_bg_end: "#f3e8ff";
     in-out property <string> cfg_card_bg: "#ffffff";
     in-out property <string> cfg_card_border: "#e2e8f0";
     in-out property <string> cfg_text_primary: "#0f172a";
@@ -1095,7 +1095,7 @@ export component AdminView inherits Rectangle {
                                     spacing: 8px;
                                     height: 38px;
 
-                                    // Preset 1: Claro Zenit
+                                    // Preset 1: Pastel Zenit
                                     Rectangle {
                                         background: #1e293b;
                                         border-radius: 8px;
@@ -1104,8 +1104,8 @@ export component AdminView inherits Rectangle {
                                         TouchArea {
                                             mouse-cursor: pointer;
                                             clicked => {
-                                                root.cfg_bg_start = "#f8fafc";
-                                                root.cfg_bg_end = "#e2e8f0";
+                                                root.cfg_bg_start = "#e0f2fe";
+                                                root.cfg_bg_end = "#f3e8ff";
                                                 root.cfg_card_bg = "#ffffff";
                                                 root.cfg_card_border = "#e2e8f0";
                                                 root.cfg_text_primary = "#0f172a";
@@ -1115,7 +1115,7 @@ export component AdminView inherits Rectangle {
                                                 root.cfg_btn_text = "#ffffff";
                                             }
                                         }
-                                        Text { text: "🔵 Claro Zenit"; font-size: 11px; font-weight: 700; color: #ffffff; horizontal-alignment: center; vertical-alignment: center; }
+                                        Text { text: "🔵 Pastel Zenit"; font-size: 11px; font-weight: 700; color: #ffffff; horizontal-alignment: center; vertical-alignment: center; }
                                     }
 
                                     // Preset 2: Dark Neon

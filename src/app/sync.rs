@@ -294,8 +294,8 @@ pub fn populate_ui_state(window: &MainWindow) {
     window.set_cfg_inactivity_timeout(cfg.inactivity_timeout_sec.to_string().into());
 
     // Theme Colors Synchronization
-    let bg_start = parse_hex_color(&cfg.bg_start_color, slint::Color::from_rgb_u8(248, 250, 252));
-    let bg_end = parse_hex_color(&cfg.bg_end_color, slint::Color::from_rgb_u8(226, 232, 240));
+    let bg_start = parse_hex_color(&cfg.bg_start_color, slint::Color::from_rgb_u8(224, 242, 254)); // #e0f2fe
+    let bg_end = parse_hex_color(&cfg.bg_end_color, slint::Color::from_rgb_u8(243, 232, 255)); // #f3e8ff
     let card_bg = parse_hex_color(&cfg.card_bg_color, slint::Color::from_rgb_u8(255, 255, 255));
     let card_border = parse_hex_color(&cfg.card_border_color, slint::Color::from_rgb_u8(226, 232, 240));
     let text_primary = parse_hex_color(&cfg.text_primary_color, slint::Color::from_rgb_u8(15, 23, 42));
