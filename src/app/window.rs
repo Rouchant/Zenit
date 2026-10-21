@@ -94,9 +94,9 @@ pub fn position_floating_button() {
         if !floating_hwnd.is_null() {
             let screen_w = GetSystemMetrics(SM_CXSCREEN);
             let screen_h = GetSystemMetrics(SM_CYSCREEN);
-            let w = 220;
-            let h = 60;
-            let x = screen_w - w - 40;
+            let w = 160;
+            let h = 120;
+            let x = screen_w - w - 24;
             let y = (screen_h - h) / 2;
             SetWindowPos(floating_hwnd, HWND_TOPMOST, x, y, w, h, SWP_SHOWWINDOW);
             SetForegroundWindow(floating_hwnd);

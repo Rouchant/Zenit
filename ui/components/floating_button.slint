@@ -2,8 +2,8 @@ export component FloatingDetailsButton inherits Window {
     title: "Zenit - Ver Detalles";
     no-frame: true;
     always-on-top: true;
-    width: 200px;
-    height: 54px;
+    width: 160px;
+    height: 120px;
     background: transparent;
 
     callback restore_clicked();
@@ -12,7 +12,7 @@ export component FloatingDetailsButton inherits Window {
         width: 100%;
         height: 100%;
         background: #0f172af5;
-        border-radius: 27px;
+        border-radius: 20px;
         border-width: 2px;
         border-color: #38bdf8;
         clip: true;
@@ -27,28 +27,36 @@ export component FloatingDetailsButton inherits Window {
         states [
             hover when touch.has-hover: {
                 background: #0284c7;
-                border-color: #7dd3fc;
+                border-color: #ffffff;
             }
         ]
 
-        HorizontalLayout {
+        VerticalLayout {
             alignment: center;
-            spacing: 10px;
-            padding-left: 18px;
-            padding-right: 18px;
+            spacing: 6px;
+            padding: 12px;
 
             Text {
                 text: "📋";
-                font-size: 16px;
-                vertical-alignment: center;
+                font-size: 26px;
+                horizontal-alignment: center;
             }
+
             Text {
                 text: "Ver detalles";
                 font-size: 15px;
                 font-weight: 800;
                 color: #ffffff;
-                letter-spacing: 0.5px;
-                vertical-alignment: center;
+                horizontal-alignment: center;
+            }
+
+            Text {
+                text: "SHOWROOM";
+                font-size: 10px;
+                font-weight: 800;
+                color: #38bdf8;
+                letter-spacing: 1.2px;
+                horizontal-alignment: center;
             }
         }
     }
