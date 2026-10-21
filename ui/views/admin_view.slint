@@ -343,8 +343,11 @@ export component AdminView inherits Rectangle {
                                 Text { text: "Precio Tarjeta:"; font-size: 12px; color: #cbd5e1; }
                                 LineEdit {
                                     text: root.cfg_card_price;
-                                    placeholder-text: "Ej: 699990";
+                                    placeholder-text: "Ej: 699990 o 699.990";
                                     edited => {
+                                        root.cfg_card_price = self.text;
+                                    }
+                                    accepted => {
                                         root.cfg_card_price = root.format_currency_input(self.text);
                                         self.text = root.cfg_card_price;
                                     }
@@ -356,8 +359,11 @@ export component AdminView inherits Rectangle {
                                 Text { text: "Precio Otros Medios:"; font-size: 12px; color: #cbd5e1; }
                                 LineEdit {
                                     text: root.cfg_normal_price;
-                                    placeholder-text: "Ej: 719990";
+                                    placeholder-text: "Ej: 719990 o 719.990";
                                     edited => {
+                                        root.cfg_normal_price = self.text;
+                                    }
+                                    accepted => {
                                         root.cfg_normal_price = root.format_currency_input(self.text);
                                         self.text = root.cfg_normal_price;
                                     }

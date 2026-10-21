@@ -319,6 +319,10 @@ mod tests {
         assert_eq!(format_price_input("$"), "");
         assert_eq!(format_price_input("699990"), "$ 699.990");
         assert_eq!(format_price_input("$699.990"), "$ 699.990");
+        assert_eq!(format_price_input("699.990"), "$ 699.990");
         assert_eq!(format_price_input("$ 719.990"), "$ 719.990");
+        assert_eq!(format_price_input("719.990"), "$ 719.990");
+        assert_eq!(format_price_input("$ 990.968"), "$ 990.968");
+        assert_eq!(format_price_input("990968"), "$ 990.968");
     }
 }
