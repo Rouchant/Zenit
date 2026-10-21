@@ -21,12 +21,23 @@ export component ShowroomView inherits Rectangle {
     in property <length> screen_width: 1920px;
     in property <length> screen_height: 1080px;
 
+    // Theme Colors
+    in property <color> theme_bg_start: #f8fafc;
+    in property <color> theme_bg_end: #e2e8f0;
+    in property <color> theme_card_bg: #ffffff;
+    in property <color> theme_card_border: #e2e8f0;
+    in property <color> theme_text_primary: #0f172a;
+    in property <color> theme_text_secondary: #64748b;
+    in property <color> theme_accent: #0284c7;
+    in property <color> theme_btn_bg: #0284c7;
+    in property <color> theme_btn_text: #ffffff;
+
     callback try_pc_clicked();
     callback corner_tap_clicked();
 
     width: 100%;
     height: 100%;
-    background: @linear-gradient(155deg, #f8fafc 0%, #f1f5f9 40%, #e2e8f0 100%);
+    background: @linear-gradient(155deg, root.theme_bg_start 0%, root.theme_bg_end 100%);
 
     // Top-Left Ambient Cyan Aura
     Rectangle {
@@ -79,7 +90,7 @@ export component ShowroomView inherits Rectangle {
                 Rectangle {
                     width: 4px;
                     height: 40px;
-                    background: #0284c7;
+                    background: root.theme_accent;
                     border-radius: 2px;
                 }
 
@@ -89,14 +100,14 @@ export component ShowroomView inherits Rectangle {
                         text: root.brand_name;
                         font-size: 13px;
                         font-weight: 800;
-                        color: #0284c7;
+                        color: root.theme_accent;
                         letter-spacing: 2px;
                     }
                     Text {
                         text: root.model_name;
                         font-size: 22px;
                         font-weight: 900;
-                        color: #0f172a;
+                        color: root.theme_text_primary;
                     }
                 }
             }
@@ -111,10 +122,10 @@ export component ShowroomView inherits Rectangle {
 
                     Rectangle {
                         height: 40px;
-                        background: #ffffff;
+                        background: root.theme_card_bg;
                         border-radius: 10px;
                         border-width: 1.5px;
-                        border-color: #e2e8f0;
+                        border-color: root.theme_card_border;
 
                         HorizontalLayout {
                             padding-left: 14px;
@@ -125,7 +136,7 @@ export component ShowroomView inherits Rectangle {
                                 text: root.live_clock;
                                 font-size: 15px;
                                 font-weight: 700;
-                                color: #334155;
+                                color: root.theme_text_primary;
                                 vertical-alignment: center;
                             }
                         }
@@ -136,9 +147,9 @@ export component ShowroomView inherits Rectangle {
                         width: 40px;
                         height: 40px;
                         border-radius: 10px;
-                        background: #ffffff;
+                        background: root.theme_card_bg;
                         border-width: 1.5px;
-                        border-color: #e2e8f0;
+                        border-color: root.theme_card_border;
 
                         TouchArea {
                             mouse-cursor: pointer;
@@ -150,7 +161,7 @@ export component ShowroomView inherits Rectangle {
                         Text {
                             text: "⚙";
                             font-size: 14px;
-                            color: #94a3b8;
+                            color: root.theme_text_secondary;
                             horizontal-alignment: center;
                             vertical-alignment: center;
                         }
@@ -177,7 +188,12 @@ export component ShowroomView inherits Rectangle {
                         subvalue: item.subvalue;
                         tag: item.tag;
                         icon: item.icon;
-                        accent_color: #0284c7;
+                        accent_color: root.theme_accent;
+                        card_bg: root.theme_card_bg;
+                        card_border: root.theme_card_border;
+                        text_primary: root.theme_text_primary;
+                        text_secondary: root.theme_text_secondary;
+                        category_color: root.theme_text_secondary;
                     }
                 }
             }
@@ -272,10 +288,10 @@ export component ShowroomView inherits Rectangle {
                     // PRICING & SKU BANNER (Barra de precios)
                     if root.card_price != "" || root.normal_price != "" || root.sku_code != "" || root.retail_name != "": Rectangle {
                         height: 82px;
-                        background: #ffffff;
+                        background: root.theme_card_bg;
                         border-radius: 16px;
                         border-width: 1.5px;
-                        border-color: #e2e8f0;
+                        border-color: root.theme_card_border;
 
                         VerticalLayout {
                             alignment: center;
@@ -297,9 +313,9 @@ export component ShowroomView inherits Rectangle {
                                             width: 38px;
                                             height: 38px;
                                             border-radius: 19px;
-                                            background: #e0f2fe;
+                                            background: root.theme_bg_end;
                                             border-width: 1px;
-                                            border-color: #bae6fd;
+                                            border-color: root.theme_card_border;
 
                                             Text {
                                                 text: "💳";
@@ -318,14 +334,14 @@ export component ShowroomView inherits Rectangle {
                                             text: root.card_label;
                                             font-size: 11px;
                                             font-weight: 800;
-                                            color: #0284c7;
+                                            color: root.theme_accent;
                                             letter-spacing: 0.8px;
                                         }
                                         Text {
                                             text: root.card_price;
                                             font-size: 32px;
                                             font-weight: 900;
-                                            color: #0f172a;
+                                            color: root.theme_text_primary;
                                         }
                                     }
                                 }
@@ -336,7 +352,7 @@ export component ShowroomView inherits Rectangle {
                                     Rectangle {
                                         width: 1px;
                                         height: 42px;
-                                        background: #e2e8f0;
+                                        background: root.theme_card_border;
                                     }
                                 }
 
@@ -349,14 +365,14 @@ export component ShowroomView inherits Rectangle {
                                         text: root.normal_label;
                                         font-size: 11px;
                                         font-weight: 700;
-                                        color: #64748b;
+                                        color: root.theme_text_secondary;
                                         letter-spacing: 0.5px;
                                     }
                                     Text {
                                         text: root.normal_price;
                                         font-size: 22px;
                                         font-weight: 800;
-                                        color: #334155;
+                                        color: root.theme_text_primary;
                                     }
                                 }
 
@@ -366,7 +382,7 @@ export component ShowroomView inherits Rectangle {
                                     Rectangle {
                                         width: 1px;
                                         height: 42px;
-                                        background: #e2e8f0;
+                                        background: root.theme_card_border;
                                     }
                                 }
 
@@ -388,10 +404,10 @@ export component ShowroomView inherits Rectangle {
                                         alignment: center;
                                         Rectangle {
                                             height: 30px;
-                                            background: #f1f5f9;
+                                            background: root.theme_bg_end;
                                             border-radius: 8px;
                                             border-width: 1px;
-                                            border-color: #e2e8f0;
+                                            border-color: root.theme_card_border;
 
                                             HorizontalLayout {
                                                 padding-left: 12px;
@@ -401,7 +417,7 @@ export component ShowroomView inherits Rectangle {
                                                     text: root.retail_name;
                                                     font-size: 12px;
                                                     font-weight: 800;
-                                                    color: #0f172a;
+                                                    color: root.theme_text_primary;
                                                     letter-spacing: 1px;
                                                     vertical-alignment: center;
                                                 }
@@ -414,10 +430,10 @@ export component ShowroomView inherits Rectangle {
                                         alignment: center;
                                         Rectangle {
                                             height: 30px;
-                                            background: #f1f5f9;
+                                            background: root.theme_bg_end;
                                             border-radius: 8px;
                                             border-width: 1px;
-                                            border-color: #e2e8f0;
+                                            border-color: root.theme_card_border;
 
                                             HorizontalLayout {
                                                 padding-left: 12px;
@@ -429,14 +445,14 @@ export component ShowroomView inherits Rectangle {
                                                     text: "SKU:";
                                                     font-size: 11px;
                                                     font-weight: 700;
-                                                    color: #64748b;
+                                                    color: root.theme_text_secondary;
                                                     vertical-alignment: center;
                                                 }
                                                 Text {
                                                     text: root.sku_code;
                                                     font-size: 13px;
                                                     font-weight: 800;
-                                                    color: #0f172a;
+                                                    color: root.theme_text_primary;
                                                     vertical-alignment: center;
                                                 }
                                             }
@@ -455,9 +471,9 @@ export component ShowroomView inherits Rectangle {
                             height: 52px;
                             width: 300px;
                             border-radius: 26px;
-                            background: @linear-gradient(135deg, #0284c7 0%, #0369a1 100%);
+                            background: root.theme_btn_bg;
                             border-width: 1.5px;
-                            border-color: #7dd3fc80;
+                            border-color: root.theme_accent;
 
                             btn_touch := TouchArea {
                                 mouse-cursor: pointer;
@@ -468,7 +484,6 @@ export component ShowroomView inherits Rectangle {
 
                             states [
                                 hover when btn_touch.has-hover: {
-                                    background: @linear-gradient(135deg, #0284c7 0%, #0284c7 100%);
                                     border-color: #ffffff;
                                 }
                             ]
@@ -480,13 +495,14 @@ export component ShowroomView inherits Rectangle {
                                 Text {
                                     text: "⚡";
                                     font-size: 18px;
+                                    color: root.theme_btn_text;
                                     vertical-alignment: center;
                                 }
                                 Text {
                                     text: "PROBAR ESTA PC";
                                     font-size: 16px;
                                     font-weight: 900;
-                                    color: #ffffff;
+                                    color: root.theme_btn_text;
                                     letter-spacing: 1px;
                                     vertical-alignment: center;
                                 }
@@ -509,7 +525,12 @@ export component ShowroomView inherits Rectangle {
                         subvalue: item.subvalue;
                         tag: item.tag;
                         icon: item.icon;
-                        accent_color: #0284c7;
+                        accent_color: root.theme_accent;
+                        card_bg: root.theme_card_bg;
+                        card_border: root.theme_card_border;
+                        text_primary: root.theme_text_primary;
+                        text_secondary: root.theme_text_secondary;
+                        category_color: root.theme_text_secondary;
                     }
                 }
             }

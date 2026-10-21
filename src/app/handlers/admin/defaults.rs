@@ -99,4 +99,20 @@ pub fn setup_defaults_handlers(main_window: &MainWindow) {
             populate_ui_state(&ui);
         }
     });
+
+    // 5. Reset UI Theme Defaults
+    let reset_ui_handle = main_window.as_weak();
+    main_window.on_reset_ui_defaults(move || {
+        if let Some(ui) = reset_ui_handle.upgrade() {
+            ui.set_cfg_bg_start("#f8fafc".into());
+            ui.set_cfg_bg_end("#e2e8f0".into());
+            ui.set_cfg_card_bg("#ffffff".into());
+            ui.set_cfg_card_border("#e2e8f0".into());
+            ui.set_cfg_text_primary("#0f172a".into());
+            ui.set_cfg_text_secondary("#64748b".into());
+            ui.set_cfg_accent("#0284c7".into());
+            ui.set_cfg_btn_bg("#0284c7".into());
+            ui.set_cfg_btn_text("#ffffff".into());
+        }
+    });
 }

@@ -293,7 +293,62 @@ pub fn populate_ui_state(window: &MainWindow) {
     window.set_cfg_inactivity_video_3(cfg.inactivity_video_path_3.clone().into());
     window.set_cfg_inactivity_timeout(cfg.inactivity_timeout_sec.to_string().into());
 
+    // Theme Colors Synchronization
+    let bg_start = parse_hex_color(&cfg.bg_start_color, slint::Color::from_rgb_u8(248, 250, 252));
+    let bg_end = parse_hex_color(&cfg.bg_end_color, slint::Color::from_rgb_u8(226, 232, 240));
+    let card_bg = parse_hex_color(&cfg.card_bg_color, slint::Color::from_rgb_u8(255, 255, 255));
+    let card_border = parse_hex_color(&cfg.card_border_color, slint::Color::from_rgb_u8(226, 232, 240));
+    let text_primary = parse_hex_color(&cfg.text_primary_color, slint::Color::from_rgb_u8(15, 23, 42));
+    let text_secondary = parse_hex_color(&cfg.text_secondary_color, slint::Color::from_rgb_u8(100, 116, 139));
+    let accent = parse_hex_color(&cfg.accent_color, slint::Color::from_rgb_u8(2, 132, 199));
+    let btn_bg = parse_hex_color(&cfg.btn_bg_color, slint::Color::from_rgb_u8(2, 132, 199));
+    let btn_text = parse_hex_color(&cfg.btn_text_color, slint::Color::from_rgb_u8(255, 255, 255));
+
+    window.set_theme_bg_start(bg_start);
+    window.set_theme_bg_end(bg_end);
+    window.set_theme_card_bg(card_bg);
+    window.set_theme_card_border(card_border);
+    window.set_theme_text_primary(text_primary);
+    window.set_theme_text_secondary(text_secondary);
+    window.set_theme_accent(accent);
+    window.set_theme_btn_bg(btn_bg);
+    window.set_theme_btn_text(btn_text);
+
+    // Admin Interfaz Strings
+    window.set_cfg_bg_start(cfg.bg_start_color.clone().into());
+    window.set_cfg_bg_end(cfg.bg_end_color.clone().into());
+    window.set_cfg_card_bg(cfg.card_bg_color.clone().into());
+    window.set_cfg_card_border(cfg.card_border_color.clone().into());
+    window.set_cfg_text_primary(cfg.text_primary_color.clone().into());
+    window.set_cfg_text_secondary(cfg.text_secondary_color.clone().into());
+    window.set_cfg_accent(cfg.accent_color.clone().into());
+    window.set_cfg_btn_bg(cfg.btn_bg_color.clone().into());
+    window.set_cfg_btn_text(cfg.btn_text_color.clone().into());
+
     populate_vault_videos(window);
+}
+
+pub fn parse_hex_color(hex: &str, fallback: slint::Color) -> slint::Color {
+    let clean = hex.trim().trim_start_matches('#');
+    if clean.len() == 6 {
+        if let (Ok(r), Ok(g), Ok(b)) = (
+            u8::from_str_radix(&clean[0..2], 16),
+            u8::from_str_radix(&clean[2..4], 16),
+            u8::from_str_radix(&clean[4..6], 16),
+        ) {
+            return slint::Color::from_rgb_u8(r, g, b);
+        }
+    } else if clean.len() == 8 {
+        if let (Ok(r), Ok(g), Ok(b), Ok(a)) = (
+            u8::from_str_radix(&clean[0..2], 16),
+            u8::from_str_radix(&clean[2..4], 16),
+            u8::from_str_radix(&clean[4..6], 16),
+            u8::from_str_radix(&clean[6..8], 16),
+        ) {
+            return slint::Color::from_argb_u8(a, r, g, b);
+        }
+    }
+    fallback
 }
 
 #[cfg(test)]
@@ -324,5 +379,24 @@ mod tests {
         assert_eq!(format_price_input("719.990"), "$ 719.990");
         assert_eq!(format_price_input("$ 990.968"), "$ 990.968");
         assert_eq!(format_price_input("990968"), "$ 990.968");
+    }
+
+    #[test]
+    fn test_parse_hex_color() {
+        let fallback = slint::Color::from_rgb_u8(0, 0, 0);
+        let white = parse_hex_color("#ffffff", fallback);
+        assert_eq!(white.red(), 255);
+        assert_eq!(white.green(), 255);
+        assert_eq!(white.blue(), 255);
+
+        let blue = parse_hex_color("0284c7", fallback);
+        assert_eq!(blue.red(), 2);
+        assert_eq!(blue.green(), 132);
+        assert_eq!(blue.blue(), 199);
+
+        let invalid = parse_hex_color("not_a_color", fallback);
+        assert_eq!(invalid.red(), 0);
+        assert_eq!(invalid.green(), 0);
+        assert_eq!(invalid.blue(), 0);
     }
 }

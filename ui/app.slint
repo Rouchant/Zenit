@@ -98,6 +98,28 @@ export component MainWindow inherits Window {
     in-out property <string> cfg_inactivity_timeout: "120";
     in-out property <[VaultVideoItem]> vault_videos: [];
 
+    // Theme Colors
+    in-out property <color> theme_bg_start: #f8fafc;
+    in-out property <color> theme_bg_end: #e2e8f0;
+    in-out property <color> theme_card_bg: #ffffff;
+    in-out property <color> theme_card_border: #e2e8f0;
+    in-out property <color> theme_text_primary: #0f172a;
+    in-out property <color> theme_text_secondary: #64748b;
+    in-out property <color> theme_accent: #0284c7;
+    in-out property <color> theme_btn_bg: #0284c7;
+    in-out property <color> theme_btn_text: #ffffff;
+
+    // Admin Tab Interfaz (Config strings)
+    in-out property <string> cfg_bg_start: "#f8fafc";
+    in-out property <string> cfg_bg_end: "#e2e8f0";
+    in-out property <string> cfg_card_bg: "#ffffff";
+    in-out property <string> cfg_card_border: "#e2e8f0";
+    in-out property <string> cfg_text_primary: "#0f172a";
+    in-out property <string> cfg_text_secondary: "#64748b";
+    in-out property <string> cfg_accent: "#0284c7";
+    in-out property <string> cfg_btn_bg: "#0284c7";
+    in-out property <string> cfg_btn_text: "#ffffff";
+
     // Callbacks
     callback try_pc_clicked();
     callback corner_tap_clicked();
@@ -120,6 +142,7 @@ export component MainWindow inherits Window {
     callback reset_specs_defaults();
     callback reset_videos_defaults();
     callback reset_system_defaults();
+    callback reset_ui_defaults();
     callback pick_central_video_clicked();
     callback pick_bg_video_clicked();
     callback pick_inactivity_1_clicked();
@@ -144,6 +167,17 @@ export component MainWindow inherits Window {
         screen_width: root.screen_width;
         screen_height: root.screen_height;
         store_logo: root.store_logo;
+
+        theme_bg_start: root.theme_bg_start;
+        theme_bg_end: root.theme_bg_end;
+        theme_card_bg: root.theme_card_bg;
+        theme_card_border: root.theme_card_border;
+        theme_text_primary: root.theme_text_primary;
+        theme_text_secondary: root.theme_text_secondary;
+        theme_accent: root.theme_accent;
+        theme_btn_bg: root.theme_btn_bg;
+        theme_btn_text: root.theme_btn_text;
+
         try_pc_clicked => { root.try_pc_clicked(); }
         corner_tap_clicked => { root.corner_tap_clicked(); }
     }
@@ -194,6 +228,16 @@ export component MainWindow inherits Window {
         cfg_inactivity_timeout <=> root.cfg_inactivity_timeout;
         vault_videos: root.vault_videos;
 
+        cfg_bg_start <=> root.cfg_bg_start;
+        cfg_bg_end <=> root.cfg_bg_end;
+        cfg_card_bg <=> root.cfg_card_bg;
+        cfg_card_border <=> root.cfg_card_border;
+        cfg_text_primary <=> root.cfg_text_primary;
+        cfg_text_secondary <=> root.cfg_text_secondary;
+        cfg_accent <=> root.cfg_accent;
+        cfg_btn_bg <=> root.cfg_btn_bg;
+        cfg_btn_text <=> root.cfg_btn_text;
+
         close_admin_clicked => { root.close_admin_clicked(); }
         check_admin_password(pwd) => { root.check_admin_password(pwd); }
         emergency_exit_clicked => { root.emergency_exit_clicked(); }
@@ -217,6 +261,7 @@ export component MainWindow inherits Window {
         reset_specs_defaults => { root.reset_specs_defaults(); }
         reset_videos_defaults => { root.reset_videos_defaults(); }
         reset_system_defaults => { root.reset_system_defaults(); }
+        reset_ui_defaults => { root.reset_ui_defaults(); }
         pick_central_video_clicked => { root.pick_central_video_clicked(); }
         pick_bg_video_clicked => { root.pick_bg_video_clicked(); }
         pick_inactivity_1_clicked => { root.pick_inactivity_1_clicked(); }

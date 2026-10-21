@@ -145,6 +145,46 @@ pub fn setup_save_handlers(
                     }
                 }
 
+                // Save UI Theme Colors
+                let bg_start = ui.get_cfg_bg_start().to_string();
+                let bg_end = ui.get_cfg_bg_end().to_string();
+                let card_bg = ui.get_cfg_card_bg().to_string();
+                let card_border = ui.get_cfg_card_border().to_string();
+                let text_primary = ui.get_cfg_text_primary().to_string();
+                let text_secondary = ui.get_cfg_text_secondary().to_string();
+                let accent = ui.get_cfg_accent().to_string();
+                let btn_bg = ui.get_cfg_btn_bg().to_string();
+                let btn_text = ui.get_cfg_btn_text().to_string();
+
+                if !bg_start.trim().is_empty() {
+                    cfg.bg_start_color = bg_start;
+                }
+                if !bg_end.trim().is_empty() {
+                    cfg.bg_end_color = bg_end;
+                }
+                if !card_bg.trim().is_empty() {
+                    cfg.card_bg_color = card_bg;
+                }
+                if !card_border.trim().is_empty() {
+                    cfg.card_border_color = card_border;
+                }
+                if !text_primary.trim().is_empty() {
+                    cfg.text_primary_color = text_primary;
+                }
+                if !text_secondary.trim().is_empty() {
+                    cfg.text_secondary_color = text_secondary;
+                }
+                if !accent.trim().is_empty() {
+                    cfg.accent_color = accent.clone();
+                    cfg.primary_color = accent;
+                }
+                if !btn_bg.trim().is_empty() {
+                    cfg.btn_bg_color = btn_bg;
+                }
+                if !btn_text.trim().is_empty() {
+                    cfg.btn_text_color = btn_text;
+                }
+
                 let _ = save_config(&cfg);
                 ui.set_is_admin_open(false);
                 ui.set_is_admin_authenticated(false);

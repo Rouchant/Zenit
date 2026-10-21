@@ -34,6 +34,17 @@ export component AdminView inherits Rectangle {
     in-out property <string> cfg_inactivity_timeout: "120";
     in-out property <[VaultVideoItem]> vault_videos: [];
 
+    // Tab Interfaz
+    in-out property <string> cfg_bg_start: "#f8fafc";
+    in-out property <string> cfg_bg_end: "#e2e8f0";
+    in-out property <string> cfg_card_bg: "#ffffff";
+    in-out property <string> cfg_card_border: "#e2e8f0";
+    in-out property <string> cfg_text_primary: "#0f172a";
+    in-out property <string> cfg_text_secondary: "#64748b";
+    in-out property <string> cfg_accent: "#0284c7";
+    in-out property <string> cfg_btn_bg: "#0284c7";
+    in-out property <string> cfg_btn_text: "#ffffff";
+
     // Callbacks
     callback close_admin_clicked();
     callback check_admin_password(string);
@@ -52,6 +63,7 @@ export component AdminView inherits Rectangle {
     callback reset_specs_defaults();
     callback reset_videos_defaults();
     callback reset_system_defaults();
+    callback reset_ui_defaults();
     callback pick_central_video_clicked();
     callback pick_bg_video_clicked();
     callback pick_inactivity_1_clicked();
@@ -284,13 +296,30 @@ export component AdminView inherits Rectangle {
                         }
                     }
 
-                    // Tab 3: Sistema
+                    // Tab 3: Interfaz
                     Rectangle {
                         background: root.admin_tab_index == 3 ? #0284c7 : #1e293b;
                         border-radius: 8px;
                         border-width: 1px;
                         border-color: root.admin_tab_index == 3 ? #38bdf8 : #334155;
                         TouchArea { mouse-cursor: pointer; clicked => { root.admin_tab_index = 3; } }
+                        Text {
+                            text: "🎨 Interfaz";
+                            font-size: 13px;
+                            font-weight: 700;
+                            color: #ffffff;
+                            horizontal-alignment: center;
+                            vertical-alignment: center;
+                        }
+                    }
+
+                    // Tab 4: Sistema
+                    Rectangle {
+                        background: root.admin_tab_index == 4 ? #0284c7 : #1e293b;
+                        border-radius: 8px;
+                        border-width: 1px;
+                        border-color: root.admin_tab_index == 4 ? #38bdf8 : #334155;
+                        TouchArea { mouse-cursor: pointer; clicked => { root.admin_tab_index = 4; } }
                         Text {
                             text: "🛠️ Sistema";
                             font-size: 13px;
@@ -1042,8 +1071,308 @@ export component AdminView inherits Rectangle {
                         }
                     }
 
-                    // TAB 3: SISTEMA
-                    if root.admin_tab_index == 3: VerticalLayout {
+                    // TAB 3: INTERFAZ Y COLORES
+                    if root.admin_tab_index == 3: ScrollView {
+                        content-height: 540px;
+
+                        VerticalLayout {
+                            spacing: 14px;
+                            padding-top: 4px;
+                            padding-bottom: 12px;
+                            padding-right: 10px;
+
+                            // Section 1: Presets Rápidos
+                            VerticalLayout {
+                                spacing: 6px;
+                                Text {
+                                    text: "Paleta de Temas Predefinidos (Selecciona un estilo rápido):";
+                                    font-size: 13px;
+                                    font-weight: 800;
+                                    color: #38bdf8;
+                                }
+
+                                HorizontalLayout {
+                                    spacing: 8px;
+                                    height: 38px;
+
+                                    // Preset 1: Claro Zenit
+                                    Rectangle {
+                                        background: #1e293b;
+                                        border-radius: 8px;
+                                        border-width: 1px;
+                                        border-color: #0284c7;
+                                        TouchArea {
+                                            mouse-cursor: pointer;
+                                            clicked => {
+                                                root.cfg_bg_start = "#f8fafc";
+                                                root.cfg_bg_end = "#e2e8f0";
+                                                root.cfg_card_bg = "#ffffff";
+                                                root.cfg_card_border = "#e2e8f0";
+                                                root.cfg_text_primary = "#0f172a";
+                                                root.cfg_text_secondary = "#64748b";
+                                                root.cfg_accent = "#0284c7";
+                                                root.cfg_btn_bg = "#0284c7";
+                                                root.cfg_btn_text = "#ffffff";
+                                            }
+                                        }
+                                        Text { text: "🔵 Claro Zenit"; font-size: 11px; font-weight: 700; color: #ffffff; horizontal-alignment: center; vertical-alignment: center; }
+                                    }
+
+                                    // Preset 2: Dark Neon
+                                    Rectangle {
+                                        background: #1e293b;
+                                        border-radius: 8px;
+                                        border-width: 1px;
+                                        border-color: #a855f7;
+                                        TouchArea {
+                                            mouse-cursor: pointer;
+                                            clicked => {
+                                                root.cfg_bg_start = "#090d16";
+                                                root.cfg_bg_end = "#1e1b4b";
+                                                root.cfg_card_bg = "#111827";
+                                                root.cfg_card_border = "#374151";
+                                                root.cfg_text_primary = "#f9fafb";
+                                                root.cfg_text_secondary = "#9ca3af";
+                                                root.cfg_accent = "#a855f7";
+                                                root.cfg_btn_bg = "#a855f7";
+                                                root.cfg_btn_text = "#ffffff";
+                                            }
+                                        }
+                                        Text { text: "🟣 Dark Neon"; font-size: 11px; font-weight: 700; color: #ffffff; horizontal-alignment: center; vertical-alignment: center; }
+                                    }
+
+                                    // Preset 3: Esmeralda
+                                    Rectangle {
+                                        background: #1e293b;
+                                        border-radius: 8px;
+                                        border-width: 1px;
+                                        border-color: #059669;
+                                        TouchArea {
+                                            mouse-cursor: pointer;
+                                            clicked => {
+                                                root.cfg_bg_start = "#f0fdf4";
+                                                root.cfg_bg_end = "#dcfce7";
+                                                root.cfg_card_bg = "#ffffff";
+                                                root.cfg_card_border = "#bbf7d0";
+                                                root.cfg_text_primary = "#064e3b";
+                                                root.cfg_text_secondary = "#047857";
+                                                root.cfg_accent = "#059669";
+                                                root.cfg_btn_bg = "#059669";
+                                                root.cfg_btn_text = "#ffffff";
+                                            }
+                                        }
+                                        Text { text: "🟢 Esmeralda"; font-size: 11px; font-weight: 700; color: #ffffff; horizontal-alignment: center; vertical-alignment: center; }
+                                    }
+
+                                    // Preset 4: ROG Red
+                                    Rectangle {
+                                        background: #1e293b;
+                                        border-radius: 8px;
+                                        border-width: 1px;
+                                        border-color: #e11d48;
+                                        TouchArea {
+                                            mouse-cursor: pointer;
+                                            clicked => {
+                                                root.cfg_bg_start = "#0a0a0c";
+                                                root.cfg_bg_end = "#1c0d12";
+                                                root.cfg_card_bg = "#18181b";
+                                                root.cfg_card_border = "#3f3f46";
+                                                root.cfg_text_primary = "#f4f4f5";
+                                                root.cfg_text_secondary = "#a1a1aa";
+                                                root.cfg_accent = "#e11d48";
+                                                root.cfg_btn_bg = "#e11d48";
+                                                root.cfg_btn_text = "#ffffff";
+                                            }
+                                        }
+                                        Text { text: "🔴 ROG Red"; font-size: 11px; font-weight: 700; color: #ffffff; horizontal-alignment: center; vertical-alignment: center; }
+                                    }
+
+                                    // Preset 5: Minimal Pure
+                                    Rectangle {
+                                        background: #1e293b;
+                                        border-radius: 8px;
+                                        border-width: 1px;
+                                        border-color: #3b82f6;
+                                        TouchArea {
+                                            mouse-cursor: pointer;
+                                            clicked => {
+                                                root.cfg_bg_start = "#ffffff";
+                                                root.cfg_bg_end = "#f1f5f9";
+                                                root.cfg_card_bg = "#ffffff";
+                                                root.cfg_card_border = "#cbd5e1";
+                                                root.cfg_text_primary = "#1e293b";
+                                                root.cfg_text_secondary = "#475569";
+                                                root.cfg_accent = "#2563eb";
+                                                root.cfg_btn_bg = "#2563eb";
+                                                root.cfg_btn_text = "#ffffff";
+                                            }
+                                        }
+                                        Text { text: "⚪ Minimal"; font-size: 11px; font-weight: 700; color: #ffffff; horizontal-alignment: center; vertical-alignment: center; }
+                                    }
+
+                                    // Preset 6: Sunset
+                                    Rectangle {
+                                        background: #1e293b;
+                                        border-radius: 8px;
+                                        border-width: 1px;
+                                        border-color: #ea580c;
+                                        TouchArea {
+                                            mouse-cursor: pointer;
+                                            clicked => {
+                                                root.cfg_bg_start = "#fff7ed";
+                                                root.cfg_bg_end = "#ffedd5";
+                                                root.cfg_card_bg = "#ffffff";
+                                                root.cfg_card_border = "#fed7aa";
+                                                root.cfg_text_primary = "#431407";
+                                                root.cfg_text_secondary = "#7c2d12";
+                                                root.cfg_accent = "#ea580c";
+                                                root.cfg_btn_bg = "#ea580c";
+                                                root.cfg_btn_text = "#ffffff";
+                                            }
+                                        }
+                                        Text { text: "🟠 Sunset"; font-size: 11px; font-weight: 700; color: #ffffff; horizontal-alignment: center; vertical-alignment: center; }
+                                    }
+                                }
+                            }
+
+                            // Section 2: Paleta Rápida de Colores Primarios
+                            VerticalLayout {
+                                spacing: 6px;
+                                Text {
+                                    text: "Paleta Rápida de Color Highlight / Acento y Botón:";
+                                    font-size: 13px;
+                                    font-weight: 800;
+                                    color: #38bdf8;
+                                }
+
+                                HorizontalLayout {
+                                    spacing: 12px;
+                                    height: 32px;
+
+                                    Rectangle { width: 32px; height: 32px; border-radius: 16px; background: #0284c7; border-width: 2px; border-color: root.cfg_accent == "#0284c7" ? #ffffff : #334155; TouchArea { mouse-cursor: pointer; clicked => { root.cfg_accent = "#0284c7"; root.cfg_btn_bg = "#0284c7"; } } }
+                                    Rectangle { width: 32px; height: 32px; border-radius: 16px; background: #06b6d4; border-width: 2px; border-color: root.cfg_accent == "#06b6d4" ? #ffffff : #334155; TouchArea { mouse-cursor: pointer; clicked => { root.cfg_accent = "#06b6d4"; root.cfg_btn_bg = "#06b6d4"; } } }
+                                    Rectangle { width: 32px; height: 32px; border-radius: 16px; background: #6366f1; border-width: 2px; border-color: root.cfg_accent == "#6366f1" ? #ffffff : #334155; TouchArea { mouse-cursor: pointer; clicked => { root.cfg_accent = "#6366f1"; root.cfg_btn_bg = "#6366f1"; } } }
+                                    Rectangle { width: 32px; height: 32px; border-radius: 16px; background: #a855f7; border-width: 2px; border-color: root.cfg_accent == "#a855f7" ? #ffffff : #334155; TouchArea { mouse-cursor: pointer; clicked => { root.cfg_accent = "#a855f7"; root.cfg_btn_bg = "#a855f7"; } } }
+                                    Rectangle { width: 32px; height: 32px; border-radius: 16px; background: #ec4899; border-width: 2px; border-color: root.cfg_accent == "#ec4899" ? #ffffff : #334155; TouchArea { mouse-cursor: pointer; clicked => { root.cfg_accent = "#ec4899"; root.cfg_btn_bg = "#ec4899"; } } }
+                                    Rectangle { width: 32px; height: 32px; border-radius: 16px; background: #e11d48; border-width: 2px; border-color: root.cfg_accent == "#e11d48" ? #ffffff : #334155; TouchArea { mouse-cursor: pointer; clicked => { root.cfg_accent = "#e11d48"; root.cfg_btn_bg = "#e11d48"; } } }
+                                    Rectangle { width: 32px; height: 32px; border-radius: 16px; background: #f97316; border-width: 2px; border-color: root.cfg_accent == "#f97316" ? #ffffff : #334155; TouchArea { mouse-cursor: pointer; clicked => { root.cfg_accent = "#f97316"; root.cfg_btn_bg = "#f97316"; } } }
+                                    Rectangle { width: 32px; height: 32px; border-radius: 16px; background: #10b981; border-width: 2px; border-color: root.cfg_accent == "#10b981" ? #ffffff : #334155; TouchArea { mouse-cursor: pointer; clicked => { root.cfg_accent = "#10b981"; root.cfg_btn_bg = "#10b981"; } } }
+                                }
+                            }
+
+                            // Section 3: Manual Hex Inputs
+                            VerticalLayout {
+                                spacing: 8px;
+                                Text {
+                                    text: "Configuración Manual de Colores Hex (#RRGGBB):";
+                                    font-size: 13px;
+                                    font-weight: 800;
+                                    color: #38bdf8;
+                                }
+
+                                // Fila 1: Degradado Fondo
+                                HorizontalLayout {
+                                    spacing: 14px;
+                                    VerticalLayout {
+                                        horizontal-stretch: 1;
+                                        spacing: 3px;
+                                        Text { text: "Fondo - Color Inicial:"; font-size: 11px; color: #cbd5e1; }
+                                        LineEdit { text <=> root.cfg_bg_start; }
+                                    }
+                                    VerticalLayout {
+                                        horizontal-stretch: 1;
+                                        spacing: 3px;
+                                        Text { text: "Fondo - Color Final:"; font-size: 11px; color: #cbd5e1; }
+                                        LineEdit { text <=> root.cfg_bg_end; }
+                                    }
+                                }
+
+                                // Fila 2: Recuadros Specs
+                                HorizontalLayout {
+                                    spacing: 14px;
+                                    VerticalLayout {
+                                        horizontal-stretch: 1;
+                                        spacing: 3px;
+                                        Text { text: "Fondo de Recuadros (Specs):"; font-size: 11px; color: #cbd5e1; }
+                                        LineEdit { text <=> root.cfg_card_bg; }
+                                    }
+                                    VerticalLayout {
+                                        horizontal-stretch: 1;
+                                        spacing: 3px;
+                                        Text { text: "Borde de Recuadros (Specs):"; font-size: 11px; color: #cbd5e1; }
+                                        LineEdit { text <=> root.cfg_card_border; }
+                                    }
+                                }
+
+                                // Fila 3: Textos
+                                HorizontalLayout {
+                                    spacing: 14px;
+                                    VerticalLayout {
+                                        horizontal-stretch: 1;
+                                        spacing: 3px;
+                                        Text { text: "Texto Principal (Valores/Modelo):"; font-size: 11px; color: #cbd5e1; }
+                                        LineEdit { text <=> root.cfg_text_primary; }
+                                    }
+                                    VerticalLayout {
+                                        horizontal-stretch: 1;
+                                        spacing: 3px;
+                                        Text { text: "Texto Secundario (Títulos de specs):"; font-size: 11px; color: #cbd5e1; }
+                                        LineEdit { text <=> root.cfg_text_secondary; }
+                                    }
+                                }
+
+                                // Fila 4: Highlight y Botón
+                                HorizontalLayout {
+                                    spacing: 14px;
+                                    VerticalLayout {
+                                        horizontal-stretch: 1;
+                                        spacing: 3px;
+                                        Text { text: "Color Highlight / Acento:"; font-size: 11px; color: #cbd5e1; }
+                                        LineEdit { text <=> root.cfg_accent; }
+                                    }
+                                    VerticalLayout {
+                                        horizontal-stretch: 1;
+                                        spacing: 3px;
+                                        Text { text: "Fondo Botón Acción:"; font-size: 11px; color: #cbd5e1; }
+                                        LineEdit { text <=> root.cfg_btn_bg; }
+                                    }
+                                    VerticalLayout {
+                                        horizontal-stretch: 1;
+                                        spacing: 3px;
+                                        Text { text: "Texto Botón Acción:"; font-size: 11px; color: #cbd5e1; }
+                                        LineEdit { text <=> root.cfg_btn_text; }
+                                    }
+                                }
+                            }
+
+                            // Botón Restablecer Colores a Fábrica
+                            Rectangle {
+                                height: 38px;
+                                background: #1e293b;
+                                border-radius: 8px;
+                                border-width: 1px;
+                                border-color: #475569;
+                                TouchArea {
+                                    mouse-cursor: pointer;
+                                    clicked => { root.reset_ui_defaults(); }
+                                }
+                                HorizontalLayout {
+                                    alignment: center;
+                                    spacing: 8px;
+                                    Text {
+                                        text: "🔄 Restablecer Colores de Interfaz a Valores de Fábrica";
+                                        font-size: 12px;
+                                        font-weight: 700;
+                                        color: #38bdf8;
+                                        vertical-alignment: center;
+                                    }
+                                }
+                            }
+                        }
+                    }
+
+                    // TAB 4: SISTEMA
+                    if root.admin_tab_index == 4: VerticalLayout {
                         spacing: 14px;
                         alignment: center;
 

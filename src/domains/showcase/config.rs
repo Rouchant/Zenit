@@ -2,14 +2,60 @@ use serde::{Deserialize, Serialize};
 use std::fs;
 use std::path::{Path, PathBuf};
 
+fn default_bg_start() -> String {
+    "#f8fafc".to_string()
+}
+fn default_bg_end() -> String {
+    "#e2e8f0".to_string()
+}
+fn default_card_bg() -> String {
+    "#ffffff".to_string()
+}
+fn default_card_border() -> String {
+    "#e2e8f0".to_string()
+}
+fn default_text_primary() -> String {
+    "#0f172a".to_string()
+}
+fn default_text_secondary() -> String {
+    "#64748b".to_string()
+}
+fn default_accent() -> String {
+    "#0284c7".to_string()
+}
+fn default_btn_bg() -> String {
+    "#0284c7".to_string()
+}
+fn default_btn_text() -> String {
+    "#ffffff".to_string()
+}
+
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct AppConfig {
     // Theme & Colors
     pub primary_color: String,
     pub secondary_color: String,
+    #[serde(default = "default_accent")]
     pub accent_color: String,
     pub bg_gradient: String,
     pub store_theme: String, // "default", "falabella", "paris", "ripley"
+
+    #[serde(default = "default_bg_start")]
+    pub bg_start_color: String,
+    #[serde(default = "default_bg_end")]
+    pub bg_end_color: String,
+    #[serde(default = "default_card_bg")]
+    pub card_bg_color: String,
+    #[serde(default = "default_card_border")]
+    pub card_border_color: String,
+    #[serde(default = "default_text_primary")]
+    pub text_primary_color: String,
+    #[serde(default = "default_text_secondary")]
+    pub text_secondary_color: String,
+    #[serde(default = "default_btn_bg")]
+    pub btn_bg_color: String,
+    #[serde(default = "default_btn_text")]
+    pub btn_text_color: String,
 
     // Optional Pricing & SKU
     pub price_card: String,
@@ -67,9 +113,18 @@ impl Default for AppConfig {
         Self {
             primary_color: "#00f2ff".to_string(),
             secondary_color: "#0072ff".to_string(),
-            accent_color: "#00e5ff".to_string(),
-            bg_gradient: "radial-gradient(circle at center, #111422 0%, #06070a 100%)".to_string(),
+            accent_color: "#0284c7".to_string(),
+            bg_gradient: "@linear-gradient(155deg, #f8fafc 0%, #e2e8f0 100%)".to_string(),
             store_theme: "default".to_string(),
+
+            bg_start_color: "#f8fafc".to_string(),
+            bg_end_color: "#e2e8f0".to_string(),
+            card_bg_color: "#ffffff".to_string(),
+            card_border_color: "#e2e8f0".to_string(),
+            text_primary_color: "#0f172a".to_string(),
+            text_secondary_color: "#64748b".to_string(),
+            btn_bg_color: "#0284c7".to_string(),
+            btn_text_color: "#ffffff".to_string(),
 
             price_card: "".to_string(),
             price_all_methods: "".to_string(),
@@ -233,6 +288,12 @@ mod tests {
         assert_eq!(cfg.inactivity_video_path_2, "");
         assert_eq!(cfg.inactivity_video_path_3, "");
         assert_eq!(cfg.inactivity_timeout_sec, 120);
+        assert_eq!(cfg.bg_start_color, "#f8fafc");
+        assert_eq!(cfg.card_bg_color, "#ffffff");
+        assert_eq!(cfg.card_border_color, "#e2e8f0");
+        assert_eq!(cfg.text_primary_color, "#0f172a");
+        assert_eq!(cfg.text_secondary_color, "#64748b");
+        assert_eq!(cfg.btn_bg_color, "#0284c7");
         assert!(!cfg.setup_completed);
     }
 

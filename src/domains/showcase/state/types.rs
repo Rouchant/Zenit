@@ -16,6 +16,14 @@ pub struct ThemeColors {
     pub secondary: String,
     pub accent: String,
     pub bg_gradient: String,
+    pub bg_start: String,
+    pub bg_end: String,
+    pub card_bg: String,
+    pub card_border: String,
+    pub text_primary: String,
+    pub text_secondary: String,
+    pub btn_bg: String,
+    pub btn_text: String,
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
