@@ -39,7 +39,10 @@ pub fn init_main_window(window: &MainWindow) {
         window.set_screen_height(screen_h as f32);
 
         if !hwnd.is_null() {
+            ShowWindow(hwnd, SW_SHOW);
+            ShowWindow(hwnd, SW_RESTORE);
             SetWindowPos(hwnd, HWND_TOP, 0, 0, screen_w, screen_h, SWP_SHOWWINDOW);
+            SetForegroundWindow(hwnd);
         }
     }
 }
