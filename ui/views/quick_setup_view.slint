@@ -53,6 +53,7 @@ export component QuickSetupView inherits Rectangle {
                 border-color: #38bdf840;
 
                 detect_touch := TouchArea {
+                    mouse-cursor: pointer;
                     clicked => {
                         root.auto_detect_clicked();
                     }
@@ -153,6 +154,7 @@ export component QuickSetupView inherits Rectangle {
                 border-radius: 10px;
 
                 TouchArea {
+                    mouse-cursor: pointer;
                     clicked => {
                         root.save_quick_setup(
                             root.setup_brand,

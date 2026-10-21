@@ -141,6 +141,7 @@ export component ShowroomView inherits Rectangle {
                         border-color: #ffffff0a;
 
                         TouchArea {
+                            mouse-cursor: pointer;
                             clicked => {
                                 root.corner_tap_clicked();
                             }
@@ -465,6 +466,7 @@ export component ShowroomView inherits Rectangle {
                             border-color: #7dd3fc80;
 
                             btn_touch := TouchArea {
+                                mouse-cursor: pointer;
                                 clicked => {
                                     root.try_pc_clicked();
                                 }

@@ -18,6 +18,7 @@ export component FloatingDetailsButton inherits Window {
         clip: true;
 
         touch := TouchArea {
+            mouse-cursor: pointer;
             clicked => {
                 root.restore_clicked();
             }

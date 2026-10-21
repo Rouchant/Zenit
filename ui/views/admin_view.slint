@@ -96,6 +96,7 @@ export component AdminView inherits Rectangle {
                         border-color: touch_close_login.has-hover ? #f87171 : #475569;
 
                         touch_close_login := TouchArea {
+                            mouse-cursor: pointer;
                             clicked => {
                                 root.close_admin_clicked();
                             }
@@ -146,6 +147,7 @@ export component AdminView inherits Rectangle {
                         border-radius: 8px;
 
                         TouchArea {
+                            mouse-cursor: pointer;
                             clicked => {
                                 root.check_admin_password(root.admin_password_input);
                             }
@@ -167,6 +169,7 @@ export component AdminView inherits Rectangle {
                         border-radius: 8px;
 
                         TouchArea {
+                            mouse-cursor: pointer;
                             clicked => {
                                 root.close_admin_clicked();
                             }
@@ -209,6 +212,7 @@ export component AdminView inherits Rectangle {
                         border-color: touch_close.has-hover ? #f87171 : #475569;
 
                         touch_close := TouchArea {
+                            mouse-cursor: pointer;
                             clicked => {
                                 root.close_admin_clicked();
                             }
@@ -235,7 +239,7 @@ export component AdminView inherits Rectangle {
                         border-radius: 8px;
                         border-width: 1px;
                         border-color: root.admin_tab_index == 0 ? #38bdf8 : #334155;
-                        TouchArea { clicked => { root.admin_tab_index = 0; } }
+                        TouchArea { mouse-cursor: pointer; clicked => { root.admin_tab_index = 0; } }
                         Text {
                             text: "🏪 Tienda";
                             font-size: 13px;
@@ -252,7 +256,7 @@ export component AdminView inherits Rectangle {
                         border-radius: 8px;
                         border-width: 1px;
                         border-color: root.admin_tab_index == 1 ? #38bdf8 : #334155;
-                        TouchArea { clicked => { root.admin_tab_index = 1; } }
+                        TouchArea { mouse-cursor: pointer; clicked => { root.admin_tab_index = 1; } }
                         Text {
                             text: "⚙️ Especificaciones";
                             font-size: 13px;
@@ -269,7 +273,7 @@ export component AdminView inherits Rectangle {
                         border-radius: 8px;
                         border-width: 1px;
                         border-color: root.admin_tab_index == 2 ? #38bdf8 : #334155;
-                        TouchArea { clicked => { root.admin_tab_index = 2; } }
+                        TouchArea { mouse-cursor: pointer; clicked => { root.admin_tab_index = 2; } }
                         Text {
                             text: "🎬 Videos";
                             font-size: 13px;
@@ -286,7 +290,7 @@ export component AdminView inherits Rectangle {
                         border-radius: 8px;
                         border-width: 1px;
                         border-color: root.admin_tab_index == 3 ? #38bdf8 : #334155;
-                        TouchArea { clicked => { root.admin_tab_index = 3; } }
+                        TouchArea { mouse-cursor: pointer; clicked => { root.admin_tab_index = 3; } }
                         Text {
                             text: "🛠️ Sistema";
                             font-size: 13px;
@@ -396,6 +400,7 @@ export component AdminView inherits Rectangle {
                                 border-color: #475569;
 
                                 touch_reset_0 := TouchArea {
+                                    mouse-cursor: pointer;
                                     clicked => {
                                         root.reset_store_defaults();
                                     }
@@ -562,6 +567,7 @@ export component AdminView inherits Rectangle {
                                 border-color: #475569;
 
                                 touch_reset_1 := TouchArea {
+                                    mouse-cursor: pointer;
                                     clicked => {
                                         root.reset_specs_defaults();
                                     }
@@ -618,6 +624,7 @@ export component AdminView inherits Rectangle {
                                         border-width: 1px;
                                         border-color: #475569;
                                         touch_pick_central := TouchArea {
+                                            mouse-cursor: pointer;
                                             clicked => { root.pick_central_video_clicked(); }
                                         }
                                         states [
@@ -654,6 +661,7 @@ export component AdminView inherits Rectangle {
                                         border-width: 1px;
                                         border-color: #475569;
                                         touch_pick_bg := TouchArea {
+                                            mouse-cursor: pointer;
                                             clicked => { root.pick_bg_video_clicked(); }
                                         }
                                         states [
@@ -712,6 +720,7 @@ export component AdminView inherits Rectangle {
                                         border-width: 1px;
                                         border-color: #475569;
                                         touch_pick_inact1 := TouchArea {
+                                            mouse-cursor: pointer;
                                             clicked => { root.pick_inactivity_1_clicked(); }
                                         }
                                         states [
@@ -748,6 +757,7 @@ export component AdminView inherits Rectangle {
                                         border-width: 1px;
                                         border-color: #475569;
                                         touch_pick_inact2 := TouchArea {
+                                            mouse-cursor: pointer;
                                             clicked => { root.pick_inactivity_2_clicked(); }
                                         }
                                         states [
@@ -784,6 +794,7 @@ export component AdminView inherits Rectangle {
                                         border-width: 1px;
                                         border-color: #475569;
                                         touch_pick_inact3 := TouchArea {
+                                            mouse-cursor: pointer;
                                             clicked => { root.pick_inactivity_3_clicked(); }
                                         }
                                         states [
@@ -825,6 +836,7 @@ export component AdminView inherits Rectangle {
                                     border-color: #475569;
 
                                     touch_reset_2 := TouchArea {
+                                        mouse-cursor: pointer;
                                         clicked => {
                                             root.reset_videos_defaults();
                                         }
@@ -859,6 +871,7 @@ export component AdminView inherits Rectangle {
                                     background: #0284c7;
                                     border-radius: 6px;
                                     TouchArea {
+                                        mouse-cursor: pointer;
                                         clicked => {
                                             root.import_video_to_vault_clicked();
                                         }
@@ -937,6 +950,7 @@ export component AdminView inherits Rectangle {
                                                     background: #0284c7;
                                                     border-radius: 4px;
                                                     TouchArea {
+                                                        mouse-cursor: pointer;
                                                         clicked => {
                                                             root.cfg_inactivity_video_1 = item.path;
                                                         }
@@ -958,6 +972,7 @@ export component AdminView inherits Rectangle {
                                                     background: #0284c7;
                                                     border-radius: 4px;
                                                     TouchArea {
+                                                        mouse-cursor: pointer;
                                                         clicked => {
                                                             root.cfg_inactivity_video_2 = item.path;
                                                         }
@@ -979,6 +994,7 @@ export component AdminView inherits Rectangle {
                                                     background: #0284c7;
                                                     border-radius: 4px;
                                                     TouchArea {
+                                                        mouse-cursor: pointer;
                                                         clicked => {
                                                             root.cfg_inactivity_video_3 = item.path;
                                                         }
@@ -1000,6 +1016,7 @@ export component AdminView inherits Rectangle {
                                                     background: #ef444433;
                                                     border-radius: 4px;
                                                     TouchArea {
+                                                        mouse-cursor: pointer;
                                                         clicked => {
                                                             root.delete_vault_video_clicked(item.filename);
                                                         }
@@ -1029,7 +1046,10 @@ export component AdminView inherits Rectangle {
                             height: 42px;
                             background: #0284c7;
                             border-radius: 8px;
-                            TouchArea { clicked => { root.auto_detect_clicked(); } }
+                            TouchArea {
+                                mouse-cursor: pointer;
+                                clicked => { root.auto_detect_clicked(); }
+                            }
                             Text {
                                 text: "⚡ Auto-detectar Hardware del Equipo";
                                 font-size: 14px;
@@ -1049,6 +1069,7 @@ export component AdminView inherits Rectangle {
                             border-color: #475569;
 
                             touch_reset_3 := TouchArea {
+                                mouse-cursor: pointer;
                                 clicked => {
                                     root.reset_system_defaults();
                                 }
@@ -1082,7 +1103,10 @@ export component AdminView inherits Rectangle {
                             height: 42px;
                             background: #d97706;
                             border-radius: 8px;
-                            TouchArea { clicked => { root.emergency_restart_clicked(); } }
+                            TouchArea {
+                                mouse-cursor: pointer;
+                                clicked => { root.emergency_restart_clicked(); }
+                            }
                             Text {
                                 text: "🔄 Reiniciar Aplicación";
                                 font-size: 14px;
@@ -1098,7 +1122,10 @@ export component AdminView inherits Rectangle {
                             height: 42px;
                             background: #dc2626;
                             border-radius: 8px;
-                            TouchArea { clicked => { root.emergency_exit_clicked(); } }
+                            TouchArea {
+                                mouse-cursor: pointer;
+                                clicked => { root.emergency_exit_clicked(); }
+                            }
                             Text {
                                 text: "🚪 Salir a Windows (Cerrar Aplicación)";
                                 font-size: 14px;
@@ -1121,6 +1148,7 @@ export component AdminView inherits Rectangle {
                         border-radius: 8px;
 
                         TouchArea {
+                            mouse-cursor: pointer;
                             clicked => {
                                 root.save_admin_config(
                                     root.cfg_brand, root.cfg_model, root.cfg_retail, root.cfg_card_price, root.cfg_normal_price, root.cfg_sku,
@@ -1146,6 +1174,7 @@ export component AdminView inherits Rectangle {
                         border-radius: 8px;
 
                         TouchArea {
+                            mouse-cursor: pointer;
                             clicked => {
                                 root.close_admin_clicked();
                             }
