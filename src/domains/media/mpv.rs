@@ -166,7 +166,7 @@ impl SlintMpvPlayer {
             (lib.mpv_set_option_string)(mpv, opt_loop.as_ptr(), opt_inf.as_ptr());
 
             let opt_hwdec = CString::new("hwdec").unwrap();
-            let opt_auto = CString::new("auto-copy").unwrap();
+            let opt_auto = CString::new("auto-safe").unwrap();
             (lib.mpv_set_option_string)(mpv, opt_hwdec.as_ptr(), opt_auto.as_ptr());
 
             let opt_threads_key = CString::new("vd-lavc-threads").unwrap();
@@ -174,7 +174,7 @@ impl SlintMpvPlayer {
             (lib.mpv_set_option_string)(mpv, opt_threads_key.as_ptr(), opt_threads_val.as_ptr());
 
             let opt_framedrop_key = CString::new("framedrop").unwrap();
-            let opt_framedrop_val = CString::new("no").unwrap();
+            let opt_framedrop_val = CString::new("vo").unwrap();
             (lib.mpv_set_option_string)(mpv, opt_framedrop_key.as_ptr(), opt_framedrop_val.as_ptr());
 
             let opt_vo = CString::new("vo").unwrap();
@@ -286,6 +286,16 @@ impl SlintMpvPlayer {
         if !self.is_playing.load(Ordering::SeqCst) {
             return Ok(None);
         }
+
+        if let Some(update_fn) = self.lib.mpv_render_context_update {
+            unsafe {
+                let flags = update_fn(self.render_ctx);
+                if (flags & 1) == 0 && !self.first_frame {
+                    return Ok(None);
+                }
+            }
+        }
+        self.first_frame = false;
 
         unsafe {
             let raw_bytes = self.pixel_buffer.make_mut_bytes();

@@ -9,21 +9,18 @@ export component SpecCard inherits Rectangle {
     vertical-stretch: 1;
     background: #ffffff;
     border-radius: 14px;
-    border-width: 1px;
+    border-width: 1.5px;
     border-color: #e2e8f0;
-    drop-shadow-blur: 10px;
-    drop-shadow-color: #0000000d;
-    drop-shadow-offset-y: 2px;
     clip: true;
 
     touch := TouchArea {}
 
-    animate border-color { duration: 180ms; }
-    animate background { duration: 180ms; }
+    animate border-color { duration: 100ms; }
+    animate background { duration: 100ms; }
 
     states [
         hover when touch.has-hover: {
-            background: #f8fafc;
+            background: #f0f9ff;
             border-color: #0284c7;
         }
     ]

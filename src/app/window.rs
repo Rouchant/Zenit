@@ -18,12 +18,21 @@ use windows_sys::Win32::UI::WindowsAndMessaging::{
     SW_MINIMIZE, SW_RESTORE, SW_SHOW,
 };
 
+#[cfg(target_os = "windows")]
+#[link(name = "winmm")]
+unsafe extern "system" {
+    fn timeBeginPeriod(uPeriod: u32) -> u32;
+}
+
 pub fn init_main_window(window: &MainWindow) {
     window.show().expect("Failed to show Slint window");
     window.window().set_fullscreen(true);
 
     #[cfg(target_os = "windows")]
     unsafe {
+        // Set high precision 1ms timer resolution for buttery-smooth video and animations
+        timeBeginPeriod(1);
+
         // Prevent Windows from sleeping or turning off the display
         SetThreadExecutionState(ES_CONTINUOUS | ES_DISPLAY_REQUIRED | ES_SYSTEM_REQUIRED);
 
