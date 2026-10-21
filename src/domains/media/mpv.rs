@@ -287,16 +287,6 @@ impl SlintMpvPlayer {
             return Ok(None);
         }
 
-        if let Some(update_fn) = self.lib.mpv_render_context_update {
-            unsafe {
-                let flags = update_fn(self.render_ctx);
-                if (flags & 1) == 0 && !self.first_frame {
-                    return Ok(None);
-                }
-            }
-        }
-        self.first_frame = false;
-
         unsafe {
             let raw_bytes = self.pixel_buffer.make_mut_bytes();
             let mut stride_val = self.stride;
