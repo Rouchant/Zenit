@@ -3,25 +3,28 @@ export component SpecCard inherits Rectangle {
     in property <string> value: "Valor Principal";
     in property <string> subvalue: "Detalle adicional";
     in property <string> tag: "TOP";
-    in property <color> accent_color: #38bdf8;
+    in property <color> accent_color: #0284c7;
     in property <image> icon;
 
     vertical-stretch: 1;
-    background: #0f172a99;
-    border-radius: 12px;
+    background: #ffffff;
+    border-radius: 14px;
     border-width: 1px;
-    border-color: #38bdf826;
+    border-color: #e2e8f0;
+    drop-shadow-blur: 10px;
+    drop-shadow-color: #0000000d;
+    drop-shadow-offset-y: 2px;
     clip: true;
 
     touch := TouchArea {}
 
-    animate border-color { duration: 200ms; }
-    animate background { duration: 200ms; }
+    animate border-color { duration: 180ms; }
+    animate background { duration: 180ms; }
 
     states [
         hover when touch.has-hover: {
-            background: #1e293bcc;
-            border-color: #38bdf880;
+            background: #f8fafc;
+            border-color: #0284c7;
         }
     ]
 
@@ -42,17 +45,17 @@ export component SpecCard inherits Rectangle {
 
                 if root.icon.width > 0: Image {
                     source: root.icon;
-                    width: 30px;
-                    height: 30px;
+                    width: 28px;
+                    height: 28px;
                     colorize: root.accent_color;
                     vertical-alignment: center;
                 }
 
                 Text {
                     text: root.category;
-                    font-size: 12px;
+                    font-size: 11px;
                     font-weight: 700;
-                    color: #94a3b8;
+                    color: #64748b;
                     letter-spacing: 1px;
                     vertical-alignment: center;
                 }
@@ -63,10 +66,10 @@ export component SpecCard inherits Rectangle {
 
                 Rectangle {
                     height: 24px;
-                    background: #0369a140;
+                    background: #e0f2fe;
                     border-radius: 6px;
                     border-width: 1px;
-                    border-color: #38bdf840;
+                    border-color: #bae6fd;
 
                     HorizontalLayout {
                         padding-left: 10px;
@@ -75,9 +78,9 @@ export component SpecCard inherits Rectangle {
 
                         Text {
                             text: root.tag;
-                            font-size: 13px;
+                            font-size: 12px;
                             font-weight: 800;
-                            color: #38bdf8;
+                            color: #0284c7;
                             vertical-alignment: center;
                             horizontal-alignment: center;
                         }
@@ -90,14 +93,14 @@ export component SpecCard inherits Rectangle {
             text: root.value;
             font-size: 19px;
             font-weight: 800;
-            color: #ffffff;
+            color: #0f172a;
             wrap: word-wrap;
         }
 
         if root.subvalue != "": Text {
             text: root.subvalue;
             font-size: 13px;
-            color: #cbd5e1;
+            color: #475569;
             wrap: word-wrap;
         }
     }
