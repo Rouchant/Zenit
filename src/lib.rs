@@ -17,6 +17,7 @@ pub fn run() {
 
     // 1. Initialize Main Window Geometry & Win32 Handles BEFORE secondary windows
     app::window::init_main_window(&main_window);
+    domains::hardware::display::set_max_brightness();
 
     let floating_btn = Rc::new(FloatingDetailsButton::new().expect("Failed to initialize FloatingDetailsButton"));
 

@@ -26,6 +26,9 @@ New-Item -ItemType Directory -Path $portableDir -Force | Out-Null
 Copy-Item -Path $releaseExe -Destination $portableDir
 Copy-Item -Path "$PSScriptRoot\libmpv-2.dll" -Destination $portableDir
 Copy-Item -Path "$PSScriptRoot\assets" -Destination $portableDir -Recurse
+if (Test-Path "$PSScriptRoot\system-setup.ps1") {
+    Copy-Item -Path "$PSScriptRoot\system-setup.ps1" -Destination $portableDir
+}
 if (Test-Path "$PSScriptRoot\get-specs.ps1") {
     Copy-Item -Path "$PSScriptRoot\get-specs.ps1" -Destination $portableDir
 }
@@ -33,14 +36,18 @@ if (Test-Path "$PSScriptRoot\get-specs.ps1") {
 Write-Host "[OK] Paquete Portable creado en: $portableDir" -ForegroundColor Green
 
 # 3. Verificar si Inno Setup Compiler está instalado para compilar el Setup .exe
-$isccPaths = @(
+$iscc = @(
+    "$env:LOCALAPPDATA\Programs\Inno Setup 6\ISCC.exe",
     "C:\Program Files (x86)\Inno Setup 6\ISCC.exe",
-    "C:\Program Files\Inno Setup 6\ISCC.exe",
-    (Get-Command iscc.exe -ErrorAction SilentlyContinue).Source
-) | Where-Object { $_ -and (Test-Path $_) }
+    "C:\Program Files\Inno Setup 6\ISCC.exe"
+) | Where-Object { $_ -and (Test-Path $_) } | Select-Object -First 1
 
-if ($isccPaths.Count -gt 0) {
-    $iscc = $isccPaths[0]
+if (-not $iscc) {
+    $cmd = Get-Command iscc.exe -ErrorAction SilentlyContinue
+    if ($cmd) { $iscc = $cmd.Source }
+}
+
+if ($iscc) {
     Write-Host "=========================================" -ForegroundColor Cyan
     Write-Host " 3. Compilando instalador Setup .exe con Inno Setup" -ForegroundColor Cyan
     Write-Host "=========================================" -ForegroundColor Cyan

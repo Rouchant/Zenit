@@ -68,6 +68,7 @@ pub fn spawn_inactivity_watcher(
                         ui.set_is_screensaver_active(true);
                         restore_main_window();
                     }
+                    crate::domains::hardware::display::set_max_brightness();
                 });
                 continue;
             }
@@ -103,6 +104,7 @@ pub fn spawn_inactivity_watcher(
                             ui.set_is_screensaver_active(true);
                             restore_main_window();
                         }
+                        crate::domains::hardware::display::set_max_brightness();
                     });
                 }
             } else if was_screensaver {
@@ -131,6 +133,7 @@ pub fn spawn_inactivity_watcher(
                             ui.set_is_screensaver_active(false);
                             restore_main_window();
                         }
+                        crate::domains::hardware::display::set_max_brightness();
                     });
                     continue;
                 }
@@ -203,6 +206,7 @@ pub fn spawn_inactivity_watcher(
                                 ui.set_is_screensaver_active(false);
                                 restore_main_window();
                             }
+                            crate::domains::hardware::display::set_max_brightness();
                         });
                         continue;
                     }
