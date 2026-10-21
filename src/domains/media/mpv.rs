@@ -166,7 +166,7 @@ impl SlintMpvPlayer {
             (lib.mpv_set_option_string)(mpv, opt_loop.as_ptr(), opt_inf.as_ptr());
 
             let opt_hwdec = CString::new("hwdec").unwrap();
-            let opt_auto = CString::new("auto-safe").unwrap();
+            let opt_auto = CString::new("auto-copy").unwrap();
             (lib.mpv_set_option_string)(mpv, opt_hwdec.as_ptr(), opt_auto.as_ptr());
 
             let opt_threads_key = CString::new("vd-lavc-threads").unwrap();
@@ -174,16 +174,28 @@ impl SlintMpvPlayer {
             (lib.mpv_set_option_string)(mpv, opt_threads_key.as_ptr(), opt_threads_val.as_ptr());
 
             let opt_framedrop_key = CString::new("framedrop").unwrap();
-            let opt_framedrop_val = CString::new("vo").unwrap();
+            let opt_framedrop_val = CString::new("no").unwrap();
             (lib.mpv_set_option_string)(mpv, opt_framedrop_key.as_ptr(), opt_framedrop_val.as_ptr());
 
             let opt_vo = CString::new("vo").unwrap();
             let opt_libmpv = CString::new("libmpv").unwrap();
             (lib.mpv_set_option_string)(mpv, opt_vo.as_ptr(), opt_libmpv.as_ptr());
 
-            let opt_osc = CString::new("osc").unwrap();
             let opt_no = CString::new("no").unwrap();
+
+            // Disable all OSD (On-Screen Display) bars and text completely
+            let opt_osc = CString::new("osc").unwrap();
             (lib.mpv_set_option_string)(mpv, opt_osc.as_ptr(), opt_no.as_ptr());
+
+            let opt_osd_bar = CString::new("osd-bar").unwrap();
+            (lib.mpv_set_option_string)(mpv, opt_osd_bar.as_ptr(), opt_no.as_ptr());
+
+            let opt_osd_on_seek = CString::new("osd-on-seek").unwrap();
+            (lib.mpv_set_option_string)(mpv, opt_osd_on_seek.as_ptr(), opt_no.as_ptr());
+
+            let opt_osd_level = CString::new("osd-level").unwrap();
+            let opt_zero = CString::new("0").unwrap();
+            (lib.mpv_set_option_string)(mpv, opt_osd_level.as_ptr(), opt_zero.as_ptr());
 
             // Mute all video audio completely
             let opt_mute = CString::new("mute").unwrap();
@@ -191,7 +203,6 @@ impl SlintMpvPlayer {
             (lib.mpv_set_option_string)(mpv, opt_mute.as_ptr(), opt_yes.as_ptr());
 
             let opt_volume = CString::new("volume").unwrap();
-            let opt_zero = CString::new("0").unwrap();
             (lib.mpv_set_option_string)(mpv, opt_volume.as_ptr(), opt_zero.as_ptr());
 
             let opt_ao = CString::new("ao").unwrap();
@@ -208,13 +219,6 @@ impl SlintMpvPlayer {
                 (lib.mpv_destroy)(mpv);
                 return Err("Fallo al inicializar mpv".to_string());
             }
-
-            let init_mute = CString::new("set mute yes").unwrap();
-            let init_vol = CString::new("set volume 0").unwrap();
-            let init_aid = CString::new("set aid no").unwrap();
-            (lib.mpv_command_string)(mpv, init_mute.as_ptr());
-            (lib.mpv_command_string)(mpv, init_vol.as_ptr());
-            (lib.mpv_command_string)(mpv, init_aid.as_ptr());
 
             // Software Render Context
             let api_type_cstr = CString::new(MPV_RENDER_API_TYPE_SW).unwrap();
@@ -283,18 +287,6 @@ impl SlintMpvPlayer {
             return Ok(None);
         }
 
-        // Check if mpv has a new frame ready to render via mpv_render_context_update
-        if let Some(update_fn) = self.lib.mpv_render_context_update {
-            unsafe {
-                let flags = update_fn(self.render_ctx);
-                // MPV_RENDER_UPDATE_FRAME is bit 0 (1 << 0)
-                if (flags & 1) == 0 && !self.first_frame {
-                    return Ok(None);
-                }
-            }
-        }
-        self.first_frame = false;
-
         unsafe {
             let raw_bytes = self.pixel_buffer.make_mut_bytes();
             let mut stride_val = self.stride;
@@ -355,19 +347,15 @@ impl SlintMpvPlayer {
             "set keep-open yes"
         }).unwrap();
         let unpause_cmd = CString::new("set pause no").unwrap();
-        let mute_cmd = CString::new("set mute yes").unwrap();
-        let vol_cmd = CString::new("set volume 0").unwrap();
-        let aid_cmd = CString::new("set aid no").unwrap();
-        let audio_cmd = CString::new("set audio no").unwrap();
+        let mute_cmd = CString::new("no-osd set mute yes").unwrap();
+        let aid_cmd = CString::new("no-osd set aid no").unwrap();
 
         unsafe {
             (self.lib.mpv_command_string)(self.mpv, loop_cmd.as_ptr());
             (self.lib.mpv_command_string)(self.mpv, keep_cmd.as_ptr());
             (self.lib.mpv_command_string)(self.mpv, unpause_cmd.as_ptr());
             (self.lib.mpv_command_string)(self.mpv, mute_cmd.as_ptr());
-            (self.lib.mpv_command_string)(self.mpv, vol_cmd.as_ptr());
             (self.lib.mpv_command_string)(self.mpv, aid_cmd.as_ptr());
-            (self.lib.mpv_command_string)(self.mpv, audio_cmd.as_ptr());
         }
         self.is_playing.store(true, Ordering::SeqCst);
 
