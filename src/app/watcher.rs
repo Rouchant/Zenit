@@ -99,13 +99,10 @@ pub fn spawn_inactivity_watcher(
                     let wh = watcher_handle.clone();
                     let _ = slint::invoke_from_event_loop(move || {
                         if let Some(ui) = wh.upgrade() {
-                            let _ = ui.show();
-                            ui.window().set_fullscreen(true);
                             ui.set_is_screensaver_active(true);
-                            restore_main_window();
                         }
-                        crate::domains::hardware::display::set_max_brightness();
                     });
+                    crate::domains::hardware::display::set_max_brightness();
                 }
             } else if was_screensaver {
                 // 3. Currently in Screensaver:
@@ -128,13 +125,10 @@ pub fn spawn_inactivity_watcher(
                     let wh = watcher_handle.clone();
                     let _ = slint::invoke_from_event_loop(move || {
                         if let Some(ui) = wh.upgrade() {
-                            let _ = ui.show();
-                            ui.window().set_fullscreen(true);
                             ui.set_is_screensaver_active(false);
-                            restore_main_window();
                         }
-                        crate::domains::hardware::display::set_max_brightness();
                     });
+                    crate::domains::hardware::display::set_max_brightness();
                     continue;
                 }
 
@@ -201,13 +195,10 @@ pub fn spawn_inactivity_watcher(
                         let wh = watcher_handle.clone();
                         let _ = slint::invoke_from_event_loop(move || {
                             if let Some(ui) = wh.upgrade() {
-                                let _ = ui.show();
-                                ui.window().set_fullscreen(true);
                                 ui.set_is_screensaver_active(false);
-                                restore_main_window();
                             }
-                            crate::domains::hardware::display::set_max_brightness();
                         });
+                        crate::domains::hardware::display::set_max_brightness();
                         continue;
                     }
                 }
