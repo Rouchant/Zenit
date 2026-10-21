@@ -7,6 +7,12 @@ use std::sync::{Arc, Mutex};
 slint::include_modules!();
 
 pub fn run() {
+    // 0. Ensure Single Instance (evitar múltiples instancias)
+    let _instance_guard = match app::single_instance::acquire_single_instance() {
+        Some(guard) => guard,
+        None => return,
+    };
+
     let main_window = MainWindow::new().expect("Failed to initialize Slint MainWindow");
     let floating_btn = Rc::new(FloatingDetailsButton::new().expect("Failed to initialize FloatingDetailsButton"));
 
