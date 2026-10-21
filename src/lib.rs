@@ -14,10 +14,11 @@ pub fn run() {
     };
 
     let main_window = MainWindow::new().expect("Failed to initialize Slint MainWindow");
-    let floating_btn = Rc::new(FloatingDetailsButton::new().expect("Failed to initialize FloatingDetailsButton"));
 
-    // 1. Initialize Main Window Geometry & Win32 Handles
+    // 1. Initialize Main Window Geometry & Win32 Handles BEFORE secondary windows
     app::window::init_main_window(&main_window);
+
+    let floating_btn = Rc::new(FloatingDetailsButton::new().expect("Failed to initialize FloatingDetailsButton"));
 
     // 2. Populate UI State & Vault Data
     app::sync::populate_ui_state(&main_window);

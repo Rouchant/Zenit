@@ -98,7 +98,10 @@ pub fn spawn_inactivity_watcher(
                     let wh = watcher_handle.clone();
                     let _ = slint::invoke_from_event_loop(move || {
                         if let Some(ui) = wh.upgrade() {
+                            let _ = ui.show();
+                            ui.window().set_fullscreen(true);
                             ui.set_is_screensaver_active(true);
+                            restore_main_window();
                         }
                     });
                 }
@@ -123,7 +126,10 @@ pub fn spawn_inactivity_watcher(
                     let wh = watcher_handle.clone();
                     let _ = slint::invoke_from_event_loop(move || {
                         if let Some(ui) = wh.upgrade() {
+                            let _ = ui.show();
+                            ui.window().set_fullscreen(true);
                             ui.set_is_screensaver_active(false);
+                            restore_main_window();
                         }
                     });
                     continue;
@@ -192,7 +198,10 @@ pub fn spawn_inactivity_watcher(
                         let wh = watcher_handle.clone();
                         let _ = slint::invoke_from_event_loop(move || {
                             if let Some(ui) = wh.upgrade() {
+                                let _ = ui.show();
+                                ui.window().set_fullscreen(true);
                                 ui.set_is_screensaver_active(false);
+                                restore_main_window();
                             }
                         });
                         continue;

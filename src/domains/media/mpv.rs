@@ -198,10 +198,23 @@ impl SlintMpvPlayer {
             let opt_null = CString::new("null").unwrap();
             (lib.mpv_set_option_string)(mpv, opt_ao.as_ptr(), opt_null.as_ptr());
 
+            let opt_aid = CString::new("aid").unwrap();
+            (lib.mpv_set_option_string)(mpv, opt_aid.as_ptr(), opt_no.as_ptr());
+
+            let opt_audio = CString::new("audio").unwrap();
+            (lib.mpv_set_option_string)(mpv, opt_audio.as_ptr(), opt_no.as_ptr());
+
             if (lib.mpv_initialize)(mpv) < 0 {
                 (lib.mpv_destroy)(mpv);
                 return Err("Fallo al inicializar mpv".to_string());
             }
+
+            let init_mute = CString::new("set mute yes").unwrap();
+            let init_vol = CString::new("set volume 0").unwrap();
+            let init_aid = CString::new("set aid no").unwrap();
+            (lib.mpv_command_string)(mpv, init_mute.as_ptr());
+            (lib.mpv_command_string)(mpv, init_vol.as_ptr());
+            (lib.mpv_command_string)(mpv, init_aid.as_ptr());
 
             // Software Render Context
             let api_type_cstr = CString::new(MPV_RENDER_API_TYPE_SW).unwrap();
@@ -344,6 +357,8 @@ impl SlintMpvPlayer {
         let unpause_cmd = CString::new("set pause no").unwrap();
         let mute_cmd = CString::new("set mute yes").unwrap();
         let vol_cmd = CString::new("set volume 0").unwrap();
+        let aid_cmd = CString::new("set aid no").unwrap();
+        let audio_cmd = CString::new("set audio no").unwrap();
 
         unsafe {
             (self.lib.mpv_command_string)(self.mpv, loop_cmd.as_ptr());
@@ -351,6 +366,8 @@ impl SlintMpvPlayer {
             (self.lib.mpv_command_string)(self.mpv, unpause_cmd.as_ptr());
             (self.lib.mpv_command_string)(self.mpv, mute_cmd.as_ptr());
             (self.lib.mpv_command_string)(self.mpv, vol_cmd.as_ptr());
+            (self.lib.mpv_command_string)(self.mpv, aid_cmd.as_ptr());
+            (self.lib.mpv_command_string)(self.mpv, audio_cmd.as_ptr());
         }
         self.is_playing.store(true, Ordering::SeqCst);
 
