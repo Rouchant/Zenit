@@ -88,7 +88,25 @@ pub fn list_vault_videos() -> Vec<VaultVideo> {
     videos
 }
 
+pub fn is_preloaded_video(filename: &str) -> bool {
+    let lower = filename.to_lowercase();
+    let name_without_ts = if let Some(pos) = lower.find('_') {
+        &lower[pos + 1..]
+    } else {
+        &lower
+    };
+    name_without_ts == "landing2.mp4"
+        || name_without_ts == "promo.mp4"
+        || name_without_ts == "promo2.mp4"
+        || lower == "landing2.mp4"
+        || lower == "promo.mp4"
+        || lower == "promo2.mp4"
+}
+
 pub fn delete_vault_video(filename: &str) -> Result<(), String> {
+    if is_preloaded_video(filename) {
+        return Err("No se pueden borrar los videos precargados del sistema".to_string());
+    }
     let vault_dir = get_vault_dir();
     let target = vault_dir.join(filename);
     if target.exists() {
@@ -128,6 +146,30 @@ Add-Type -AssemblyName System.Windows.Forms
 $dlg = New-Object System.Windows.Forms.OpenFileDialog
 $dlg.Filter = "Videos (*.mp4, *.webm, *.mkv, *.mov)|*.mp4;*.webm;*.mkv;*.mov"
 $dlg.Title = "Seleccionar video para el Baúl Seguro"
+if ($dlg.ShowDialog() -eq [System.Windows.Forms.DialogResult]::OK) {
+    Write-Output $dlg.FileName
+}
+"#;
+        let output = std::process::Command::new("powershell")
+            .args(["-NoProfile", "-Command", script])
+            .output()
+            .ok()?;
+        let path = String::from_utf8_lossy(&output.stdout).trim().to_string();
+        if !path.is_empty() && Path::new(&path).exists() {
+            return Some(path);
+        }
+    }
+    None
+}
+
+pub fn pick_image_file() -> Option<String> {
+    #[cfg(target_os = "windows")]
+    {
+        let script = r#"
+Add-Type -AssemblyName System.Windows.Forms
+$dlg = New-Object System.Windows.Forms.OpenFileDialog
+$dlg.Filter = "Imágenes y Logos (*.svg;*.png;*.jpg;*.jpeg;*.webp)|*.svg;*.png;*.jpg;*.jpeg;*.webp"
+$dlg.Title = "Seleccionar Logo de Marca"
 if ($dlg.ShowDialog() -eq [System.Windows.Forms.DialogResult]::OK) {
     Write-Output $dlg.FileName
 }

@@ -13,7 +13,7 @@ export component MainWindow inherits Window {
     full-screen: true;
     preferred-width: 1920px;
     preferred-height: 1080px;
-    background: #f8fafc;
+    background: #f1f5f9;
 
     // Showroom Properties
     in-out property <string> brand_name: "ASUS";
@@ -26,6 +26,8 @@ export component MainWindow inherits Window {
     in-out property <string> normal_label: "Todo medio de pago";
     in-out property <string> sku_code: "";
     in-out property <image> store_logo;
+    in-out property <image> brand_logo;
+    in-out property <bool> has_brand_logo: false;
 
     // Specs
     in-out property <[SpecItem]> left_specs: [
@@ -73,6 +75,7 @@ export component MainWindow inherits Window {
 
     // Admin Tab Tienda
     in-out property <string> cfg_brand: "";
+    in-out property <string> cfg_brand_logo: "";
     in-out property <string> cfg_model: "";
     in-out property <string> cfg_retail: "";
     in-out property <string> cfg_card_price: "";
@@ -88,6 +91,22 @@ export component MainWindow inherits Window {
     in-out property <string> cfg_os: "";
     in-out property <string> cfg_battery: "";
     in-out property <string> cfg_others: "";
+    in-out property <string> cfg_badge_cpu: "";
+    in-out property <string> cfg_badge_ram: "";
+    in-out property <string> cfg_badge_storage: "";
+    in-out property <string> cfg_badge_gpu: "";
+    in-out property <string> cfg_badge_display: "";
+    in-out property <string> cfg_badge_os: "";
+    in-out property <string> cfg_badge_battery: "";
+    in-out property <string> cfg_badge_others: "";
+    in-out property <string> placeholder_badge_cpu: "GEN";
+    in-out property <string> placeholder_badge_ram: "RAM";
+    in-out property <string> placeholder_badge_storage: "SSD";
+    in-out property <string> placeholder_badge_gpu: "GPU";
+    in-out property <string> placeholder_badge_display: "165Hz";
+    in-out property <string> placeholder_badge_os: "OFICIAL";
+    in-out property <string> placeholder_badge_battery: "Autonomía";
+    in-out property <string> placeholder_badge_others: "";
 
     // Admin Tab Videos & Baúl
     in-out property <string> cfg_central_video: "";
@@ -99,28 +118,33 @@ export component MainWindow inherits Window {
     in-out property <[VaultVideoItem]> vault_videos: [];
 
     // Theme Colors
-    in-out property <color> theme_bg_start: #e0f2fe;
-    in-out property <color> theme_bg_end: #f3e8ff;
-    in-out property <color> theme_card_bg: #E0E0E0;
+    in-out property <color> theme_bg_start: #dcedf5;
+    in-out property <color> theme_bg_mid: #e3e8f5;
+    in-out property <color> theme_bg_end: #eae4f5;
+    in-out property <color> theme_card_bg: #F5F5F5;
     in-out property <color> theme_card_border: #e2e8f0;
     in-out property <color> theme_text_primary: #0f172a;
     in-out property <color> theme_text_secondary: #64748b;
     in-out property <color> theme_accent: #0284c7;
     in-out property <color> theme_btn_bg: #0284c7;
-    in-out property <color> theme_btn_text: #E0E0E0;
+    in-out property <color> theme_btn_text: #F5F5F5;
 
     // Admin Tab Interfaz (Config strings)
-    in-out property <string> cfg_bg_start: "#e0f2fe";
-    in-out property <string> cfg_bg_end: "#f3e8ff";
-    in-out property <string> cfg_card_bg: "#E0E0E0";
+    in-out property <string> cfg_bg_base: "#e3e8f5";
+    in-out property <string> cfg_bg_start: "#dcedf5";
+    in-out property <string> cfg_bg_mid: "#e3e8f5";
+    in-out property <string> cfg_bg_end: "#eae4f5";
+    in-out property <string> cfg_card_bg: "#F5F5F5";
     in-out property <string> cfg_card_border: "#e2e8f0";
     in-out property <string> cfg_text_primary: "#0f172a";
     in-out property <string> cfg_text_secondary: "#64748b";
     in-out property <string> cfg_accent: "#0284c7";
     in-out property <string> cfg_btn_bg: "#0284c7";
-    in-out property <string> cfg_btn_text: "#E0E0E0";
+    in-out property <string> cfg_btn_text: "#F5F5F5";
+    in-out property <bool> is_dark_mode: false;
 
     // Callbacks
+    callback update_bg_base_color(string);
     callback try_pc_clicked();
     callback corner_tap_clicked();
     callback close_admin_clicked();
@@ -148,6 +172,26 @@ export component MainWindow inherits Window {
     callback pick_inactivity_1_clicked();
     callback pick_inactivity_2_clicked();
     callback pick_inactivity_3_clicked();
+    callback pick_color_clicked(string);
+    callback pick_brand_logo_clicked();
+    pure callback hex_to_color(string) -> color;
+
+    forward-focus: root_focus;
+    root_focus := FocusScope {
+        key-pressed(event) => {
+            if event.modifiers.control && event.modifiers.alt && event.modifiers.shift {
+                if event.text == "z" || event.text == "Z" {
+                    root.emergency_exit_clicked();
+                    return accept;
+                }
+                if event.text == "r" || event.text == "R" {
+                    root.emergency_restart_clicked();
+                    return accept;
+                }
+            }
+            reject
+        }
+    }
 
     // 1. Showroom Main View
     ShowroomView {
@@ -167,8 +211,11 @@ export component MainWindow inherits Window {
         screen_width: root.screen_width;
         screen_height: root.screen_height;
         store_logo: root.store_logo;
+        brand_logo: root.brand_logo;
+        has_brand_logo: root.has_brand_logo;
 
         theme_bg_start: root.theme_bg_start;
+        theme_bg_mid: root.theme_bg_mid;
         theme_bg_end: root.theme_bg_end;
         theme_card_bg: root.theme_card_bg;
         theme_card_border: root.theme_card_border;
@@ -205,6 +252,7 @@ export component MainWindow inherits Window {
         admin_tab_index <=> root.admin_tab_index;
 
         cfg_brand <=> root.cfg_brand;
+        cfg_brand_logo <=> root.cfg_brand_logo;
         cfg_model <=> root.cfg_model;
         cfg_retail <=> root.cfg_retail;
         cfg_card_price <=> root.cfg_card_price;
@@ -219,6 +267,22 @@ export component MainWindow inherits Window {
         cfg_os <=> root.cfg_os;
         cfg_battery <=> root.cfg_battery;
         cfg_others <=> root.cfg_others;
+        cfg_badge_cpu <=> root.cfg_badge_cpu;
+        cfg_badge_ram <=> root.cfg_badge_ram;
+        cfg_badge_storage <=> root.cfg_badge_storage;
+        cfg_badge_gpu <=> root.cfg_badge_gpu;
+        cfg_badge_display <=> root.cfg_badge_display;
+        cfg_badge_os <=> root.cfg_badge_os;
+        cfg_badge_battery <=> root.cfg_badge_battery;
+        cfg_badge_others <=> root.cfg_badge_others;
+        placeholder_badge_cpu: root.placeholder_badge_cpu;
+        placeholder_badge_ram: root.placeholder_badge_ram;
+        placeholder_badge_storage: root.placeholder_badge_storage;
+        placeholder_badge_gpu: root.placeholder_badge_gpu;
+        placeholder_badge_display: root.placeholder_badge_display;
+        placeholder_badge_os: root.placeholder_badge_os;
+        placeholder_badge_battery: root.placeholder_badge_battery;
+        placeholder_badge_others: root.placeholder_badge_others;
 
         cfg_central_video <=> root.cfg_central_video;
         cfg_bg_video <=> root.cfg_bg_video;
@@ -228,7 +292,9 @@ export component MainWindow inherits Window {
         cfg_inactivity_timeout <=> root.cfg_inactivity_timeout;
         vault_videos: root.vault_videos;
 
+        cfg_bg_base <=> root.cfg_bg_base;
         cfg_bg_start <=> root.cfg_bg_start;
+        cfg_bg_mid <=> root.cfg_bg_mid;
         cfg_bg_end <=> root.cfg_bg_end;
         cfg_card_bg <=> root.cfg_card_bg;
         cfg_card_border <=> root.cfg_card_border;
@@ -237,6 +303,9 @@ export component MainWindow inherits Window {
         cfg_accent <=> root.cfg_accent;
         cfg_btn_bg <=> root.cfg_btn_bg;
         cfg_btn_text <=> root.cfg_btn_text;
+        is_dark_mode <=> root.is_dark_mode;
+
+        update_bg_base_color(c) => { root.update_bg_base_color(c); }
 
         close_admin_clicked => { root.close_admin_clicked(); }
         check_admin_password(pwd) => { root.check_admin_password(pwd); }
@@ -267,6 +336,9 @@ export component MainWindow inherits Window {
         pick_inactivity_1_clicked => { root.pick_inactivity_1_clicked(); }
         pick_inactivity_2_clicked => { root.pick_inactivity_2_clicked(); }
         pick_inactivity_3_clicked => { root.pick_inactivity_3_clicked(); }
+        pick_brand_logo_clicked => { root.pick_brand_logo_clicked(); }
+        pick_color_clicked(field) => { root.pick_color_clicked(field); }
+        hex_to_color(hex) => { return root.hex_to_color(hex); }
     }
 
     // 4. Screensaver Overlay

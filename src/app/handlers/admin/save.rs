@@ -40,6 +40,12 @@ pub fn setup_save_handlers(
                 } else {
                     None
                 };
+                let logo_str = ui.get_cfg_brand_logo().to_string();
+                cfg.brand_logo_override = if !logo_str.trim().is_empty() {
+                    Some(logo_str.trim().to_string())
+                } else {
+                    None
+                };
                 cfg.model_override = if !model.trim().is_empty() {
                     Some(model.to_string())
                 } else {
@@ -120,6 +126,23 @@ pub fn setup_save_handlers(
                 }
                 cfg.other_specs = others.to_string();
 
+                let parse_badge = |s: slint::SharedString| {
+                    let trimmed = s.trim();
+                    if trimmed.is_empty() {
+                        None
+                    } else {
+                        Some(trimmed.to_string())
+                    }
+                };
+                cfg.badge_cpu = parse_badge(ui.get_cfg_badge_cpu());
+                cfg.badge_ram = parse_badge(ui.get_cfg_badge_ram());
+                cfg.badge_storage = parse_badge(ui.get_cfg_badge_storage());
+                cfg.badge_gpu = parse_badge(ui.get_cfg_badge_gpu());
+                cfg.badge_display = parse_badge(ui.get_cfg_badge_display());
+                cfg.badge_os = parse_badge(ui.get_cfg_badge_os());
+                cfg.badge_battery = parse_badge(ui.get_cfg_badge_battery());
+                cfg.badge_others = parse_badge(ui.get_cfg_badge_others());
+
                 if !central_vid.trim().is_empty() {
                     if central_vid.to_string() != cfg.central_video_path {
                         let resolved = crate::domains::media::resolve_video_path(&central_vid);
@@ -146,7 +169,9 @@ pub fn setup_save_handlers(
                 }
 
                 // Save UI Theme Colors
+                let bg_base = ui.get_cfg_bg_base().to_string();
                 let bg_start = ui.get_cfg_bg_start().to_string();
+                let bg_mid = ui.get_cfg_bg_mid().to_string();
                 let bg_end = ui.get_cfg_bg_end().to_string();
                 let card_bg = ui.get_cfg_card_bg().to_string();
                 let card_border = ui.get_cfg_card_border().to_string();
@@ -156,8 +181,14 @@ pub fn setup_save_handlers(
                 let btn_bg = ui.get_cfg_btn_bg().to_string();
                 let btn_text = ui.get_cfg_btn_text().to_string();
 
+                if !bg_base.trim().is_empty() {
+                    cfg.bg_base_color = bg_base;
+                }
                 if !bg_start.trim().is_empty() {
                     cfg.bg_start_color = bg_start;
+                }
+                if !bg_mid.trim().is_empty() {
+                    cfg.bg_mid_color = bg_mid;
                 }
                 if !bg_end.trim().is_empty() {
                     cfg.bg_end_color = bg_end;
@@ -184,6 +215,7 @@ pub fn setup_save_handlers(
                 if !btn_text.trim().is_empty() {
                     cfg.btn_text_color = btn_text;
                 }
+                cfg.is_dark_mode = ui.get_is_dark_mode();
 
                 let _ = save_config(&cfg);
                 ui.set_is_admin_open(false);

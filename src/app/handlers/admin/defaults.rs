@@ -26,6 +26,7 @@ pub fn setup_defaults_handlers(main_window: &MainWindow) {
                 "ROG Strix PC".to_string()
             };
             ui.set_cfg_brand(brand.into());
+            ui.set_cfg_brand_logo("".into());
             ui.set_cfg_model(model.into());
             ui.set_cfg_retail("".into());
             ui.set_cfg_card_price("".into());
@@ -74,6 +75,15 @@ pub fn setup_defaults_handlers(main_window: &MainWindow) {
                 "Wi-Fi 6 / Bluetooth 5.3 / Teclado en Español".to_string()
             };
             ui.set_cfg_others(others_val.into());
+
+            ui.set_cfg_badge_cpu("".into());
+            ui.set_cfg_badge_ram("".into());
+            ui.set_cfg_badge_storage("".into());
+            ui.set_cfg_badge_gpu("".into());
+            ui.set_cfg_badge_display("".into());
+            ui.set_cfg_badge_os("".into());
+            ui.set_cfg_badge_battery("".into());
+            ui.set_cfg_badge_others("".into());
         }
     });
 
@@ -104,15 +114,19 @@ pub fn setup_defaults_handlers(main_window: &MainWindow) {
     let reset_ui_handle = main_window.as_weak();
     main_window.on_reset_ui_defaults(move || {
         if let Some(ui) = reset_ui_handle.upgrade() {
-            ui.set_cfg_bg_start("#e0f2fe".into());
-            ui.set_cfg_bg_end("#f3e8ff".into());
-            ui.set_cfg_card_bg("#E0E0E0".into());
+            ui.set_cfg_bg_base("#e3e8f5".into());
+            let (c1, c2, c3) = crate::app::sync::generate_analogous_gradient("#e3e8f5");
+            ui.set_cfg_bg_start(c1.into());
+            ui.set_cfg_bg_mid(c2.into());
+            ui.set_cfg_bg_end(c3.into());
+            ui.set_cfg_card_bg("#F5F5F5".into());
             ui.set_cfg_card_border("#e2e8f0".into());
             ui.set_cfg_text_primary("#0f172a".into());
             ui.set_cfg_text_secondary("#64748b".into());
             ui.set_cfg_accent("#0284c7".into());
             ui.set_cfg_btn_bg("#0284c7".into());
-            ui.set_cfg_btn_text("#E0E0E0".into());
+            ui.set_cfg_btn_text("#F5F5F5".into());
+            ui.set_is_dark_mode(false);
         }
     });
 }

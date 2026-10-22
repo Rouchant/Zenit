@@ -12,6 +12,8 @@ export component ShowroomView inherits Rectangle {
     in property <string> normal_label: "Todo medio de pago";
     in property <string> sku_code: "";
     in property <image> store_logo;
+    in property <image> brand_logo;
+    in property <bool> has_brand_logo: false;
 
     in property <[SpecItem]> left_specs;
     in property <[SpecItem]> right_specs;
@@ -22,22 +24,23 @@ export component ShowroomView inherits Rectangle {
     in property <length> screen_height: 1080px;
 
     // Theme Colors
-    in property <color> theme_bg_start: #e0f2fe;
-    in property <color> theme_bg_end: #f3e8ff;
-    in property <color> theme_card_bg: #E0E0E0;
+    in property <color> theme_bg_start: #dcedf5;
+    in property <color> theme_bg_mid: #e3e8f5;
+    in property <color> theme_bg_end: #eae4f5;
+    in property <color> theme_card_bg: #F5F5F5;
     in property <color> theme_card_border: #e2e8f0;
     in property <color> theme_text_primary: #0f172a;
     in property <color> theme_text_secondary: #64748b;
     in property <color> theme_accent: #0284c7;
     in property <color> theme_btn_bg: #0284c7;
-    in property <color> theme_btn_text: #E0E0E0;
+    in property <color> theme_btn_text: #F5F5F5;
 
     callback try_pc_clicked();
     callback corner_tap_clicked();
 
     width: 100%;
     height: 100%;
-    background: @linear-gradient(155deg, root.theme_bg_start 0%, root.theme_bg_end 100%);
+    background: @linear-gradient(155deg, root.theme_bg_start 0%, root.theme_bg_mid 50%, root.theme_bg_end 100%);
 
     // Top-Left Ambient Pastel Sky Aura
     Rectangle {
@@ -46,7 +49,7 @@ export component ShowroomView inherits Rectangle {
         x: -200px;
         y: -200px;
         border-radius: 375px;
-        background: @linear-gradient(135deg, #38bdf830 0%, #00000000 75%);
+        background: @linear-gradient(135deg, #38bdf812 0%, #00000000 75%);
     }
 
     // Top-Right Ambient Pastel Mint Aura
@@ -56,7 +59,7 @@ export component ShowroomView inherits Rectangle {
         x: parent.width - 400px;
         y: -200px;
         border-radius: 325px;
-        background: @linear-gradient(225deg, #34d39920 0%, #00000000 75%);
+        background: @linear-gradient(225deg, #34d3990c 0%, #00000000 75%);
     }
 
     // Bottom-Right Ambient Pastel Lavender Aura
@@ -66,7 +69,7 @@ export component ShowroomView inherits Rectangle {
         x: parent.width - 500px;
         y: parent.height - 450px;
         border-radius: 425px;
-        background: @linear-gradient(315deg, #c084fc2e 0%, #00000000 75%);
+        background: @linear-gradient(315deg, #c084fc10 0%, #00000000 75%);
     }
 
     // Center Ambient Depth Aura behind Showcase Cards and Central Video
@@ -90,37 +93,7 @@ export component ShowroomView inherits Rectangle {
         // TOP HEADER BAR
         HorizontalLayout {
             height: 56px;
-            alignment: space-between;
-
-            // Brand & Model
-            HorizontalLayout {
-                spacing: 12px;
-                alignment: start;
-
-                Rectangle {
-                    width: 4px;
-                    height: 40px;
-                    background: root.theme_accent;
-                    border-radius: 2px;
-                }
-
-                VerticalLayout {
-                    alignment: center;
-                    Text {
-                        text: root.brand_name;
-                        font-size: 13px;
-                        font-weight: 800;
-                        color: root.theme_accent;
-                        letter-spacing: 2px;
-                    }
-                    Text {
-                        text: root.model_name;
-                        font-size: 22px;
-                        font-weight: 900;
-                        color: root.theme_text_primary;
-                    }
-                }
-            }
+            alignment: end;
 
             // Right: Clock & Hidden Trigger
             VerticalLayout {
@@ -216,6 +189,18 @@ export component ShowroomView inherits Rectangle {
                     alignment: center;
                     spacing: 14px;
 
+                    // Brand Logo above landing video
+                    if root.has_brand_logo: HorizontalLayout {
+                        alignment: center;
+                        height: 112px;
+
+                        Image {
+                            source: root.brand_logo;
+                            height: 64px;
+                            image-fit: contain;
+                        }
+                    }
+
                     // 16:9 Video Frame (mismo ancho que la barra inferior)
                     Rectangle {
                         width: parent.width;
@@ -254,7 +239,7 @@ export component ShowroomView inherits Rectangle {
                                         height: 60px;
                                         width: 60px;
                                         border-radius: 30px;
-                                        background: #e0f2fe;
+                                        background: #dcedf5;
                                         border-width: 2px;
                                         border-color: #0284c7;
 
@@ -281,7 +266,7 @@ export component ShowroomView inherits Rectangle {
                                     text: root.brand_name + " " + root.model_name;
                                     font-size: 26px;
                                     font-weight: 800;
-                                    color: #E0E0E0;
+                                    color: #F5F5F5;
                                     horizontal-alignment: center;
                                     wrap: word-wrap;
                                 }
@@ -480,7 +465,7 @@ export component ShowroomView inherits Rectangle {
                         Rectangle {
                             height: 68px;
                             width: 440px;
-                            border-radius: 34px;
+                            border-radius: 12px;
                             background: root.theme_btn_bg;
                             border-width: 2.5px;
                             border-color: root.theme_accent;
@@ -494,7 +479,7 @@ export component ShowroomView inherits Rectangle {
 
                             states [
                                 hover when btn_touch.has-hover: {
-                                    border-color: #E0E0E0;
+                                    border-color: #F5F5F5;
                                 }
                             ]
 

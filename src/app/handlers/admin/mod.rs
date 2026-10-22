@@ -1,4 +1,5 @@
 pub mod auth;
+pub mod color_picker;
 pub mod defaults;
 pub mod detect;
 pub mod save;
@@ -17,6 +18,7 @@ pub fn setup_admin_handlers(
     save::setup_save_handlers(main_window, player_shared.clone());
     defaults::setup_defaults_handlers(main_window);
     system::setup_system_handlers(main_window, player_shared);
+    color_picker::setup_color_picker_handlers(main_window);
 
     main_window.on_format_currency_input(|val| {
         crate::app::sync::format_price_input(&val).into()

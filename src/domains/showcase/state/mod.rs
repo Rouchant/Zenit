@@ -19,11 +19,19 @@ pub fn build_ui_state() -> ZenitUiState {
     apply_config_overrides(&mut specs, &cfg);
 
     // 2. Logos & Branding
-    let brand_logo = resolve_brand_logo(&specs.brand);
+    let brand_logo = if let Some(ref custom_logo) = cfg.brand_logo_override {
+        if !custom_logo.trim().is_empty() {
+            Some(custom_logo.trim().to_string())
+        } else {
+            resolve_brand_logo(&specs.brand)
+        }
+    } else {
+        resolve_brand_logo(&specs.brand)
+    };
     let store_logo = resolve_store_logo(&cfg.store_theme);
 
     // 3. Build Column Cards
-    let left_specs = build_left_specs(&specs);
+    let left_specs = build_left_specs(&specs, &cfg);
     let right_specs = build_right_specs(&specs, &cfg);
 
     // 4. Pricing & SKU
@@ -125,6 +133,8 @@ mod tests {
         assert_eq!(battery_card.label, "Batería");
         assert!(!model_card.value.is_empty());
         assert!(!battery_card.value.is_empty());
+        assert!(model_card.sub_value.is_none(), "Model card should not have sub_value");
+        assert!(battery_card.sub_value.is_none(), "Battery card should not have 'Batería de larga duración'");
         assert!(battery_card.value.to_lowercase().contains("hora") || battery_card.value.to_lowercase().contains("wh"));
 
         if let Some(others_card) = state.right_specs.iter().find(|s| s.id == "card-others") {

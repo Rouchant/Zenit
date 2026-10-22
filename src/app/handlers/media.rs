@@ -104,4 +104,19 @@ pub fn setup_media_handlers(main_window: &MainWindow) {
             populate_vault_videos(&ui);
         }
     });
+
+    // Brand Logo: Pick custom image/logo file
+    let brand_logo_handle = main_window.as_weak();
+    main_window.on_pick_brand_logo_clicked(move || {
+        let wh = brand_logo_handle.clone();
+        std::thread::spawn(move || {
+            if let Some(picked) = crate::domains::media::vault::pick_image_file() {
+                let _ = slint::invoke_from_event_loop(move || {
+                    if let Some(ui) = wh.upgrade() {
+                        ui.set_cfg_brand_logo(picked.into());
+                    }
+                });
+            }
+        });
+    });
 }

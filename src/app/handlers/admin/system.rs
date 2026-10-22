@@ -32,13 +32,10 @@ pub fn setup_system_handlers(
 
     // 2. Emergency Exit & Restart
     main_window.on_emergency_exit_clicked(|| {
-        std::process::exit(0);
+        crate::app::hotkeys::quick_exit();
     });
 
     main_window.on_emergency_restart_clicked(|| {
-        if let Ok(current_exe) = std::env::current_exe() {
-            let _ = std::process::Command::new(current_exe).spawn();
-        }
-        std::process::exit(0);
+        crate::app::hotkeys::quick_restart();
     });
 }

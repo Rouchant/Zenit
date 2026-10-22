@@ -20,6 +20,7 @@ pub fn run() {
     domains::hardware::display::set_max_brightness();
 
     let floating_btn = Rc::new(FloatingDetailsButton::new().expect("Failed to initialize FloatingDetailsButton"));
+    app::sync::register_floating_button(&floating_btn);
 
     // 2. Populate UI State & Vault Data
     app::sync::populate_ui_state(&main_window);
@@ -50,8 +51,9 @@ pub fn run() {
     app::handlers::setup_try_pc_handlers(&main_window, &floating_btn, player_shared.clone());
     app::handlers::setup_media_handlers(&main_window);
 
-    // 6. Spawn Background Inactivity Watcher
+    // 6. Spawn Background Inactivity Watcher & Global Hotkey Listener
     app::watcher::spawn_inactivity_watcher(&main_window, &floating_btn, player_shared.clone());
+    app::hotkeys::spawn_global_hotkey_listener();
 
     // 7. Start native Slint event loop (global loop keeps running even when main_window is minimized/hidden)
     slint::run_event_loop().expect("Error running Slint application");

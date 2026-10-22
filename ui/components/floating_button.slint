@@ -8,17 +8,29 @@ export component FloatingDetailsButton inherits Window {
 
     callback restore_clicked();
 
+    // Theme Colors (personalizables)
+    in-out property <color> theme_card_bg: #F5F5F5;
+    in-out property <color> theme_card_border: #e2e8f0;
+    in-out property <color> theme_text_primary: #0f172a;
+    in-out property <color> theme_text_secondary: #64748b;
+    in-out property <color> theme_accent: #0284c7;
+    in-out property <color> theme_btn_bg: #0284c7;
+    in-out property <color> theme_btn_text: #F5F5F5;
+
     Rectangle {
         width: 100%;
         height: 100%;
-        background: #E0E0E0f2;
+        background: root.theme_card_bg;
         border-radius: 20px;
         border-width: 2px;
-        border-color: #0284c7;
+        border-color: root.theme_accent;
         drop-shadow-blur: 16px;
-        drop-shadow-color: #00000026;
+        drop-shadow-color: #00000033;
         drop-shadow-offset-y: 4px;
         clip: true;
+
+        animate background { duration: 150ms; }
+        animate border-color { duration: 150ms; }
 
         touch := TouchArea {
             mouse-cursor: pointer;
@@ -29,8 +41,8 @@ export component FloatingDetailsButton inherits Window {
 
         states [
             hover when touch.has-hover: {
-                background: #0284c7;
-                border-color: #0284c7;
+                background: root.theme_btn_bg;
+                border-color: root.theme_accent;
             }
         ]
 
@@ -49,17 +61,19 @@ export component FloatingDetailsButton inherits Window {
                 text: "Ver detalles";
                 font-size: 15px;
                 font-weight: 800;
-                color: touch.has-hover ? #E0E0E0 : #0f172a;
+                color: touch.has-hover ? root.theme_btn_text : root.theme_text_primary;
                 horizontal-alignment: center;
+                animate color { duration: 150ms; }
             }
 
             Text {
                 text: "SHOWROOM";
                 font-size: 10px;
                 font-weight: 800;
-                color: touch.has-hover ? #e0f2fe : #0284c7;
+                color: touch.has-hover ? root.theme_btn_text : root.theme_accent;
                 letter-spacing: 1.2px;
                 horizontal-alignment: center;
+                animate color { duration: 150ms; }
             }
         }
     }

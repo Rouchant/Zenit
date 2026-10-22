@@ -2,14 +2,20 @@ use serde::{Deserialize, Serialize};
 use std::fs;
 use std::path::{Path, PathBuf};
 
+fn default_bg_base() -> String {
+    "#cce5f8".to_string()
+}
 fn default_bg_start() -> String {
-    "#e0f2fe".to_string()
+    "#c4e9f8".to_string()
+}
+fn default_bg_mid() -> String {
+    "#cce5f8".to_string()
 }
 fn default_bg_end() -> String {
-    "#f3e8ff".to_string()
+    "#dce2f8".to_string()
 }
 fn default_card_bg() -> String {
-    "#E0E0E0".to_string()
+    "#F5F5F5".to_string()
 }
 fn default_card_border() -> String {
     "#e2e8f0".to_string()
@@ -27,7 +33,7 @@ fn default_btn_bg() -> String {
     "#0284c7".to_string()
 }
 fn default_btn_text() -> String {
-    "#E0E0E0".to_string()
+    "#F5F5F5".to_string()
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
@@ -40,8 +46,12 @@ pub struct AppConfig {
     pub bg_gradient: String,
     pub store_theme: String, // "default", "falabella", "paris", "ripley"
 
+    #[serde(default = "default_bg_base")]
+    pub bg_base_color: String,
     #[serde(default = "default_bg_start")]
     pub bg_start_color: String,
+    #[serde(default = "default_bg_mid")]
+    pub bg_mid_color: String,
     #[serde(default = "default_bg_end")]
     pub bg_end_color: String,
     #[serde(default = "default_card_bg")]
@@ -56,6 +66,8 @@ pub struct AppConfig {
     pub btn_bg_color: String,
     #[serde(default = "default_btn_text")]
     pub btn_text_color: String,
+    #[serde(default)]
+    pub is_dark_mode: bool,
 
     // Optional Pricing & SKU
     pub price_card: String,
@@ -64,6 +76,8 @@ pub struct AppConfig {
 
     // Custom Spec Overrides
     pub brand_override: Option<String>,
+    #[serde(default)]
+    pub brand_logo_override: Option<String>,
     pub model_override: Option<String>,
     pub processor_override: Option<String>,
     pub ram_override: Option<String>,
@@ -73,6 +87,22 @@ pub struct AppConfig {
     pub os_override: Option<String>,
     pub battery_override: Option<String>,
     pub other_specs: String, // Campo "Otros" personalizable
+    #[serde(default)]
+    pub badge_cpu: Option<String>,
+    #[serde(default)]
+    pub badge_ram: Option<String>,
+    #[serde(default)]
+    pub badge_storage: Option<String>,
+    #[serde(default)]
+    pub badge_gpu: Option<String>,
+    #[serde(default)]
+    pub badge_display: Option<String>,
+    #[serde(default)]
+    pub badge_os: Option<String>,
+    #[serde(default)]
+    pub badge_battery: Option<String>,
+    #[serde(default)]
+    pub badge_others: Option<String>,
 
     // Videos
     pub central_video_path: String,
@@ -114,23 +144,27 @@ impl Default for AppConfig {
             primary_color: "#00f2ff".to_string(),
             secondary_color: "#0072ff".to_string(),
             accent_color: "#0284c7".to_string(),
-            bg_gradient: "@linear-gradient(155deg, #f8fafc 0%, #e2e8f0 100%)".to_string(),
+            bg_gradient: "@linear-gradient(155deg, #c4e9f8 0%, #cce5f8 50%, #dce2f8 100%)".to_string(),
             store_theme: "default".to_string(),
 
-            bg_start_color: "#e0f2fe".to_string(),
-            bg_end_color: "#f3e8ff".to_string(),
-            card_bg_color: "#E0E0E0".to_string(),
+            bg_base_color: "#cce5f8".to_string(),
+            bg_start_color: "#c4e9f8".to_string(),
+            bg_mid_color: "#cce5f8".to_string(),
+            bg_end_color: "#dce2f8".to_string(),
+            card_bg_color: "#F5F5F5".to_string(),
             card_border_color: "#e2e8f0".to_string(),
             text_primary_color: "#0f172a".to_string(),
             text_secondary_color: "#64748b".to_string(),
             btn_bg_color: "#0284c7".to_string(),
-            btn_text_color: "#E0E0E0".to_string(),
+            btn_text_color: "#F5F5F5".to_string(),
+            is_dark_mode: false,
 
             price_card: "".to_string(),
             price_all_methods: "".to_string(),
             sku: "".to_string(),
 
             brand_override: None,
+            brand_logo_override: None,
             model_override: None,
             processor_override: None,
             ram_override: None,
@@ -140,6 +174,14 @@ impl Default for AppConfig {
             os_override: None,
             battery_override: None,
             other_specs: "Wi-Fi 6 / Bluetooth 5.3 / Teclado en Español".to_string(),
+            badge_cpu: None,
+            badge_ram: None,
+            badge_storage: None,
+            badge_gpu: None,
+            badge_display: None,
+            badge_os: None,
+            badge_battery: None,
+            badge_others: None,
 
             central_video_path: "assets/videos/landing2.mp4".to_string(),
             bg_video_path: "assets/videos/bg.mp4".to_string(),
@@ -237,25 +279,31 @@ fn load_config_from_disk() -> AppConfig {
                     cfg.store_theme = "".to_string();
                     modified = true;
                 }
-                if cfg.bg_start_color == "#f8fafc" && cfg.bg_end_color == "#e2e8f0" {
-                    cfg.bg_start_color = "#e0f2fe".to_string();
-                    cfg.bg_end_color = "#f3e8ff".to_string();
+                if (cfg.bg_start_color == "#f8fafc" && cfg.bg_end_color == "#e2e8f0")
+                    || (cfg.bg_start_color == "#e0f2fe" && cfg.bg_end_color == "#f3e8ff")
+                    || (cfg.bg_start_color == "#f0f9ff" && cfg.bg_end_color == "#faf5ff")
+                    || (cfg.bg_start_color == "#e0ecf5" && cfg.bg_end_color == "#eae4f5")
+                {
+                    cfg.bg_base_color = "#cce5f8".to_string();
+                    cfg.bg_start_color = "#c4e9f8".to_string();
+                    cfg.bg_mid_color = "#cce5f8".to_string();
+                    cfg.bg_end_color = "#dce2f8".to_string();
                     modified = true;
                 }
-                if cfg.card_bg_color.eq_ignore_ascii_case("#ffffff") {
-                    cfg.card_bg_color = "#E0E0E0".to_string();
+                if cfg.card_bg_color.eq_ignore_ascii_case("#ffffff") || cfg.card_bg_color.eq_ignore_ascii_case("#E0E0E0") {
+                    cfg.card_bg_color = "#F5F5F5".to_string();
                     modified = true;
                 }
-                if cfg.btn_text_color.eq_ignore_ascii_case("#ffffff") {
-                    cfg.btn_text_color = "#E0E0E0".to_string();
+                if cfg.btn_text_color.eq_ignore_ascii_case("#ffffff") || cfg.btn_text_color.eq_ignore_ascii_case("#E0E0E0") {
+                    cfg.btn_text_color = "#F5F5F5".to_string();
                     modified = true;
                 }
-                if cfg.bg_start_color.eq_ignore_ascii_case("#ffffff") {
-                    cfg.bg_start_color = "#E0E0E0".to_string();
+                if cfg.bg_start_color.eq_ignore_ascii_case("#ffffff") || cfg.bg_start_color.eq_ignore_ascii_case("#E0E0E0") {
+                    cfg.bg_start_color = "#F5F5F5".to_string();
                     modified = true;
                 }
-                if cfg.bg_end_color.eq_ignore_ascii_case("#ffffff") {
-                    cfg.bg_end_color = "#E0E0E0".to_string();
+                if cfg.bg_end_color.eq_ignore_ascii_case("#ffffff") || cfg.bg_end_color.eq_ignore_ascii_case("#E0E0E0") {
+                    cfg.bg_end_color = "#F5F5F5".to_string();
                     modified = true;
                 }
 
@@ -326,14 +374,17 @@ mod tests {
         assert_eq!(cfg.inactivity_video_path_2, "");
         assert_eq!(cfg.inactivity_video_path_3, "");
         assert_eq!(cfg.inactivity_timeout_sec, 120);
-        assert_eq!(cfg.bg_start_color, "#e0f2fe");
-        assert_eq!(cfg.bg_end_color, "#f3e8ff");
-        assert_eq!(cfg.card_bg_color, "#E0E0E0");
+        assert_eq!(cfg.bg_base_color, "#cce5f8");
+        assert_eq!(cfg.bg_start_color, "#c4e9f8");
+        assert_eq!(cfg.bg_mid_color, "#cce5f8");
+        assert_eq!(cfg.bg_end_color, "#dce2f8");
+        assert_eq!(cfg.card_bg_color, "#F5F5F5");
         assert_eq!(cfg.card_border_color, "#e2e8f0");
         assert_eq!(cfg.text_primary_color, "#0f172a");
         assert_eq!(cfg.text_secondary_color, "#64748b");
         assert_eq!(cfg.btn_bg_color, "#0284c7");
-        assert_eq!(cfg.btn_text_color, "#E0E0E0");
+        assert_eq!(cfg.btn_text_color, "#F5F5F5");
+        assert!(!cfg.is_dark_mode);
         assert!(!cfg.setup_completed);
     }
 

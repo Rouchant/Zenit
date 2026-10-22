@@ -59,6 +59,8 @@ pub fn setup_try_pc_handlers(
 
         // Show floating restore button first
         if let Some(fb) = try_pc_fb_handle.upgrade() {
+            let cfg = crate::domains::showcase::load_config();
+            crate::app::sync::sync_floating_button_theme(&fb, &cfg);
             let _ = fb.show();
             position_floating_button();
         }

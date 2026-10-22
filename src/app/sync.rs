@@ -1,9 +1,18 @@
 use crate::domains::hardware::{get_hardware_specs, is_oem_placeholder};
 use crate::domains::showcase::{build_ui_state, load_config};
-use slint::{ModelRc, VecModel};
-use crate::{MainWindow, SpecItem, VaultVideoItem};
+use slint::{ComponentHandle, ModelRc, VecModel};
+use crate::{FloatingDetailsButton, MainWindow, SpecItem, VaultVideoItem};
 use std::cell::RefCell;
 use std::collections::HashMap;
+use std::sync::Mutex;
+
+static FLOATING_BTN_HANDLE: Mutex<Option<slint::Weak<FloatingDetailsButton>>> = Mutex::new(None);
+
+pub fn register_floating_button(btn: &FloatingDetailsButton) {
+    if let Ok(mut guard) = FLOATING_BTN_HANDLE.lock() {
+        *guard = Some(btn.as_weak());
+    }
+}
 
 thread_local! {
     static ICON_CACHE: RefCell<HashMap<String, slint::Image>> = RefCell::new(HashMap::new());
@@ -26,11 +35,15 @@ pub fn populate_vault_videos(window: &MainWindow) {
     let videos = crate::domains::media::vault::list_vault_videos();
     let items: Vec<VaultVideoItem> = videos
         .into_iter()
-        .map(|v| VaultVideoItem {
-            name: v.name.into(),
-            filename: v.filename.into(),
-            path: v.path.into(),
-            size_str: format!("{:.1} MB", v.size_mb).into(),
+        .map(|v| {
+            let is_preloaded = crate::domains::media::vault::is_preloaded_video(&v.filename);
+            VaultVideoItem {
+                name: v.name.into(),
+                filename: v.filename.into(),
+                path: v.path.into(),
+                size_str: format!("{:.1} MB", v.size_mb).into(),
+                is_preloaded,
+            }
         })
         .collect();
     window.set_vault_videos(ModelRc::new(VecModel::from(items)));
@@ -126,6 +139,15 @@ pub fn populate_ui_state(window: &MainWindow) {
         window.set_store_logo(slint::Image::default());
     }
 
+    // Brand Logo
+    if let Some(ref logo_path) = state.brand_logo {
+        window.set_brand_logo(load_cached_icon(logo_path));
+        window.set_has_brand_logo(true);
+    } else {
+        window.set_brand_logo(slint::Image::default());
+        window.set_has_brand_logo(false);
+    }
+
     // Populate Left Column Specs
     let left_items: Vec<SpecItem> = state
         .left_specs
@@ -199,6 +221,10 @@ pub fn populate_ui_state(window: &MainWindow) {
 
     // Pre-populate Admin Tienda
     window.set_cfg_brand(clean_brand.into());
+    let brand_logo_val = cfg.brand_logo_override.clone().unwrap_or_else(|| {
+        state.brand_logo.clone().unwrap_or_default()
+    });
+    window.set_cfg_brand_logo(brand_logo_val.into());
     window.set_cfg_model(clean_model.into());
 
     window.set_cfg_retail(if !cfg.store_theme.is_empty() && !cfg.store_theme.eq_ignore_ascii_case("default") {
@@ -285,6 +311,130 @@ pub fn populate_ui_state(window: &MainWindow) {
     };
     window.set_cfg_others(others_val.into());
 
+    // Admin Spec Badges
+    window.set_cfg_badge_cpu(cfg.badge_cpu.clone().unwrap_or_default().into());
+    window.set_cfg_badge_ram(cfg.badge_ram.clone().unwrap_or_default().into());
+    window.set_cfg_badge_storage(cfg.badge_storage.clone().unwrap_or_default().into());
+    window.set_cfg_badge_gpu(cfg.badge_gpu.clone().unwrap_or_default().into());
+    window.set_cfg_badge_display(cfg.badge_display.clone().unwrap_or_default().into());
+    window.set_cfg_badge_os(cfg.badge_os.clone().unwrap_or_default().into());
+    window.set_cfg_badge_battery(cfg.badge_battery.clone().unwrap_or_default().into());
+    window.set_cfg_badge_others(cfg.badge_others.clone().unwrap_or_default().into());
+
+    // Populate placeholder badge texts with the current active badges from the spec cards
+    let cur_badge_cpu = state
+        .left_specs
+        .iter()
+        .find(|s| s.id == "card-processor")
+        .and_then(|s| s.tag.clone())
+        .filter(|t| !t.trim().is_empty())
+        .or_else(|| {
+            if !hw.generation.is_empty() {
+                Some(hw.generation.clone())
+            } else {
+                Some("GEN".to_string())
+            }
+        })
+        .unwrap_or_else(|| "GEN".to_string());
+
+    let cur_badge_ram = state
+        .left_specs
+        .iter()
+        .find(|s| s.id == "card-ram")
+        .and_then(|s| s.tag.clone())
+        .filter(|t| !t.trim().is_empty())
+        .or_else(|| {
+            if !hw.ram_type.is_empty() {
+                Some(hw.ram_type.clone())
+            } else {
+                Some("RAM".to_string())
+            }
+        })
+        .unwrap_or_else(|| "RAM".to_string());
+
+    let cur_badge_storage = state
+        .left_specs
+        .iter()
+        .find(|s| s.id == "card-storage")
+        .and_then(|s| s.tag.clone())
+        .filter(|t| !t.trim().is_empty())
+        .unwrap_or_else(|| {
+            let low = hw.storage.to_lowercase();
+            if low.contains("nvme") {
+                "NVMe".to_string()
+            } else {
+                "SSD".to_string()
+            }
+        });
+
+    let cur_badge_os = state
+        .left_specs
+        .iter()
+        .find(|s| s.id == "card-os")
+        .and_then(|s| s.tag.clone())
+        .filter(|t| !t.trim().is_empty())
+        .unwrap_or_else(|| "OFICIAL".to_string());
+
+    let cur_badge_display = state
+        .right_specs
+        .iter()
+        .find(|s| s.id == "card-display")
+        .and_then(|s| s.tag.clone())
+        .filter(|t| !t.trim().is_empty())
+        .or_else(|| {
+            if hw.refresh_rate > 0 {
+                Some(format!("{}Hz", hw.refresh_rate))
+            } else {
+                Some("165Hz".to_string())
+            }
+        })
+        .unwrap_or_else(|| "FHD".to_string());
+
+    let cur_badge_gpu = state
+        .right_specs
+        .iter()
+        .find(|s| s.id == "card-gpu")
+        .and_then(|s| s.tag.clone())
+        .filter(|t| !t.trim().is_empty())
+        .unwrap_or_else(|| {
+            let low = hw.gpu.to_lowercase();
+            if low.contains("rtx") {
+                "RTX".to_string()
+            } else if low.contains("gtx") {
+                "GTX".to_string()
+            } else if low.contains("radeon") || low.contains("rx") {
+                "Radeon".to_string()
+            } else if low.contains("arc") {
+                "Arc".to_string()
+            } else {
+                "GPU".to_string()
+            }
+        });
+
+    let cur_badge_battery = state
+        .right_specs
+        .iter()
+        .find(|s| s.id == "card-battery")
+        .and_then(|s| s.tag.clone())
+        .filter(|t| !t.trim().is_empty())
+        .unwrap_or_else(|| "Autonomía".to_string());
+
+    let cur_badge_others = state
+        .right_specs
+        .iter()
+        .find(|s| s.id == "card-features")
+        .and_then(|s| s.tag.clone())
+        .unwrap_or_default();
+
+    window.set_placeholder_badge_cpu(cur_badge_cpu.into());
+    window.set_placeholder_badge_ram(cur_badge_ram.into());
+    window.set_placeholder_badge_storage(cur_badge_storage.into());
+    window.set_placeholder_badge_gpu(cur_badge_gpu.into());
+    window.set_placeholder_badge_display(cur_badge_display.into());
+    window.set_placeholder_badge_os(cur_badge_os.into());
+    window.set_placeholder_badge_battery(cur_badge_battery.into());
+    window.set_placeholder_badge_others(cur_badge_others.into());
+
     // Admin Videos
     window.set_cfg_central_video(cfg.central_video_path.clone().into());
     window.set_cfg_bg_video(cfg.bg_video_path.clone().into());
@@ -293,18 +443,42 @@ pub fn populate_ui_state(window: &MainWindow) {
     window.set_cfg_inactivity_video_3(cfg.inactivity_video_path_3.clone().into());
     window.set_cfg_inactivity_timeout(cfg.inactivity_timeout_sec.to_string().into());
 
-    // Theme Colors Synchronization
-    let bg_start = parse_hex_color(&cfg.bg_start_color, slint::Color::from_rgb_u8(224, 242, 254)); // #e0f2fe
-    let bg_end = parse_hex_color(&cfg.bg_end_color, slint::Color::from_rgb_u8(243, 232, 255)); // #f3e8ff
-    let card_bg = parse_hex_color(&cfg.card_bg_color, slint::Color::from_rgb_u8(224, 224, 224));
+    // Theme Colors Synchronization - Analogous 3-color background gradient
+    let bg_base = if !cfg.bg_base_color.trim().is_empty() {
+        cfg.bg_base_color.clone()
+    } else {
+        "#e3e8f5".to_string()
+    };
+    let (c1, c2, c3) = generate_analogous_gradient(&bg_base);
+    let bg_start_str = if !cfg.bg_start_color.trim().is_empty() {
+        cfg.bg_start_color.clone()
+    } else {
+        c1
+    };
+    let bg_mid_str = if !cfg.bg_mid_color.trim().is_empty() {
+        cfg.bg_mid_color.clone()
+    } else {
+        c2
+    };
+    let bg_end_str = if !cfg.bg_end_color.trim().is_empty() {
+        cfg.bg_end_color.clone()
+    } else {
+        c3
+    };
+
+    let bg_start = parse_hex_color(&bg_start_str, slint::Color::from_rgb_u8(220, 237, 245));
+    let bg_mid = parse_hex_color(&bg_mid_str, slint::Color::from_rgb_u8(227, 232, 245));
+    let bg_end = parse_hex_color(&bg_end_str, slint::Color::from_rgb_u8(234, 228, 245));
+    let card_bg = parse_hex_color(&cfg.card_bg_color, slint::Color::from_rgb_u8(245, 245, 245));
     let card_border = parse_hex_color(&cfg.card_border_color, slint::Color::from_rgb_u8(226, 232, 240));
     let text_primary = parse_hex_color(&cfg.text_primary_color, slint::Color::from_rgb_u8(15, 23, 42));
     let text_secondary = parse_hex_color(&cfg.text_secondary_color, slint::Color::from_rgb_u8(100, 116, 139));
     let accent = parse_hex_color(&cfg.accent_color, slint::Color::from_rgb_u8(2, 132, 199));
     let btn_bg = parse_hex_color(&cfg.btn_bg_color, slint::Color::from_rgb_u8(2, 132, 199));
-    let btn_text = parse_hex_color(&cfg.btn_text_color, slint::Color::from_rgb_u8(224, 224, 224));
+    let btn_text = parse_hex_color(&cfg.btn_text_color, slint::Color::from_rgb_u8(245, 245, 245));
 
     window.set_theme_bg_start(bg_start);
+    window.set_theme_bg_mid(bg_mid);
     window.set_theme_bg_end(bg_end);
     window.set_theme_card_bg(card_bg);
     window.set_theme_card_border(card_border);
@@ -314,9 +488,20 @@ pub fn populate_ui_state(window: &MainWindow) {
     window.set_theme_btn_bg(btn_bg);
     window.set_theme_btn_text(btn_text);
 
+    // Sync floating details button theme if active
+    if let Ok(guard) = FLOATING_BTN_HANDLE.lock() {
+        if let Some(ref weak) = *guard {
+            if let Some(fb) = weak.upgrade() {
+                sync_floating_button_theme(&fb, &cfg);
+            }
+        }
+    }
+
     // Admin Interfaz Strings
-    window.set_cfg_bg_start(cfg.bg_start_color.clone().into());
-    window.set_cfg_bg_end(cfg.bg_end_color.clone().into());
+    window.set_cfg_bg_base(bg_base.into());
+    window.set_cfg_bg_start(bg_start_str.into());
+    window.set_cfg_bg_mid(bg_mid_str.into());
+    window.set_cfg_bg_end(bg_end_str.into());
     window.set_cfg_card_bg(cfg.card_bg_color.clone().into());
     window.set_cfg_card_border(cfg.card_border_color.clone().into());
     window.set_cfg_text_primary(cfg.text_primary_color.clone().into());
@@ -324,8 +509,120 @@ pub fn populate_ui_state(window: &MainWindow) {
     window.set_cfg_accent(cfg.accent_color.clone().into());
     window.set_cfg_btn_bg(cfg.btn_bg_color.clone().into());
     window.set_cfg_btn_text(cfg.btn_text_color.clone().into());
+    window.set_is_dark_mode(cfg.is_dark_mode);
 
     populate_vault_videos(window);
+}
+
+pub fn hex_to_rgb(hex: &str) -> Option<(u8, u8, u8)> {
+    let clean = hex.trim().trim_start_matches('#');
+    if clean.len() == 6 {
+        if let (Ok(r), Ok(g), Ok(b)) = (
+            u8::from_str_radix(&clean[0..2], 16),
+            u8::from_str_radix(&clean[2..4], 16),
+            u8::from_str_radix(&clean[4..6], 16),
+        ) {
+            return Some((r, g, b));
+        }
+    }
+    None
+}
+
+pub fn rgb_to_hsl(r: u8, g: u8, b: u8) -> (f32, f32, f32) {
+    let r_f = r as f32 / 255.0;
+    let g_f = g as f32 / 255.0;
+    let b_f = b as f32 / 255.0;
+
+    let max = r_f.max(g_f).max(b_f);
+    let min = r_f.min(g_f).min(b_f);
+    let l = (max + min) / 2.0;
+
+    if (max - min).abs() < 1e-5 {
+        return (0.0, 0.0, l);
+    }
+
+    let d = max - min;
+    let s = if l > 0.5 {
+        d / (2.0 - max - min)
+    } else {
+        d / (max + min)
+    };
+
+    let h = if (max - r_f).abs() < 1e-5 {
+        ((g_f - b_f) / d + if g_f < b_f { 6.0 } else { 0.0 }) / 6.0
+    } else if (max - g_f).abs() < 1e-5 {
+        ((b_f - r_f) / d + 2.0) / 6.0
+    } else {
+        ((r_f - g_f) / d + 4.0) / 6.0
+    } * 360.0;
+
+    (h, s, l)
+}
+
+pub fn hsl_to_rgb(h: f32, s: f32, l: f32) -> (u8, u8, u8) {
+    let h_norm = ((h % 360.0) + 360.0) % 360.0;
+    let c = (1.0 - (2.0 * l - 1.0).abs()) * s;
+    let h_prime = h_norm / 60.0;
+    let x = c * (1.0 - ((h_prime % 2.0) - 1.0).abs());
+
+    let (r1, g1, b1) = if (0.0..1.0).contains(&h_prime) {
+        (c, x, 0.0)
+    } else if (1.0..2.0).contains(&h_prime) {
+        (x, c, 0.0)
+    } else if (2.0..3.0).contains(&h_prime) {
+        (0.0, c, x)
+    } else if (3.0..4.0).contains(&h_prime) {
+        (0.0, x, c)
+    } else if (4.0..5.0).contains(&h_prime) {
+        (x, 0.0, c)
+    } else {
+        (c, 0.0, x)
+    };
+
+    let m = l - c / 2.0;
+    // Cap at 245 (#F5) per visual requirement
+    let r = (((r1 + m) * 255.0).round().clamp(0.0, 245.0)) as u8;
+    let g = (((g1 + m) * 255.0).round().clamp(0.0, 245.0)) as u8;
+    let b = (((b1 + m) * 255.0).round().clamp(0.0, 245.0)) as u8;
+
+    (r, g, b)
+}
+
+pub fn rgb_to_hex(r: u8, g: u8, b: u8) -> String {
+    format!("#{:02x}{:02x}{:02x}", r.min(0xf5), g.min(0xf5), b.min(0xf5))
+}
+
+pub fn generate_analogous_gradient(base_hex: &str) -> (String, String, String) {
+    let (r, g, b) = hex_to_rgb(base_hex).unwrap_or((227, 232, 245));
+    let (h, s, l) = rgb_to_hsl(r, g, b);
+
+    if s < 0.05 {
+        // Monochromatic / grayscale base
+        let l1 = (l - 0.03).clamp(0.0, 0.96);
+        let l2 = l.clamp(0.0, 0.96);
+        let l3 = (l + 0.03).clamp(0.0, 0.96);
+        let (r1, g1, b1) = hsl_to_rgb(0.0, 0.0, l1);
+        let (r2, g2, b2) = hsl_to_rgb(0.0, 0.0, l2);
+        let (r3, g3, b3) = hsl_to_rgb(0.0, 0.0, l3);
+        (rgb_to_hex(r1, g1, b1), rgb_to_hex(r2, g2, b2), rgb_to_hex(r3, g3, b3))
+    } else {
+        // Boost saturation slightly for light backgrounds to make them vibrant and rich
+        let s_eff = if l > 0.65 {
+            (s * 1.35).clamp(0.0, 1.0)
+        } else {
+            s
+        };
+
+        // Analogous 3-color palette: -25 deg, base, +25 deg
+        let h1 = (h - 25.0 + 360.0) % 360.0;
+        let h2 = h;
+        let h3 = (h + 25.0) % 360.0;
+
+        let (r1, g1, b1) = hsl_to_rgb(h1, s_eff, l);
+        let (r2, g2, b2) = hsl_to_rgb(h2, s_eff, l);
+        let (r3, g3, b3) = hsl_to_rgb(h3, s_eff, l);
+        (rgb_to_hex(r1, g1, b1), rgb_to_hex(r2, g2, b2), rgb_to_hex(r3, g3, b3))
+    }
 }
 
 pub fn parse_hex_color(hex: &str, fallback: slint::Color) -> slint::Color {
@@ -349,6 +646,24 @@ pub fn parse_hex_color(hex: &str, fallback: slint::Color) -> slint::Color {
         }
     }
     fallback
+}
+
+pub fn sync_floating_button_theme(floating_btn: &FloatingDetailsButton, cfg: &crate::domains::showcase::AppConfig) {
+    let card_bg = parse_hex_color(&cfg.card_bg_color, slint::Color::from_rgb_u8(245, 245, 245));
+    let card_border = parse_hex_color(&cfg.card_border_color, slint::Color::from_rgb_u8(226, 232, 240));
+    let text_primary = parse_hex_color(&cfg.text_primary_color, slint::Color::from_rgb_u8(15, 23, 42));
+    let text_secondary = parse_hex_color(&cfg.text_secondary_color, slint::Color::from_rgb_u8(100, 116, 139));
+    let accent = parse_hex_color(&cfg.accent_color, slint::Color::from_rgb_u8(2, 132, 199));
+    let btn_bg = parse_hex_color(&cfg.btn_bg_color, slint::Color::from_rgb_u8(2, 132, 199));
+    let btn_text = parse_hex_color(&cfg.btn_text_color, slint::Color::from_rgb_u8(245, 245, 245));
+
+    floating_btn.set_theme_card_bg(card_bg);
+    floating_btn.set_theme_card_border(card_border);
+    floating_btn.set_theme_text_primary(text_primary);
+    floating_btn.set_theme_text_secondary(text_secondary);
+    floating_btn.set_theme_accent(accent);
+    floating_btn.set_theme_btn_bg(btn_bg);
+    floating_btn.set_theme_btn_text(btn_text);
 }
 
 #[cfg(test)]
@@ -398,5 +713,34 @@ mod tests {
         assert_eq!(invalid.red(), 0);
         assert_eq!(invalid.green(), 0);
         assert_eq!(invalid.blue(), 0);
+    }
+
+    #[test]
+    fn test_generate_analogous_gradient() {
+        let (c1, c2, c3) = generate_analogous_gradient("#38bdf8");
+        assert!(c1.starts_with('#'));
+        assert!(c2.starts_with('#'));
+        assert!(c3.starts_with('#'));
+        assert_ne!(c1, c3, "Analogous colors should be distinct");
+
+        // Verify ceiling constraint: no component greater than 245 (0xF5)
+        for c in [&c1, &c2, &c3] {
+            let rgb = hex_to_rgb(c).expect("Must be valid hex");
+            assert!(rgb.0 <= 245, "Red must not exceed 245 (0xF5)");
+            assert!(rgb.1 <= 245, "Green must not exceed 245 (0xF5)");
+            assert!(rgb.2 <= 245, "Blue must not exceed 245 (0xF5)");
+        }
+
+        // Test with monochromatic color
+        let (m1, m2, m3) = generate_analogous_gradient("#e0e0e0");
+        assert!(m1.starts_with('#'));
+        assert!(m2.starts_with('#'));
+        assert!(m3.starts_with('#'));
+
+        // Test with highly saturated light color (s > 0.70) to prevent clamp panic
+        let (h1, h2, h3) = generate_analogous_gradient("#00e5ff");
+        assert!(h1.starts_with('#'));
+        assert!(h2.starts_with('#'));
+        assert!(h3.starts_with('#'));
     }
 }

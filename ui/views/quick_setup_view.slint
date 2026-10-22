@@ -19,7 +19,7 @@ export component QuickSetupView inherits Rectangle {
     Rectangle {
         width: 620px;
         height: 560px;
-        background: #E0E0E0;
+        background: #F5F5F5;
         border-radius: 20px;
         border-width: 1px;
         border-color: #cbd5e1;
@@ -50,10 +50,10 @@ export component QuickSetupView inherits Rectangle {
             // Auto-detect Button
             Rectangle {
                 height: 38px;
-                background: #e0f2fe;
+                background: #dcedf5;
                 border-radius: 8px;
                 border-width: 1px;
-                border-color: #bae6fd;
+                border-color: #b8e2f5;
 
                 detect_touch := TouchArea {
                     mouse-cursor: pointer;
@@ -104,7 +104,8 @@ export component QuickSetupView inherits Rectangle {
                     Text { text: "Precio Tarjeta:"; font-size: 12px; color: #475569; }
                     cprice_ed := LineEdit {
                         text: root.setup_card_price;
-                        placeholder-text: "Ej: 699990 o 699.990";
+                        placeholder-text: "$000.000...";
+                        font-italic: self.text == "";
                         edited => {
                             root.setup_card_price = self.text;
                         }
@@ -120,7 +121,8 @@ export component QuickSetupView inherits Rectangle {
                     Text { text: "Precio Normal:"; font-size: 12px; color: #475569; }
                     nprice_ed := LineEdit {
                         text: root.setup_normal_price;
-                        placeholder-text: "Ej: 719990 o 719.990";
+                        placeholder-text: "$000.000...";
+                        font-italic: self.text == "";
                         edited => {
                             root.setup_normal_price = self.text;
                         }
@@ -140,7 +142,8 @@ export component QuickSetupView inherits Rectangle {
                     Text { text: "SKU Tienda:"; font-size: 12px; color: #475569; }
                     sku_ed := LineEdit {
                         text: root.setup_sku;
-                        placeholder-text: "Ej: 8493021";
+                        placeholder-text: "000000...";
+                        font-italic: self.text == "";
                         edited => { root.setup_sku = self.text; }
                     }
                 }
@@ -150,7 +153,8 @@ export component QuickSetupView inherits Rectangle {
                     Text { text: "Tienda Retail:"; font-size: 12px; color: #475569; }
                     retail_ed := LineEdit {
                         text: root.setup_retail;
-                        placeholder-text: "falabella, ripley, paris";
+                        placeholder-text: "tienda...";
+                        font-italic: self.text == "";
                         edited => { root.setup_retail = self.text; }
                     }
                 }
@@ -180,7 +184,7 @@ export component QuickSetupView inherits Rectangle {
                     text: "Guardar y Comenzar Showroom";
                     font-size: 15px;
                     font-weight: 800;
-                    color: #E0E0E0;
+                    color: #F5F5F5;
                     horizontal-alignment: center;
                     vertical-alignment: center;
                 }
