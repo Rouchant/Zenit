@@ -15,6 +15,23 @@ pub fn resolve_brand_logo(brand: &str) -> Option<String> {
     }
 }
 
+pub fn resolve_brand_logo_dark(brand: &str) -> Option<String> {
+    let lower = brand.to_lowercase();
+    if lower.contains("asus") {
+        Some("assets/logos/asus_dark.svg".to_string())
+    } else if lower.contains("hp") {
+        Some("assets/logos/hp_dark.svg".to_string())
+    } else if lower.contains("lenovo") {
+        Some("assets/logos/lenovo_dark.svg".to_string())
+    } else if lower.contains("acer") {
+        Some("assets/logos/acer_dark.svg".to_string())
+    } else if lower.contains("samsung") {
+        Some("assets/logos/samsung_dark.svg".to_string())
+    } else {
+        None
+    }
+}
+
 pub fn resolve_store_logo(store_theme: &str) -> Option<String> {
     match store_theme.to_lowercase().as_str() {
         "falabella" => Some("assets/logos/falabella.svg".to_string()),

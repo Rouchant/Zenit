@@ -148,6 +148,15 @@ pub fn populate_ui_state(window: &MainWindow) {
         window.set_has_brand_logo(false);
     }
 
+    // Brand Logo Dark (#F5F5F5)
+    if let Some(ref logo_dark_path) = state.brand_logo_dark {
+        window.set_brand_logo_dark(load_cached_icon(logo_dark_path));
+        window.set_has_brand_logo_dark(true);
+    } else {
+        window.set_brand_logo_dark(slint::Image::default());
+        window.set_has_brand_logo_dark(false);
+    }
+
     // Populate Left Column Specs
     let left_items: Vec<SpecItem> = state
         .left_specs
@@ -311,17 +320,7 @@ pub fn populate_ui_state(window: &MainWindow) {
     };
     window.set_cfg_others(others_val.into());
 
-    // Admin Spec Badges
-    window.set_cfg_badge_cpu(cfg.badge_cpu.clone().unwrap_or_default().into());
-    window.set_cfg_badge_ram(cfg.badge_ram.clone().unwrap_or_default().into());
-    window.set_cfg_badge_storage(cfg.badge_storage.clone().unwrap_or_default().into());
-    window.set_cfg_badge_gpu(cfg.badge_gpu.clone().unwrap_or_default().into());
-    window.set_cfg_badge_display(cfg.badge_display.clone().unwrap_or_default().into());
-    window.set_cfg_badge_os(cfg.badge_os.clone().unwrap_or_default().into());
-    window.set_cfg_badge_battery(cfg.badge_battery.clone().unwrap_or_default().into());
-    window.set_cfg_badge_others(cfg.badge_others.clone().unwrap_or_default().into());
-
-    // Populate placeholder badge texts with the current active badges from the spec cards
+    // Populate active badges from the spec cards (or hardware detection)
     let cur_badge_cpu = state
         .left_specs
         .iter()
@@ -426,14 +425,57 @@ pub fn populate_ui_state(window: &MainWindow) {
         .and_then(|s| s.tag.clone())
         .unwrap_or_default();
 
-    window.set_placeholder_badge_cpu(cur_badge_cpu.into());
-    window.set_placeholder_badge_ram(cur_badge_ram.into());
-    window.set_placeholder_badge_storage(cur_badge_storage.into());
-    window.set_placeholder_badge_gpu(cur_badge_gpu.into());
-    window.set_placeholder_badge_display(cur_badge_display.into());
-    window.set_placeholder_badge_os(cur_badge_os.into());
-    window.set_placeholder_badge_battery(cur_badge_battery.into());
-    window.set_placeholder_badge_others(cur_badge_others.into());
+    // Admin Spec Badges: Muestran directamente el valor activo en la interfaz
+    let badge_cpu_val = match &cfg.badge_cpu {
+        Some(custom) => custom.clone(),
+        None => cur_badge_cpu.clone(),
+    };
+    let badge_ram_val = match &cfg.badge_ram {
+        Some(custom) => custom.clone(),
+        None => cur_badge_ram.clone(),
+    };
+    let badge_storage_val = match &cfg.badge_storage {
+        Some(custom) => custom.clone(),
+        None => cur_badge_storage.clone(),
+    };
+    let badge_gpu_val = match &cfg.badge_gpu {
+        Some(custom) => custom.clone(),
+        None => cur_badge_gpu.clone(),
+    };
+    let badge_display_val = match &cfg.badge_display {
+        Some(custom) => custom.clone(),
+        None => cur_badge_display.clone(),
+    };
+    let badge_os_val = match &cfg.badge_os {
+        Some(custom) => custom.clone(),
+        None => cur_badge_os.clone(),
+    };
+    let badge_battery_val = match &cfg.badge_battery {
+        Some(custom) => custom.clone(),
+        None => cur_badge_battery.clone(),
+    };
+    let badge_others_val = match &cfg.badge_others {
+        Some(custom) => custom.clone(),
+        None => cur_badge_others.clone(),
+    };
+
+    window.set_cfg_badge_cpu(badge_cpu_val.into());
+    window.set_cfg_badge_ram(badge_ram_val.into());
+    window.set_cfg_badge_storage(badge_storage_val.into());
+    window.set_cfg_badge_gpu(badge_gpu_val.into());
+    window.set_cfg_badge_display(badge_display_val.into());
+    window.set_cfg_badge_os(badge_os_val.into());
+    window.set_cfg_badge_battery(badge_battery_val.into());
+    window.set_cfg_badge_others(badge_others_val.into());
+
+    window.set_placeholder_badge_cpu("".into());
+    window.set_placeholder_badge_ram("".into());
+    window.set_placeholder_badge_storage("".into());
+    window.set_placeholder_badge_gpu("".into());
+    window.set_placeholder_badge_display("".into());
+    window.set_placeholder_badge_os("".into());
+    window.set_placeholder_badge_battery("".into());
+    window.set_placeholder_badge_others("".into());
 
     // Admin Videos
     window.set_cfg_central_video(cfg.central_video_path.clone().into());
@@ -447,7 +489,7 @@ pub fn populate_ui_state(window: &MainWindow) {
     let bg_base = if !cfg.bg_base_color.trim().is_empty() {
         cfg.bg_base_color.clone()
     } else {
-        "#e3e8f5".to_string()
+        "#cce5f8".to_string()
     };
     let (c1, c2, c3) = generate_analogous_gradient(&bg_base);
     let bg_start_str = if !cfg.bg_start_color.trim().is_empty() {
@@ -466,13 +508,13 @@ pub fn populate_ui_state(window: &MainWindow) {
         c3
     };
 
-    let bg_start = parse_hex_color(&bg_start_str, slint::Color::from_rgb_u8(220, 237, 245));
-    let bg_mid = parse_hex_color(&bg_mid_str, slint::Color::from_rgb_u8(227, 232, 245));
-    let bg_end = parse_hex_color(&bg_end_str, slint::Color::from_rgb_u8(234, 228, 245));
+    let bg_start = parse_hex_color(&bg_start_str, slint::Color::from_rgb_u8(196, 233, 248));
+    let bg_mid = parse_hex_color(&bg_mid_str, slint::Color::from_rgb_u8(204, 229, 248));
+    let bg_end = parse_hex_color(&bg_end_str, slint::Color::from_rgb_u8(220, 226, 248));
     let card_bg = parse_hex_color(&cfg.card_bg_color, slint::Color::from_rgb_u8(245, 245, 245));
-    let card_border = parse_hex_color(&cfg.card_border_color, slint::Color::from_rgb_u8(226, 232, 240));
+    let card_border = parse_hex_color(&cfg.card_border_color, slint::Color::from_rgb_u8(186, 230, 253));
     let text_primary = parse_hex_color(&cfg.text_primary_color, slint::Color::from_rgb_u8(15, 23, 42));
-    let text_secondary = parse_hex_color(&cfg.text_secondary_color, slint::Color::from_rgb_u8(100, 116, 139));
+    let text_secondary = parse_hex_color(&cfg.text_secondary_color, slint::Color::from_rgb_u8(71, 85, 105));
     let accent = parse_hex_color(&cfg.accent_color, slint::Color::from_rgb_u8(2, 132, 199));
     let btn_bg = parse_hex_color(&cfg.btn_bg_color, slint::Color::from_rgb_u8(2, 132, 199));
     let btn_text = parse_hex_color(&cfg.btn_text_color, slint::Color::from_rgb_u8(245, 245, 245));
@@ -511,7 +553,17 @@ pub fn populate_ui_state(window: &MainWindow) {
     window.set_cfg_btn_text(cfg.btn_text_color.clone().into());
     window.set_is_dark_mode(cfg.is_dark_mode);
 
+    let is_dark_bg = cfg.is_dark_mode || is_color_dark(bg_start);
+    window.set_is_dark_bg(is_dark_bg);
+
     populate_vault_videos(window);
+}
+
+pub fn is_color_dark(color: slint::Color) -> bool {
+    let r = color.red() as f32;
+    let g = color.green() as f32;
+    let b = color.blue() as f32;
+    (0.299 * r + 0.587 * g + 0.114 * b) < 140.0
 }
 
 pub fn hex_to_rgb(hex: &str) -> Option<(u8, u8, u8)> {

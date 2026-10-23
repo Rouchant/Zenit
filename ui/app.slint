@@ -28,6 +28,9 @@ export component MainWindow inherits Window {
     in-out property <image> store_logo;
     in-out property <image> brand_logo;
     in-out property <bool> has_brand_logo: false;
+    in-out property <image> brand_logo_dark;
+    in-out property <bool> has_brand_logo_dark: false;
+    in-out property <bool> is_dark_bg: false;
 
     // Specs
     in-out property <[SpecItem]> left_specs: [
@@ -117,17 +120,7 @@ export component MainWindow inherits Window {
     in-out property <string> cfg_inactivity_timeout: "120";
     in-out property <[VaultVideoItem]> vault_videos: [];
 
-    // Theme Colors
-    in-out property <color> theme_bg_start: #dcedf5;
-    in-out property <color> theme_bg_mid: #e3e8f5;
-    in-out property <color> theme_bg_end: #eae4f5;
-    in-out property <color> theme_card_bg: #F5F5F5;
-    in-out property <color> theme_card_border: #e2e8f0;
-    in-out property <color> theme_text_primary: #0f172a;
-    in-out property <color> theme_text_secondary: #64748b;
-    in-out property <color> theme_accent: #0284c7;
-    in-out property <color> theme_btn_bg: #0284c7;
-    in-out property <color> theme_btn_text: #F5F5F5;
+    pure callback hex_to_color(string) -> color;
 
     // Admin Tab Interfaz (Config strings)
     in-out property <string> cfg_bg_base: "#e3e8f5";
@@ -135,13 +128,25 @@ export component MainWindow inherits Window {
     in-out property <string> cfg_bg_mid: "#e3e8f5";
     in-out property <string> cfg_bg_end: "#eae4f5";
     in-out property <string> cfg_card_bg: "#F5F5F5";
-    in-out property <string> cfg_card_border: "#e2e8f0";
+    in-out property <string> cfg_card_border: "#bae6fd";
     in-out property <string> cfg_text_primary: "#0f172a";
-    in-out property <string> cfg_text_secondary: "#64748b";
+    in-out property <string> cfg_text_secondary: "#475569";
     in-out property <string> cfg_accent: "#0284c7";
     in-out property <string> cfg_btn_bg: "#0284c7";
     in-out property <string> cfg_btn_text: "#F5F5F5";
     in-out property <bool> is_dark_mode: false;
+
+    // Theme Colors (Dynamically bound to cfg_* in real-time)
+    in-out property <color> theme_bg_start: root.hex_to_color(root.cfg_bg_start);
+    in-out property <color> theme_bg_mid: root.hex_to_color(root.cfg_bg_mid);
+    in-out property <color> theme_bg_end: root.hex_to_color(root.cfg_bg_end);
+    in-out property <color> theme_card_bg: root.hex_to_color(root.cfg_card_bg);
+    in-out property <color> theme_card_border: root.hex_to_color(root.cfg_card_border);
+    in-out property <color> theme_text_primary: root.hex_to_color(root.cfg_text_primary);
+    in-out property <color> theme_text_secondary: root.hex_to_color(root.cfg_text_secondary);
+    in-out property <color> theme_accent: root.hex_to_color(root.cfg_accent);
+    in-out property <color> theme_btn_bg: root.hex_to_color(root.cfg_btn_bg);
+    in-out property <color> theme_btn_text: root.hex_to_color(root.cfg_btn_text);
 
     // Callbacks
     callback update_bg_base_color(string);
@@ -174,7 +179,6 @@ export component MainWindow inherits Window {
     callback pick_inactivity_3_clicked();
     callback pick_color_clicked(string);
     callback pick_brand_logo_clicked();
-    pure callback hex_to_color(string) -> color;
 
     forward-focus: root_focus;
     root_focus := FocusScope {
@@ -213,17 +217,21 @@ export component MainWindow inherits Window {
         store_logo: root.store_logo;
         brand_logo: root.brand_logo;
         has_brand_logo: root.has_brand_logo;
+        brand_logo_dark: root.brand_logo_dark;
+        has_brand_logo_dark: root.has_brand_logo_dark;
+        is_dark_mode: root.is_dark_mode;
+        is_dark_bg: root.is_dark_mode || root.is_dark_bg;
 
-        theme_bg_start: root.theme_bg_start;
-        theme_bg_mid: root.theme_bg_mid;
-        theme_bg_end: root.theme_bg_end;
-        theme_card_bg: root.theme_card_bg;
-        theme_card_border: root.theme_card_border;
-        theme_text_primary: root.theme_text_primary;
-        theme_text_secondary: root.theme_text_secondary;
-        theme_accent: root.theme_accent;
-        theme_btn_bg: root.theme_btn_bg;
-        theme_btn_text: root.theme_btn_text;
+        theme_bg_start: root.hex_to_color(root.cfg_bg_start);
+        theme_bg_mid: root.hex_to_color(root.cfg_bg_mid);
+        theme_bg_end: root.hex_to_color(root.cfg_bg_end);
+        theme_card_bg: root.hex_to_color(root.cfg_card_bg);
+        theme_card_border: root.hex_to_color(root.cfg_card_border);
+        theme_text_primary: root.hex_to_color(root.cfg_text_primary);
+        theme_text_secondary: root.hex_to_color(root.cfg_text_secondary);
+        theme_accent: root.hex_to_color(root.cfg_accent);
+        theme_btn_bg: root.hex_to_color(root.cfg_btn_bg);
+        theme_btn_text: root.hex_to_color(root.cfg_btn_text);
 
         try_pc_clicked => { root.try_pc_clicked(); }
         corner_tap_clicked => { root.corner_tap_clicked(); }

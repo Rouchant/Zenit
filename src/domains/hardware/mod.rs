@@ -14,12 +14,15 @@ pub use battery::{detect_battery_capacity_wh, get_battery_info, parse_battery_wh
 pub use connectivity::{
     detect_connectivity_features, format_connectivity_features, ConnectivityFeatures,
 };
-pub use cpu::{get_cpu_info, infer_processor_details};
-pub use display::get_display_and_hz;
-pub use gpu::get_gpu_name;
+pub use cpu::{clean_processor_name, detect_generation, get_cpu_info, infer_processor_details};
+pub use display::{approximate_refresh_rate, get_display_and_hz};
+pub use gpu::{get_gpu_name, rate_gpu};
 pub use memory::get_ram_info;
-pub use storage::get_storage_info;
-pub use system_info::{get_laptop_brand_and_model, get_os_info, is_oem_placeholder};
+pub use storage::{format_bytes_commercial, get_storage_info};
+pub use system_info::{
+    clean_brand_name, get_laptop_brand_and_model, get_os_info, is_oem_placeholder,
+    refine_model_name,
+};
 pub use types::SystemSpecs;
 
 use std::sync::RwLock;

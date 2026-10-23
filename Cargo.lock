@@ -5799,6 +5799,7 @@ dependencies = [
  "chrono",
  "libloading",
  "log",
+ "regex",
  "serde",
  "serde_json",
  "slint",

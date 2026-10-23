@@ -128,11 +128,7 @@ pub fn setup_save_handlers(
 
                 let parse_badge = |s: slint::SharedString| {
                     let trimmed = s.trim();
-                    if trimmed.is_empty() {
-                        None
-                    } else {
-                        Some(trimmed.to_string())
-                    }
+                    Some(trimmed.to_string())
                 };
                 cfg.badge_cpu = parse_badge(ui.get_cfg_badge_cpu());
                 cfg.badge_ram = parse_badge(ui.get_cfg_badge_ram());

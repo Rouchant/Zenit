@@ -15,6 +15,11 @@ pub fn run() {
 
     let main_window = MainWindow::new().expect("Failed to initialize Slint MainWindow");
 
+    // Register pure callback hex_to_color immediately so bindings evaluate properly
+    main_window.on_hex_to_color(|hex| {
+        crate::app::sync::parse_hex_color(&hex, slint::Color::from_rgb_u8(100, 116, 139))
+    });
+
     // 1. Initialize Main Window Geometry & Win32 Handles BEFORE secondary windows
     app::window::init_main_window(&main_window);
     domains::hardware::display::set_max_brightness();

@@ -12,6 +12,87 @@ pub fn is_oem_placeholder(s: &str) -> bool {
         || l.trim().is_empty()
 }
 
+/// Normaliza nombres técnicos de fabricantes a sus nombres comerciales conocidos.
+pub fn clean_brand_name(raw: &str) -> String {
+    let r = raw.to_uppercase();
+    if r.contains("ASUSTEK") || r.contains("ASUS") {
+        "ASUS".to_string()
+    } else if r.contains("HEWLETT-PACKARD") || r.split_whitespace().any(|w| w == "HP") || r == "HP" {
+        "HP".to_string()
+    } else if r.contains("SAMSUNG") {
+        "Samsung".to_string()
+    } else if r.contains("DELL") {
+        "Dell".to_string()
+    } else if r.contains("LENOVO") {
+        "Lenovo".to_string()
+    } else if r.contains("ACER") {
+        "Acer".to_string()
+    } else if r.contains("ASROCK") {
+        "ASRock".to_string()
+    } else if r.contains("GIGABYTE") {
+        "Gigabyte".to_string()
+    } else if r.contains("MSI") || r.contains("MICRO-STAR") {
+        "MSI".to_string()
+    } else if r.contains("VIRTUALBOX") {
+        "VirtualBox".to_string()
+    } else {
+        raw.trim().to_string()
+    }
+}
+
+/// Refina el nombre del modelo eliminando ruido repetitivo, normalizando espaciados de ASUS y deduplicando palabras.
+/// La marca NO se antepone al modelo resultante para evitar redundancia visual con el logo.
+pub fn refine_model_name(brand: &str, model: &str) -> String {
+    let noise = [
+        "ASUSTEK", "COMPUTER", "INC", "CORP", "CORPORATION", "LTD", "SYSTEMS", "PRODUCT", "NAME",
+        "LAPTOP",
+    ];
+
+    let mut clean = model
+        .replace('_', " ")
+        .replace("ASUSLaptop", " Laptop ")
+        .replace('-', " ")
+        .trim()
+        .to_string();
+
+    while clean.contains("  ") {
+        clean = clean.replace("  ", " ");
+    }
+
+    let words: Vec<&str> = clean.split_whitespace().collect();
+    let mut unique_words: Vec<String> = Vec::new();
+    let brand_up = brand.to_uppercase();
+
+    for &word in &words {
+        let word_up = word.to_uppercase().replace('.', "");
+        if noise.contains(&word_up.as_str()) {
+            continue;
+        }
+        if word_up == brand_up || (brand_up.len() > 2 && word_up.contains(&brand_up)) {
+            continue;
+        }
+
+        if let Some(last) = unique_words.last() {
+            let last_up = last.to_uppercase();
+            if word_up == last_up || word_up.starts_with(&last_up) || last_up.starts_with(&word_up) {
+                if word.len() > last.len() {
+                    unique_words.pop();
+                    unique_words.push(word.to_string());
+                }
+                continue;
+            }
+        }
+        unique_words.push(word.to_string());
+    }
+
+    let result_model = unique_words.join(" ");
+    if result_model.is_empty() {
+        brand.to_string()
+    } else {
+        result_model
+    }
+}
+
 pub fn get_laptop_brand_and_model() -> (String, String) {
     let subkey = r"HARDWARE\DESCRIPTION\System\BIOS";
     let manufacturer = read_reg_string(HKEY_LOCAL_MACHINE, subkey, "SystemManufacturer")
@@ -19,17 +100,15 @@ pub fn get_laptop_brand_and_model() -> (String, String) {
     let mut model = read_reg_string(HKEY_LOCAL_MACHINE, subkey, "SystemProductName")
         .unwrap_or_else(|| "".to_string());
 
-    // Clean up generic OEM strings
-    let mut clean_mfg = if is_oem_placeholder(&manufacturer) {
+    // Fallback a Placa Base si la información inicial es genérica (O.E.M, Default string, etc.)
+    let raw_brand = if is_oem_placeholder(&manufacturer) {
         read_reg_string(HKEY_LOCAL_MACHINE, subkey, "BaseBoardManufacturer")
             .unwrap_or_else(|| "ASUS".to_string())
     } else {
         manufacturer
     };
 
-    if is_oem_placeholder(&clean_mfg) {
-        clean_mfg = "ASUS".to_string();
-    }
+    let brand = clean_brand_name(&raw_brand);
 
     if is_oem_placeholder(&model) {
         model = read_reg_string(HKEY_LOCAL_MACHINE, subkey, "BaseBoardProduct")
@@ -40,15 +119,13 @@ pub fn get_laptop_brand_and_model() -> (String, String) {
         model = "Showroom PC".to_string();
     }
 
-    let brand = clean_mfg
-        .replace("ASUSTeK COMPUTER INC.", "ASUS")
-        .replace("ASUSTeK Computer Inc.", "ASUS")
-        .replace("LENOVO", "Lenovo")
-        .replace("Hewlett-Packard", "HP")
-        .replace("Dell Inc.", "Dell")
-        .replace("Micro-Star International Co., Ltd.", "MSI");
+    let final_model = if brand.to_uppercase().contains("VIRTUALBOX") {
+        "Virtual Machine".to_string()
+    } else {
+        refine_model_name(&brand, &model)
+    };
 
-    (brand.trim().to_string(), model.trim().to_string())
+    (brand, final_model)
 }
 
 pub fn get_os_info() -> String {
@@ -66,5 +143,28 @@ pub fn get_os_info() -> String {
         }
     } else {
         format!("{} {}", os_name, os_version)
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn test_clean_brand_name() {
+        assert_eq!(clean_brand_name("ASUSTeK COMPUTER INC."), "ASUS");
+        assert_eq!(clean_brand_name("Hewlett-Packard"), "HP");
+        assert_eq!(clean_brand_name("Micro-Star International Co., Ltd."), "MSI");
+        assert_eq!(clean_brand_name("LENOVO"), "Lenovo");
+        assert_eq!(clean_brand_name("Dell Inc."), "Dell");
+    }
+
+    #[test]
+    fn test_refine_model_name() {
+        assert_eq!(refine_model_name("ASUS", "ASUS TUF Gaming F15"), "TUF Gaming F15");
+        assert_eq!(refine_model_name("HP", "HP Laptop 15s-eq2xxx"), "15s eq2xxx");
+        assert_eq!(refine_model_name("Lenovo", "82K2"), "82K2");
+        assert_eq!(refine_model_name("Lenovo", "Lenovo LOQ 15AHP10"), "LOQ 15AHP10");
+        assert_eq!(refine_model_name("ASUS", "ASUS Vivobook 15 E1504GAB"), "Vivobook 15 E1504GAB");
     }
 }

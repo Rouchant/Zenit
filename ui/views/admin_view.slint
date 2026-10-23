@@ -743,7 +743,6 @@ export component AdminView inherits Rectangle {
                                     LineEdit {
                                         width: 80px;
                                         text: root.cfg_badge_cpu;
-                                        placeholder-text: root.placeholder_badge_cpu;
                                         font-italic: self.text == "";
                                         edited => { root.cfg_badge_cpu = self.text; }
                                     }
@@ -768,7 +767,6 @@ export component AdminView inherits Rectangle {
                                     LineEdit {
                                         width: 80px;
                                         text: root.cfg_badge_ram;
-                                        placeholder-text: root.placeholder_badge_ram;
                                         font-italic: self.text == "";
                                         edited => { root.cfg_badge_ram = self.text; }
                                     }
@@ -797,7 +795,6 @@ export component AdminView inherits Rectangle {
                                     LineEdit {
                                         width: 80px;
                                         text: root.cfg_badge_storage;
-                                        placeholder-text: root.placeholder_badge_storage;
                                         font-italic: self.text == "";
                                         edited => { root.cfg_badge_storage = self.text; }
                                     }
@@ -822,7 +819,6 @@ export component AdminView inherits Rectangle {
                                     LineEdit {
                                         width: 80px;
                                         text: root.cfg_badge_gpu;
-                                        placeholder-text: root.placeholder_badge_gpu;
                                         font-italic: self.text == "";
                                         edited => { root.cfg_badge_gpu = self.text; }
                                     }
@@ -851,7 +847,6 @@ export component AdminView inherits Rectangle {
                                     LineEdit {
                                         width: 80px;
                                         text: root.cfg_badge_display;
-                                        placeholder-text: root.placeholder_badge_display;
                                         font-italic: self.text == "";
                                         edited => { root.cfg_badge_display = self.text; }
                                     }
@@ -876,7 +871,6 @@ export component AdminView inherits Rectangle {
                                     LineEdit {
                                         width: 80px;
                                         text: root.cfg_badge_os;
-                                        placeholder-text: root.placeholder_badge_os;
                                         font-italic: self.text == "";
                                         edited => { root.cfg_badge_os = self.text; }
                                     }
@@ -905,7 +899,6 @@ export component AdminView inherits Rectangle {
                                     LineEdit {
                                         width: 80px;
                                         text: root.cfg_badge_battery;
-                                        placeholder-text: root.placeholder_badge_battery;
                                         font-italic: self.text == "";
                                         edited => { root.cfg_badge_battery = self.text; }
                                     }
@@ -930,7 +923,6 @@ export component AdminView inherits Rectangle {
                                     LineEdit {
                                         width: 80px;
                                         text: root.cfg_badge_others;
-                                        placeholder-text: root.placeholder_badge_others;
                                         font-italic: self.text == "";
                                         edited => { root.cfg_badge_others = self.text; }
                                     }
@@ -1713,6 +1705,7 @@ export component AdminView inherits Rectangle {
                         content-height: 590px;
 
                         VerticalLayout {
+                            alignment: start;
                             spacing: 14px;
                             padding-top: 4px;
                             padding-bottom: 12px;
@@ -1720,6 +1713,7 @@ export component AdminView inherits Rectangle {
 
                             // Section 0: Selector de Modo Claro / Oscuro
                             VerticalLayout {
+                                alignment: start;
                                 spacing: 6px;
                                 Text {
                                     text: "Modo de Interfaz:";
@@ -1744,15 +1738,62 @@ export component AdminView inherits Rectangle {
                                             mouse-cursor: pointer;
                                             clicked => {
                                                 root.is_dark_mode = false;
-                                                root.cfg_bg_base = "#e0ecf5";
-                                                root.update_bg_base_color("#e0ecf5");
-                                                root.cfg_card_bg = "#F5F5F5";
-                                                root.cfg_card_border = "#e2e8f0";
-                                                root.cfg_text_primary = "#0f172a";
-                                                root.cfg_text_secondary = "#64748b";
-                                                root.cfg_accent = "#0284c7";
-                                                root.cfg_btn_bg = "#0284c7";
-                                                root.cfg_btn_text = "#F5F5F5";
+                                                if root.cfg_accent == "#a855f7" || root.cfg_accent == "#9333ea" || root.cfg_accent == "#7c3aed" || root.cfg_accent == "#6366f1" {
+                                                    // Púrpura -> Lavanda Dream
+                                                    root.cfg_bg_base = "#ede9fe";
+                                                    root.cfg_card_bg = "#F5F5F5";
+                                                    root.cfg_card_border = "#c4b5fd";
+                                                    root.cfg_text_primary = "#2e1065";
+                                                    root.cfg_text_secondary = "#5b21b6";
+                                                    root.cfg_accent = "#7c3aed";
+                                                    root.cfg_btn_bg = "#7c3aed";
+                                                    root.cfg_btn_text = "#F5F5F5";
+                                                    root.update_bg_base_color("#ede9fe");
+                                                } else if root.cfg_accent == "#ef4444" || root.cfg_accent == "#dc2626" || root.cfg_accent == "#e11d48" || root.cfg_accent == "#f43f5e" || root.cfg_accent == "#ec4899" {
+                                                    // Rojo -> Carmesí Claro
+                                                    root.cfg_bg_base = "#ffe4e6";
+                                                    root.cfg_card_bg = "#F5F5F5";
+                                                    root.cfg_card_border = "#fecdd3";
+                                                    root.cfg_text_primary = "#4c0519";
+                                                    root.cfg_text_secondary = "#e11d48";
+                                                    root.cfg_accent = "#e11d48";
+                                                    root.cfg_btn_bg = "#e11d48";
+                                                    root.cfg_btn_text = "#F5F5F5";
+                                                    root.update_bg_base_color("#ffe4e6");
+                                                } else if root.cfg_accent == "#f97316" || root.cfg_accent == "#ea580c" {
+                                                    // Naranja -> Sunset Cálido
+                                                    root.cfg_bg_base = "#fed7aa";
+                                                    root.cfg_card_bg = "#F5F5F5";
+                                                    root.cfg_card_border = "#fdba74";
+                                                    root.cfg_text_primary = "#431407";
+                                                    root.cfg_text_secondary = "#7c2d12";
+                                                    root.cfg_accent = "#ea580c";
+                                                    root.cfg_btn_bg = "#ea580c";
+                                                    root.cfg_btn_text = "#F5F5F5";
+                                                    root.update_bg_base_color("#fed7aa");
+                                                } else if root.cfg_accent == "#10b981" || root.cfg_accent == "#059669" {
+                                                    // Verde -> Menta Suave
+                                                    root.cfg_bg_base = "#bbf0d4";
+                                                    root.cfg_card_bg = "#F5F5F5";
+                                                    root.cfg_card_border = "#86efac";
+                                                    root.cfg_text_primary = "#064e3b";
+                                                    root.cfg_text_secondary = "#047857";
+                                                    root.cfg_accent = "#059669";
+                                                    root.cfg_btn_bg = "#059669";
+                                                    root.cfg_btn_text = "#F5F5F5";
+                                                    root.update_bg_base_color("#bbf0d4");
+                                                } else {
+                                                    // Celeste -> Pastel Zenit
+                                                    root.cfg_bg_base = "#cce5f8";
+                                                    root.cfg_card_bg = "#F5F5F5";
+                                                    root.cfg_card_border = "#bae6fd";
+                                                    root.cfg_text_primary = "#0f172a";
+                                                    root.cfg_text_secondary = "#475569";
+                                                    root.cfg_accent = "#0284c7";
+                                                    root.cfg_btn_bg = "#0284c7";
+                                                    root.cfg_btn_text = "#F5F5F5";
+                                                    root.update_bg_base_color("#cce5f8");
+                                                }
                                             }
                                         }
 
@@ -1782,15 +1823,62 @@ export component AdminView inherits Rectangle {
                                             mouse-cursor: pointer;
                                             clicked => {
                                                 root.is_dark_mode = true;
-                                                root.cfg_bg_base = "#0b0f19";
-                                                root.update_bg_base_color("#0b0f19");
-                                                root.cfg_card_bg = "#111827";
-                                                root.cfg_card_border = "#1e293b";
-                                                root.cfg_text_primary = "#F5F5F5";
-                                                root.cfg_text_secondary = "#94a3b8";
-                                                root.cfg_accent = "#38bdf8";
-                                                root.cfg_btn_bg = "#0284c7";
-                                                root.cfg_btn_text = "#F5F5F5";
+                                                if root.cfg_accent == "#7c3aed" || root.cfg_accent == "#a855f7" || root.cfg_accent == "#9333ea" || root.cfg_accent == "#6366f1" {
+                                                    // Púrpura -> Neon Violet (+20% claro)
+                                                    root.cfg_bg_base = "#1a1332";
+                                                    root.cfg_card_bg = "#231a44";
+                                                    root.cfg_card_border = "#39226d";
+                                                    root.cfg_text_primary = "#F5F5F5";
+                                                    root.cfg_text_secondary = "#a78bfa";
+                                                    root.cfg_accent = "#a855f7";
+                                                    root.cfg_btn_bg = "#9333ea";
+                                                    root.cfg_btn_text = "#F5F5F5";
+                                                    root.update_bg_base_color("#1a1332");
+                                                } else if root.cfg_accent == "#e11d48" || root.cfg_accent == "#ef4444" || root.cfg_accent == "#dc2626" || root.cfg_accent == "#f43f5e" || root.cfg_accent == "#ec4899" {
+                                                    // Rojo -> Carmesí Dark (+20% claro)
+                                                    root.cfg_bg_base = "#221217";
+                                                    root.cfg_card_bg = "#2c181f";
+                                                    root.cfg_card_border = "#4d1c25";
+                                                    root.cfg_text_primary = "#F5F5F5";
+                                                    root.cfg_text_secondary = "#f87171";
+                                                    root.cfg_accent = "#ef4444";
+                                                    root.cfg_btn_bg = "#dc2626";
+                                                    root.cfg_btn_text = "#F5F5F5";
+                                                    root.update_bg_base_color("#221217");
+                                                } else if root.cfg_accent == "#ea580c" || root.cfg_accent == "#f97316" {
+                                                    // Naranja -> Sunset Dark (+20% claro)
+                                                    root.cfg_bg_base = "#26150a";
+                                                    root.cfg_card_bg = "#331c0e";
+                                                    root.cfg_card_border = "#522610";
+                                                    root.cfg_text_primary = "#F5F5F5";
+                                                    root.cfg_text_secondary = "#fb923c";
+                                                    root.cfg_accent = "#f97316";
+                                                    root.cfg_btn_bg = "#ea580c";
+                                                    root.cfg_btn_text = "#F5F5F5";
+                                                    root.update_bg_base_color("#26150a");
+                                                } else if root.cfg_accent == "#059669" || root.cfg_accent == "#10b981" {
+                                                    // Verde -> Matrix Dark (+20% claro)
+                                                    root.cfg_bg_base = "#102118";
+                                                    root.cfg_card_bg = "#162e21";
+                                                    root.cfg_card_border = "#1d4632";
+                                                    root.cfg_text_primary = "#F5F5F5";
+                                                    root.cfg_text_secondary = "#34d399";
+                                                    root.cfg_accent = "#10b981";
+                                                    root.cfg_btn_bg = "#059669";
+                                                    root.cfg_btn_text = "#F5F5F5";
+                                                    root.update_bg_base_color("#102118");
+                                                } else {
+                                                    // Celeste -> Cyber Deep (+20% claro)
+                                                    root.cfg_bg_base = "#131b2e";
+                                                    root.cfg_card_bg = "#1b263b";
+                                                    root.cfg_card_border = "#293952";
+                                                    root.cfg_text_primary = "#F5F5F5";
+                                                    root.cfg_text_secondary = "#94a3b8";
+                                                    root.cfg_accent = "#38bdf8";
+                                                    root.cfg_btn_bg = "#0284c7";
+                                                    root.cfg_btn_text = "#F5F5F5";
+                                                    root.update_bg_base_color("#131b2e");
+                                                }
                                             }
                                         }
 
@@ -1812,6 +1900,7 @@ export component AdminView inherits Rectangle {
 
                             // Section 1: Presets de Temas
                             VerticalLayout {
+                                alignment: start;
                                 spacing: 6px;
                                 Text {
                                     text: root.is_dark_mode ? "Presets de Temas Oscuros (Selecciona un estilo):" : "Presets de Temas Claros (Selecciona un estilo):";
@@ -1824,7 +1913,7 @@ export component AdminView inherits Rectangle {
                                     spacing: 8px;
                                     height: 38px;
 
-                                    // Preset Claro 1: Pastel Zenit
+                                    // Preset Claro 1: Celeste (Pastel Zenit)
                                     Rectangle {
                                         background: #1e293b;
                                         border-radius: 8px;
@@ -1834,7 +1923,6 @@ export component AdminView inherits Rectangle {
                                             mouse-cursor: pointer;
                                             clicked => {
                                                 root.cfg_bg_base = "#cce5f8";
-                                                root.update_bg_base_color("#cce5f8");
                                                 root.cfg_card_bg = "#F5F5F5";
                                                 root.cfg_card_border = "#bae6fd";
                                                 root.cfg_text_primary = "#0f172a";
@@ -1842,58 +1930,59 @@ export component AdminView inherits Rectangle {
                                                 root.cfg_accent = "#0284c7";
                                                 root.cfg_btn_bg = "#0284c7";
                                                 root.cfg_btn_text = "#F5F5F5";
+                                                root.update_bg_base_color("#cce5f8");
                                             }
                                         }
                                         Text { text: "🔵 Pastel Zenit"; font-size: 11px; font-weight: 700; color: #F5F5F5; horizontal-alignment: center; vertical-alignment: center; }
                                     }
 
-                                    // Preset Claro 2: Menta Suave
+                                    // Preset Claro 2: Púrpura (Lavanda Dream)
                                     Rectangle {
                                         background: #1e293b;
                                         border-radius: 8px;
                                         border-width: 1px;
-                                        border-color: #059669;
+                                        border-color: #7c3aed;
                                         TouchArea {
                                             mouse-cursor: pointer;
                                             clicked => {
-                                                root.cfg_bg_base = "#bbf0d4";
-                                                root.update_bg_base_color("#bbf0d4");
+                                                root.cfg_bg_base = "#ede9fe";
                                                 root.cfg_card_bg = "#F5F5F5";
-                                                root.cfg_card_border = "#86efac";
-                                                root.cfg_text_primary = "#064e3b";
-                                                root.cfg_text_secondary = "#047857";
-                                                root.cfg_accent = "#059669";
-                                                root.cfg_btn_bg = "#059669";
+                                                root.cfg_card_border = "#c4b5fd";
+                                                root.cfg_text_primary = "#2e1065";
+                                                root.cfg_text_secondary = "#5b21b6";
+                                                root.cfg_accent = "#7c3aed";
+                                                root.cfg_btn_bg = "#7c3aed";
                                                 root.cfg_btn_text = "#F5F5F5";
+                                                root.update_bg_base_color("#ede9fe");
                                             }
                                         }
-                                        Text { text: "🟢 Menta Suave"; font-size: 11px; font-weight: 700; color: #F5F5F5; horizontal-alignment: center; vertical-alignment: center; }
+                                        Text { text: "🟣 Lavanda Dream"; font-size: 11px; font-weight: 700; color: #F5F5F5; horizontal-alignment: center; vertical-alignment: center; }
                                     }
 
-                                    // Preset Claro 3: Minimal Pure
+                                    // Preset Claro 3: Rojo (Carmesí Claro)
                                     Rectangle {
                                         background: #1e293b;
                                         border-radius: 8px;
                                         border-width: 1px;
-                                        border-color: #3b82f6;
+                                        border-color: #e11d48;
                                         TouchArea {
                                             mouse-cursor: pointer;
                                             clicked => {
-                                                root.cfg_bg_base = "#dbeafe";
-                                                root.update_bg_base_color("#dbeafe");
+                                                root.cfg_bg_base = "#ffe4e6";
                                                 root.cfg_card_bg = "#F5F5F5";
-                                                root.cfg_card_border = "#bfdbfe";
-                                                root.cfg_text_primary = "#1e293b";
-                                                root.cfg_text_secondary = "#475569";
-                                                root.cfg_accent = "#2563eb";
-                                                root.cfg_btn_bg = "#2563eb";
+                                                root.cfg_card_border = "#fecdd3";
+                                                root.cfg_text_primary = "#4c0519";
+                                                root.cfg_text_secondary = "#e11d48";
+                                                root.cfg_accent = "#e11d48";
+                                                root.cfg_btn_bg = "#e11d48";
                                                 root.cfg_btn_text = "#F5F5F5";
+                                                root.update_bg_base_color("#ffe4e6");
                                             }
                                         }
-                                        Text { text: "⚪ Minimal Pure"; font-size: 11px; font-weight: 700; color: #F5F5F5; horizontal-alignment: center; vertical-alignment: center; }
+                                        Text { text: "🔴 Carmesí Claro"; font-size: 11px; font-weight: 700; color: #F5F5F5; horizontal-alignment: center; vertical-alignment: center; }
                                     }
 
-                                    // Preset Claro 4: Sunset Cálido
+                                    // Preset Claro 4: Naranja (Sunset Cálido)
                                     Rectangle {
                                         background: #1e293b;
                                         border-radius: 8px;
@@ -1903,7 +1992,6 @@ export component AdminView inherits Rectangle {
                                             mouse-cursor: pointer;
                                             clicked => {
                                                 root.cfg_bg_base = "#fed7aa";
-                                                root.update_bg_base_color("#fed7aa");
                                                 root.cfg_card_bg = "#F5F5F5";
                                                 root.cfg_card_border = "#fdba74";
                                                 root.cfg_text_primary = "#431407";
@@ -1911,32 +1999,33 @@ export component AdminView inherits Rectangle {
                                                 root.cfg_accent = "#ea580c";
                                                 root.cfg_btn_bg = "#ea580c";
                                                 root.cfg_btn_text = "#F5F5F5";
+                                                root.update_bg_base_color("#fed7aa");
                                             }
                                         }
                                         Text { text: "🟠 Sunset Cálido"; font-size: 11px; font-weight: 700; color: #F5F5F5; horizontal-alignment: center; vertical-alignment: center; }
                                     }
 
-                                    // Preset Claro 5: Lavanda Dream
+                                    // Preset Claro 5: Verde (Menta Suave)
                                     Rectangle {
                                         background: #1e293b;
                                         border-radius: 8px;
                                         border-width: 1px;
-                                        border-color: #7c3aed;
+                                        border-color: #059669;
                                         TouchArea {
                                             mouse-cursor: pointer;
                                             clicked => {
-                                                root.cfg_bg_base = "#ddd6fe";
-                                                root.update_bg_base_color("#ddd6fe");
+                                                root.cfg_bg_base = "#bbf0d4";
                                                 root.cfg_card_bg = "#F5F5F5";
-                                                root.cfg_card_border = "#c4b5fd";
-                                                root.cfg_text_primary = "#2e1065";
-                                                root.cfg_text_secondary = "#5b21b6";
-                                                root.cfg_accent = "#7c3aed";
-                                                root.cfg_btn_bg = "#7c3aed";
+                                                root.cfg_card_border = "#86efac";
+                                                root.cfg_text_primary = "#064e3b";
+                                                root.cfg_text_secondary = "#047857";
+                                                root.cfg_accent = "#059669";
+                                                root.cfg_btn_bg = "#059669";
                                                 root.cfg_btn_text = "#F5F5F5";
+                                                root.update_bg_base_color("#bbf0d4");
                                             }
                                         }
-                                        Text { text: "🟣 Lavanda Dream"; font-size: 11px; font-weight: 700; color: #F5F5F5; horizontal-alignment: center; vertical-alignment: center; }
+                                        Text { text: "🟢 Menta Suave"; font-size: 11px; font-weight: 700; color: #F5F5F5; horizontal-alignment: center; vertical-alignment: center; }
                                     }
                                 }
 
@@ -1944,7 +2033,7 @@ export component AdminView inherits Rectangle {
                                     spacing: 8px;
                                     height: 38px;
 
-                                    // Preset Oscuro 1: Cyber Deep
+                                    // Preset Oscuro 1: Celeste (Cyber Deep)
                                     Rectangle {
                                         background: #1e293b;
                                         border-radius: 8px;
@@ -1953,21 +2042,21 @@ export component AdminView inherits Rectangle {
                                         TouchArea {
                                             mouse-cursor: pointer;
                                             clicked => {
-                                                root.cfg_bg_base = "#0b0f19";
-                                                root.update_bg_base_color("#0b0f19");
-                                                root.cfg_card_bg = "#111827";
-                                                root.cfg_card_border = "#1e293b";
+                                                root.cfg_bg_base = "#131b2e";
+                                                root.cfg_card_bg = "#1b263b";
+                                                root.cfg_card_border = "#293952";
                                                 root.cfg_text_primary = "#F5F5F5";
                                                 root.cfg_text_secondary = "#94a3b8";
                                                 root.cfg_accent = "#38bdf8";
                                                 root.cfg_btn_bg = "#0284c7";
                                                 root.cfg_btn_text = "#F5F5F5";
+                                                root.update_bg_base_color("#131b2e");
                                             }
                                         }
                                         Text { text: "🌌 Cyber Deep"; font-size: 11px; font-weight: 700; color: #F5F5F5; horizontal-alignment: center; vertical-alignment: center; }
                                     }
 
-                                    // Preset Oscuro 2: Neon Violet
+                                    // Preset Oscuro 2: Púrpura (Neon Violet)
                                     Rectangle {
                                         background: #1e293b;
                                         border-radius: 8px;
@@ -1976,21 +2065,21 @@ export component AdminView inherits Rectangle {
                                         TouchArea {
                                             mouse-cursor: pointer;
                                             clicked => {
-                                                root.cfg_bg_base = "#0f0b1e";
-                                                root.update_bg_base_color("#0f0b1e");
-                                                root.cfg_card_bg = "#18112e";
-                                                root.cfg_card_border = "#2e1065";
+                                                root.cfg_bg_base = "#1a1332";
+                                                root.cfg_card_bg = "#231a44";
+                                                root.cfg_card_border = "#39226d";
                                                 root.cfg_text_primary = "#F5F5F5";
                                                 root.cfg_text_secondary = "#a78bfa";
                                                 root.cfg_accent = "#a855f7";
                                                 root.cfg_btn_bg = "#9333ea";
                                                 root.cfg_btn_text = "#F5F5F5";
+                                                root.update_bg_base_color("#1a1332");
                                             }
                                         }
                                         Text { text: "🟣 Neon Violet"; font-size: 11px; font-weight: 700; color: #F5F5F5; horizontal-alignment: center; vertical-alignment: center; }
                                     }
 
-                                    // Preset Oscuro 3: ROG Gamer
+                                    // Preset Oscuro 3: Rojo (Carmesí Dark)
                                     Rectangle {
                                         background: #1e293b;
                                         border-radius: 8px;
@@ -1999,21 +2088,44 @@ export component AdminView inherits Rectangle {
                                         TouchArea {
                                             mouse-cursor: pointer;
                                             clicked => {
-                                                root.cfg_bg_base = "#120a0d";
-                                                root.update_bg_base_color("#120a0d");
-                                                root.cfg_card_bg = "#181113";
-                                                root.cfg_card_border = "#3f1319";
+                                                root.cfg_bg_base = "#221217";
+                                                root.cfg_card_bg = "#2c181f";
+                                                root.cfg_card_border = "#4d1c25";
                                                 root.cfg_text_primary = "#F5F5F5";
                                                 root.cfg_text_secondary = "#f87171";
                                                 root.cfg_accent = "#ef4444";
                                                 root.cfg_btn_bg = "#dc2626";
                                                 root.cfg_btn_text = "#F5F5F5";
+                                                root.update_bg_base_color("#221217");
                                             }
                                         }
-                                        Text { text: "🔴 ROG Gamer"; font-size: 11px; font-weight: 700; color: #F5F5F5; horizontal-alignment: center; vertical-alignment: center; }
+                                        Text { text: "🔴 Carmesí Dark"; font-size: 11px; font-weight: 700; color: #F5F5F5; horizontal-alignment: center; vertical-alignment: center; }
                                     }
 
-                                    // Preset Oscuro 4: Matrix Dark
+                                    // Preset Oscuro 4: Naranja (Sunset Dark)
+                                    Rectangle {
+                                        background: #1e293b;
+                                        border-radius: 8px;
+                                        border-width: 1px;
+                                        border-color: #f97316;
+                                        TouchArea {
+                                            mouse-cursor: pointer;
+                                            clicked => {
+                                                root.cfg_bg_base = "#26150a";
+                                                root.cfg_card_bg = "#331c0e";
+                                                root.cfg_card_border = "#522610";
+                                                root.cfg_text_primary = "#F5F5F5";
+                                                root.cfg_text_secondary = "#fb923c";
+                                                root.cfg_accent = "#f97316";
+                                                root.cfg_btn_bg = "#ea580c";
+                                                root.cfg_btn_text = "#F5F5F5";
+                                                root.update_bg_base_color("#26150a");
+                                            }
+                                        }
+                                        Text { text: "🟠 Sunset Dark"; font-size: 11px; font-weight: 700; color: #F5F5F5; horizontal-alignment: center; vertical-alignment: center; }
+                                    }
+
+                                    // Preset Oscuro 5: Verde (Matrix Dark)
                                     Rectangle {
                                         background: #1e293b;
                                         border-radius: 8px;
@@ -2022,48 +2134,26 @@ export component AdminView inherits Rectangle {
                                         TouchArea {
                                             mouse-cursor: pointer;
                                             clicked => {
-                                                root.cfg_bg_base = "#0a140f";
-                                                root.update_bg_base_color("#0a140f");
-                                                root.cfg_card_bg = "#0f2017";
-                                                root.cfg_card_border = "#143825";
+                                                root.cfg_bg_base = "#102118";
+                                                root.cfg_card_bg = "#162e21";
+                                                root.cfg_card_border = "#1d4632";
                                                 root.cfg_text_primary = "#F5F5F5";
                                                 root.cfg_text_secondary = "#34d399";
                                                 root.cfg_accent = "#10b981";
                                                 root.cfg_btn_bg = "#059669";
                                                 root.cfg_btn_text = "#F5F5F5";
+                                                root.update_bg_base_color("#102118");
                                             }
                                         }
                                         Text { text: "🟢 Matrix Dark"; font-size: 11px; font-weight: 700; color: #F5F5F5; horizontal-alignment: center; vertical-alignment: center; }
-                                    }
-
-                                    // Preset Oscuro 5: OLED Stealth
-                                    Rectangle {
-                                        background: #1e293b;
-                                        border-radius: 8px;
-                                        border-width: 1px;
-                                        border-color: #475569;
-                                        TouchArea {
-                                            mouse-cursor: pointer;
-                                            clicked => {
-                                                root.cfg_bg_base = "#050505";
-                                                root.update_bg_base_color("#050505");
-                                                root.cfg_card_bg = "#121212";
-                                                root.cfg_card_border = "#262626";
-                                                root.cfg_text_primary = "#F5F5F5";
-                                                root.cfg_text_secondary = "#737373";
-                                                root.cfg_accent = "#38bdf8";
-                                                root.cfg_btn_bg = "#262626";
-                                                root.cfg_btn_text = "#F5F5F5";
-                                            }
-                                        }
-                                        Text { text: "🌑 OLED Stealth"; font-size: 11px; font-weight: 700; color: #F5F5F5; horizontal-alignment: center; vertical-alignment: center; }
                                     }
                                 }
                             }
 
                             // Section 2: Paleta Rápida de Colores Primarios
                             VerticalLayout {
-                                spacing: 6px;
+                                alignment: start;
+                                spacing: 4px;
                                 Text {
                                     text: "Paleta Rápida de Color Highlight / Acento y Botón:";
                                     font-size: 13px;
@@ -2088,6 +2178,7 @@ export component AdminView inherits Rectangle {
 
                             // Section 3: Manual Hex Inputs
                             VerticalLayout {
+                                alignment: start;
                                 spacing: 8px;
                                 Text {
                                     text: "Configuración Manual de Colores Hex con Color Picker:";
@@ -2235,7 +2326,19 @@ export component AdminView inherits Rectangle {
                                 border-color: #475569;
                                 TouchArea {
                                     mouse-cursor: pointer;
-                                    clicked => { root.reset_ui_defaults(); }
+                                    clicked => {
+                                        root.is_dark_mode = false;
+                                        root.cfg_bg_base = "#cce5f8";
+                                        root.cfg_card_bg = "#F5F5F5";
+                                        root.cfg_card_border = "#bae6fd";
+                                        root.cfg_text_primary = "#0f172a";
+                                        root.cfg_text_secondary = "#475569";
+                                        root.cfg_accent = "#0284c7";
+                                        root.cfg_btn_bg = "#0284c7";
+                                        root.cfg_btn_text = "#F5F5F5";
+                                        root.update_bg_base_color("#cce5f8");
+                                        root.reset_ui_defaults();
+                                    }
                                 }
                                 HorizontalLayout {
                                     alignment: center;

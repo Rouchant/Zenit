@@ -18,13 +18,13 @@ fn default_card_bg() -> String {
     "#F5F5F5".to_string()
 }
 fn default_card_border() -> String {
-    "#e2e8f0".to_string()
+    "#bae6fd".to_string()
 }
 fn default_text_primary() -> String {
     "#0f172a".to_string()
 }
 fn default_text_secondary() -> String {
-    "#64748b".to_string()
+    "#475569".to_string()
 }
 fn default_accent() -> String {
     "#0284c7".to_string()
@@ -152,9 +152,9 @@ impl Default for AppConfig {
             bg_mid_color: "#cce5f8".to_string(),
             bg_end_color: "#dce2f8".to_string(),
             card_bg_color: "#F5F5F5".to_string(),
-            card_border_color: "#e2e8f0".to_string(),
+            card_border_color: "#bae6fd".to_string(),
             text_primary_color: "#0f172a".to_string(),
-            text_secondary_color: "#64748b".to_string(),
+            text_secondary_color: "#475569".to_string(),
             btn_bg_color: "#0284c7".to_string(),
             btn_text_color: "#F5F5F5".to_string(),
             is_dark_mode: false,
@@ -379,9 +379,9 @@ mod tests {
         assert_eq!(cfg.bg_mid_color, "#cce5f8");
         assert_eq!(cfg.bg_end_color, "#dce2f8");
         assert_eq!(cfg.card_bg_color, "#F5F5F5");
-        assert_eq!(cfg.card_border_color, "#e2e8f0");
+        assert_eq!(cfg.card_border_color, "#bae6fd");
         assert_eq!(cfg.text_primary_color, "#0f172a");
-        assert_eq!(cfg.text_secondary_color, "#64748b");
+        assert_eq!(cfg.text_secondary_color, "#475569");
         assert_eq!(cfg.btn_bg_color, "#0284c7");
         assert_eq!(cfg.btn_text_color, "#F5F5F5");
         assert!(!cfg.is_dark_mode);

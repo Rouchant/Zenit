@@ -3,7 +3,7 @@ pub mod cards;
 pub mod overrides;
 pub mod types;
 
-pub use branding::{resolve_brand_logo, resolve_store_logo};
+pub use branding::{resolve_brand_logo, resolve_brand_logo_dark, resolve_store_logo};
 pub use cards::{build_left_specs, build_right_specs};
 pub use overrides::apply_config_overrides;
 pub use types::{DisplaySpecCard, ThemeColors, ZenitUiState};
@@ -27,6 +27,15 @@ pub fn build_ui_state() -> ZenitUiState {
         }
     } else {
         resolve_brand_logo(&specs.brand)
+    };
+    let brand_logo_dark = if let Some(ref custom_logo) = cfg.brand_logo_override {
+        if !custom_logo.trim().is_empty() {
+            resolve_brand_logo_dark(custom_logo).or_else(|| resolve_brand_logo_dark(&specs.brand))
+        } else {
+            resolve_brand_logo_dark(&specs.brand)
+        }
+    } else {
+        resolve_brand_logo_dark(&specs.brand)
     };
     let store_logo = resolve_store_logo(&cfg.store_theme);
 
@@ -55,6 +64,7 @@ pub fn build_ui_state() -> ZenitUiState {
     ZenitUiState {
         brand_name: specs.brand,
         brand_logo,
+        brand_logo_dark,
         store_logo,
         left_specs,
         right_specs,

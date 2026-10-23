@@ -58,12 +58,12 @@ pub fn setup_defaults_handlers(main_window: &MainWindow) {
             };
             ui.set_cfg_brand(brand.into());
             ui.set_cfg_model(model.into());
-            ui.set_cfg_cpu(hw.processor.into());
-            ui.set_cfg_ram(hw.ram.into());
-            ui.set_cfg_storage(hw.storage.into());
-            ui.set_cfg_gpu(hw.gpu.into());
-            ui.set_cfg_display(hw.display.into());
-            ui.set_cfg_os(hw.os.into());
+            ui.set_cfg_cpu(hw.processor.clone().into());
+            ui.set_cfg_ram(hw.ram.clone().into());
+            ui.set_cfg_storage(hw.storage.clone().into());
+            ui.set_cfg_gpu(hw.gpu.clone().into());
+            ui.set_cfg_display(hw.display.clone().into());
+            ui.set_cfg_os(hw.os.clone().into());
             ui.set_cfg_battery(if !hw.battery.is_empty() && !hw.battery.contains("Conectado AC") {
                 hw.battery.into()
             } else {
@@ -76,13 +76,49 @@ pub fn setup_defaults_handlers(main_window: &MainWindow) {
             };
             ui.set_cfg_others(others_val.into());
 
-            ui.set_cfg_badge_cpu("".into());
-            ui.set_cfg_badge_ram("".into());
-            ui.set_cfg_badge_storage("".into());
-            ui.set_cfg_badge_gpu("".into());
-            ui.set_cfg_badge_display("".into());
-            ui.set_cfg_badge_os("".into());
-            ui.set_cfg_badge_battery("".into());
+            // Badges por defecto detectadas insitu
+            let def_badge_cpu = if !hw.generation.is_empty() {
+                hw.generation.clone()
+            } else {
+                "GEN".to_string()
+            };
+            let def_badge_ram = if !hw.ram_type.is_empty() {
+                hw.ram_type.clone()
+            } else {
+                "RAM".to_string()
+            };
+            let def_badge_storage = if hw.storage.to_lowercase().contains("nvme") {
+                "NVMe".to_string()
+            } else {
+                "SSD".to_string()
+            };
+            let def_badge_gpu = {
+                let low = hw.gpu.to_lowercase();
+                if low.contains("rtx") {
+                    "RTX".to_string()
+                } else if low.contains("gtx") {
+                    "GTX".to_string()
+                } else if low.contains("radeon") || low.contains("rx") {
+                    "Radeon".to_string()
+                } else if low.contains("arc") {
+                    "Arc".to_string()
+                } else {
+                    "GPU".to_string()
+                }
+            };
+            let def_badge_display = if hw.refresh_rate > 0 {
+                format!("{}Hz", hw.refresh_rate)
+            } else {
+                "165Hz".to_string()
+            };
+
+            ui.set_cfg_badge_cpu(def_badge_cpu.into());
+            ui.set_cfg_badge_ram(def_badge_ram.into());
+            ui.set_cfg_badge_storage(def_badge_storage.into());
+            ui.set_cfg_badge_gpu(def_badge_gpu.into());
+            ui.set_cfg_badge_display(def_badge_display.into());
+            ui.set_cfg_badge_os("OFICIAL".into());
+            ui.set_cfg_badge_battery("Autonomía".into());
             ui.set_cfg_badge_others("".into());
         }
     });
@@ -110,19 +146,19 @@ pub fn setup_defaults_handlers(main_window: &MainWindow) {
         }
     });
 
-    // 5. Reset UI Theme Defaults
+    // 5. Reset UI Theme Defaults (Pastel Zenit)
     let reset_ui_handle = main_window.as_weak();
     main_window.on_reset_ui_defaults(move || {
         if let Some(ui) = reset_ui_handle.upgrade() {
-            ui.set_cfg_bg_base("#e3e8f5".into());
-            let (c1, c2, c3) = crate::app::sync::generate_analogous_gradient("#e3e8f5");
+            ui.set_cfg_bg_base("#cce5f8".into());
+            let (c1, c2, c3) = crate::app::sync::generate_analogous_gradient("#cce5f8");
             ui.set_cfg_bg_start(c1.into());
             ui.set_cfg_bg_mid(c2.into());
             ui.set_cfg_bg_end(c3.into());
             ui.set_cfg_card_bg("#F5F5F5".into());
-            ui.set_cfg_card_border("#e2e8f0".into());
+            ui.set_cfg_card_border("#bae6fd".into());
             ui.set_cfg_text_primary("#0f172a".into());
-            ui.set_cfg_text_secondary("#64748b".into());
+            ui.set_cfg_text_secondary("#475569".into());
             ui.set_cfg_accent("#0284c7".into());
             ui.set_cfg_btn_bg("#0284c7".into());
             ui.set_cfg_btn_text("#F5F5F5".into());

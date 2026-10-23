@@ -3,43 +3,72 @@ use crate::domains::hardware::SystemSpecs;
 use crate::domains::showcase::config::AppConfig;
 
 pub fn build_left_specs(specs: &SystemSpecs, cfg: &AppConfig) -> Vec<DisplaySpecCard> {
-    let cpu_tag = cfg
-        .badge_cpu
-        .as_ref()
-        .filter(|b| !b.trim().is_empty())
-        .cloned()
-        .or_else(|| {
+    let cpu_tag = match &cfg.badge_cpu {
+        Some(custom) => {
+            let trimmed = custom.trim();
+            if trimmed.is_empty() {
+                None
+            } else {
+                Some(trimmed.to_string())
+            }
+        }
+        None => {
             if specs.generation.is_empty() {
                 None
             } else {
                 Some(specs.generation.clone())
             }
-        });
+        }
+    };
 
-    let ram_tag = cfg
-        .badge_ram
-        .as_ref()
-        .filter(|b| !b.trim().is_empty())
-        .cloned()
-        .or_else(|| {
+    let ram_tag = match &cfg.badge_ram {
+        Some(custom) => {
+            let trimmed = custom.trim();
+            if trimmed.is_empty() {
+                None
+            } else {
+                Some(trimmed.to_string())
+            }
+        }
+        None => {
             if specs.ram_type.is_empty() {
                 None
             } else {
                 Some(specs.ram_type.clone())
             }
-        });
+        }
+    };
 
-    let storage_tag = cfg
-        .badge_storage
-        .as_ref()
-        .filter(|b| !b.trim().is_empty())
-        .cloned();
+    let storage_tag = match &cfg.badge_storage {
+        Some(custom) => {
+            let trimmed = custom.trim();
+            if trimmed.is_empty() {
+                None
+            } else {
+                Some(trimmed.to_string())
+            }
+        }
+        None => {
+            let low = specs.storage.to_lowercase();
+            if low.contains("nvme") {
+                Some("NVMe".to_string())
+            } else {
+                Some("SSD".to_string())
+            }
+        }
+    };
 
-    let os_tag = cfg
-        .badge_os
-        .as_ref()
-        .filter(|b| !b.trim().is_empty())
-        .cloned();
+    let os_tag = match &cfg.badge_os {
+        Some(custom) => {
+            let trimmed = custom.trim();
+            if trimmed.is_empty() {
+                None
+            } else {
+                Some(trimmed.to_string())
+            }
+        }
+        None => Some("OFICIAL".to_string()),
+    };
 
     vec![
         DisplaySpecCard {
@@ -90,47 +119,82 @@ pub fn build_right_specs(specs: &SystemSpecs, cfg: &AppConfig) -> Vec<DisplaySpe
         None
     };
 
-    let battery_tag = cfg
-        .badge_battery
-        .as_ref()
-        .filter(|b| !b.trim().is_empty())
-        .cloned()
-        .or_else(|| {
-            if specs.battery.to_lowercase().contains("wh") {
-                Some("Autonomía".to_string())
-            } else if specs.battery.to_lowercase().contains("hora") {
+    let battery_tag = match &cfg.badge_battery {
+        Some(custom) => {
+            let trimmed = custom.trim();
+            if trimmed.is_empty() {
+                None
+            } else {
+                Some(trimmed.to_string())
+            }
+        }
+        None => {
+            if specs.battery.to_lowercase().contains("wh")
+                || specs.battery.to_lowercase().contains("hora")
+            {
                 Some("Autonomía".to_string())
             } else if specs.is_charging {
                 Some("Cargando".to_string())
             } else {
-                None
+                Some("Autonomía".to_string())
             }
-        });
+        }
+    };
 
-    let display_tag = cfg
-        .badge_display
-        .as_ref()
-        .filter(|b| !b.trim().is_empty())
-        .cloned()
-        .or_else(|| {
+    let display_tag = match &cfg.badge_display {
+        Some(custom) => {
+            let trimmed = custom.trim();
+            if trimmed.is_empty() {
+                None
+            } else {
+                Some(trimmed.to_string())
+            }
+        }
+        None => {
             if specs.refresh_rate > 0 {
                 Some(format!("{}Hz", specs.refresh_rate))
             } else {
-                None
+                Some("165Hz".to_string())
             }
-        });
+        }
+    };
 
-    let gpu_tag = cfg
-        .badge_gpu
-        .as_ref()
-        .filter(|b| !b.trim().is_empty())
-        .cloned();
+    let gpu_tag = match &cfg.badge_gpu {
+        Some(custom) => {
+            let trimmed = custom.trim();
+            if trimmed.is_empty() {
+                None
+            } else {
+                Some(trimmed.to_string())
+            }
+        }
+        None => {
+            let low = specs.gpu.to_lowercase();
+            if low.contains("rtx") {
+                Some("RTX".to_string())
+            } else if low.contains("gtx") {
+                Some("GTX".to_string())
+            } else if low.contains("radeon") || low.contains("rx") {
+                Some("Radeon".to_string())
+            } else if low.contains("arc") {
+                Some("Arc".to_string())
+            } else {
+                Some("GPU".to_string())
+            }
+        }
+    };
 
-    let others_tag = cfg
-        .badge_others
-        .as_ref()
-        .filter(|b| !b.trim().is_empty())
-        .cloned();
+    let others_tag = match &cfg.badge_others {
+        Some(custom) => {
+            let trimmed = custom.trim();
+            if trimmed.is_empty() {
+                None
+            } else {
+                Some(trimmed.to_string())
+            }
+        }
+        None => None,
+    };
 
     let others_text = if !cfg.other_specs.trim().is_empty()
         && cfg.other_specs != "Wi-Fi 6 / Bluetooth 5.3 / Teclado en Español"

@@ -30,6 +30,7 @@ pub struct ThemeColors {
 pub struct ZenitUiState {
     pub brand_name: String,
     pub brand_logo: Option<String>,
+    pub brand_logo_dark: Option<String>,
     pub store_logo: Option<String>,
     pub left_specs: Vec<DisplaySpecCard>,
     pub right_specs: Vec<DisplaySpecCard>,

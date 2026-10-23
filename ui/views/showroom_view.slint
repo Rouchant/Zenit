@@ -14,6 +14,10 @@ export component ShowroomView inherits Rectangle {
     in property <image> store_logo;
     in property <image> brand_logo;
     in property <bool> has_brand_logo: false;
+    in property <image> brand_logo_dark;
+    in property <bool> has_brand_logo_dark: false;
+    in property <bool> is_dark_mode: false;
+    in property <bool> is_dark_bg: false;
 
     in property <[SpecItem]> left_specs;
     in property <[SpecItem]> right_specs;
@@ -42,8 +46,8 @@ export component ShowroomView inherits Rectangle {
     height: 100%;
     background: @linear-gradient(155deg, root.theme_bg_start 0%, root.theme_bg_mid 50%, root.theme_bg_end 100%);
 
-    // Top-Left Ambient Pastel Sky Aura
-    Rectangle {
+    // Top-Left Ambient Pastel Sky Aura (Solo en modo claro)
+    if !root.is_dark_mode && !root.is_dark_bg: Rectangle {
         width: 750px;
         height: 750px;
         x: -200px;
@@ -52,8 +56,8 @@ export component ShowroomView inherits Rectangle {
         background: @linear-gradient(135deg, #38bdf812 0%, #00000000 75%);
     }
 
-    // Top-Right Ambient Pastel Mint Aura
-    Rectangle {
+    // Top-Right Ambient Pastel Mint Aura (Solo en modo claro)
+    if !root.is_dark_mode && !root.is_dark_bg: Rectangle {
         width: 650px;
         height: 650px;
         x: parent.width - 400px;
@@ -62,8 +66,8 @@ export component ShowroomView inherits Rectangle {
         background: @linear-gradient(225deg, #34d3990c 0%, #00000000 75%);
     }
 
-    // Bottom-Right Ambient Pastel Lavender Aura
-    Rectangle {
+    // Bottom-Right Ambient Pastel Lavender Aura (Solo en modo claro)
+    if !root.is_dark_mode && !root.is_dark_bg: Rectangle {
         width: 850px;
         height: 850px;
         x: parent.width - 500px;
@@ -72,8 +76,8 @@ export component ShowroomView inherits Rectangle {
         background: @linear-gradient(315deg, #c084fc10 0%, #00000000 75%);
     }
 
-    // Center Ambient Depth Aura behind Showcase Cards and Central Video
-    Rectangle {
+    // Center Ambient Depth Aura behind Showcase Cards and Central Video (Solo en modo claro)
+    if !root.is_dark_mode && !root.is_dark_bg: Rectangle {
         width: 960px;
         height: 700px;
         x: (parent.width - self.width) / 2;
@@ -195,7 +199,7 @@ export component ShowroomView inherits Rectangle {
                         height: 112px;
 
                         Image {
-                            source: root.brand_logo;
+                            source: (root.is_dark_mode || root.is_dark_bg) && root.has_brand_logo_dark ? root.brand_logo_dark : root.brand_logo;
                             height: 64px;
                             image-fit: contain;
                         }
@@ -282,7 +286,7 @@ export component ShowroomView inherits Rectangle {
 
                     // PRICING & SKU BANNER (Barra de precios)
                     if root.card_price != "" || root.normal_price != "" || root.sku_code != "" || root.retail_name != "": Rectangle {
-                        height: 82px;
+                        height: 88px;
                         background: root.theme_card_bg;
                         border-radius: 16px;
                         border-width: 1.5px;
@@ -292,29 +296,30 @@ export component ShowroomView inherits Rectangle {
                             alignment: center;
 
                             HorizontalLayout {
-                                padding-left: 28px;
-                                padding-right: 28px;
+                                padding-left: 32px;
+                                padding-right: 32px;
                                 alignment: center;
-                                spacing: 28px;
+                                spacing: 36px;
 
                                 // Card Price Block (Featured Promo)
                                 if root.card_price != "": HorizontalLayout {
                                     alignment: center;
-                                    spacing: 12px;
+                                    horizontal-stretch: 0;
+                                    spacing: 14px;
 
                                     VerticalLayout {
                                         alignment: center;
                                         Rectangle {
-                                            width: 38px;
-                                            height: 38px;
-                                            border-radius: 19px;
+                                            width: 44px;
+                                            height: 44px;
+                                            border-radius: 22px;
                                             background: root.theme_bg_end;
                                             border-width: 1px;
                                             border-color: root.theme_card_border;
 
                                             Text {
                                                 text: "💳";
-                                                font-size: 18px;
+                                                font-size: 22px;
                                                 horizontal-alignment: center;
                                                 vertical-alignment: center;
                                             }
@@ -334,7 +339,7 @@ export component ShowroomView inherits Rectangle {
                                         }
                                         Text {
                                             text: root.card_price;
-                                            font-size: 32px;
+                                            font-size: 34px;
                                             font-weight: 900;
                                             color: root.theme_text_primary;
                                         }
@@ -344,9 +349,10 @@ export component ShowroomView inherits Rectangle {
                                 // Divider between Card and Normal Price
                                 if root.card_price != "" && root.normal_price != "": VerticalLayout {
                                     alignment: center;
+                                    horizontal-stretch: 0;
                                     Rectangle {
-                                        width: 1px;
-                                        height: 42px;
+                                        width: 1.5px;
+                                        height: 46px;
                                         background: root.theme_card_border;
                                     }
                                 }
@@ -354,6 +360,7 @@ export component ShowroomView inherits Rectangle {
                                 // Normal Price Block
                                 if root.normal_price != "": VerticalLayout {
                                     alignment: center;
+                                    horizontal-stretch: 0;
                                     spacing: 2px;
 
                                     Text {
@@ -365,7 +372,7 @@ export component ShowroomView inherits Rectangle {
                                     }
                                     Text {
                                         text: root.normal_price;
-                                        font-size: 22px;
+                                        font-size: 25px;
                                         font-weight: 800;
                                         color: root.theme_text_primary;
                                     }
@@ -374,9 +381,10 @@ export component ShowroomView inherits Rectangle {
                                 // Divider between Prices and Store/SKU
                                 if (root.card_price != "" || root.normal_price != "") && (root.sku_code != "" || root.retail_name != ""): VerticalLayout {
                                     alignment: center;
+                                    horizontal-stretch: 0;
                                     Rectangle {
-                                        width: 1px;
-                                        height: 42px;
+                                        width: 1.5px;
+                                        height: 46px;
                                         background: root.theme_card_border;
                                     }
                                 }
@@ -384,33 +392,35 @@ export component ShowroomView inherits Rectangle {
                                 // Store & SKU Block
                                 if root.sku_code != "" || root.retail_name != "": HorizontalLayout {
                                     alignment: center;
-                                    spacing: 14px;
+                                    horizontal-stretch: 0;
+                                    spacing: 20px;
 
                                     // Store Logo or Name Badge
                                     if root.store_logo.width > 0: VerticalLayout {
                                         alignment: center;
                                         Image {
                                             source: root.store_logo;
-                                            height: 32px;
+                                            height: 52px;
+                                            max-width: 140px;
                                             image-fit: contain;
                                         }
                                     }
                                     if root.store_logo.width <= 0 && root.retail_name != "": VerticalLayout {
                                         alignment: center;
                                         Rectangle {
-                                            height: 30px;
+                                            height: 36px;
                                             background: root.theme_bg_end;
                                             border-radius: 8px;
                                             border-width: 1px;
                                             border-color: root.theme_card_border;
 
                                             HorizontalLayout {
-                                                padding-left: 12px;
-                                                padding-right: 12px;
+                                                padding-left: 14px;
+                                                padding-right: 14px;
                                                 alignment: center;
                                                 Text {
                                                     text: root.retail_name;
-                                                    font-size: 12px;
+                                                    font-size: 13px;
                                                     font-weight: 800;
                                                     color: root.theme_text_primary;
                                                     letter-spacing: 1px;
@@ -424,15 +434,15 @@ export component ShowroomView inherits Rectangle {
                                     if root.sku_code != "": VerticalLayout {
                                         alignment: center;
                                         Rectangle {
-                                            height: 30px;
+                                            height: 34px;
                                             background: root.theme_bg_end;
                                             border-radius: 8px;
                                             border-width: 1px;
                                             border-color: root.theme_card_border;
 
                                             HorizontalLayout {
-                                                padding-left: 12px;
-                                                padding-right: 12px;
+                                                padding-left: 14px;
+                                                padding-right: 14px;
                                                 alignment: center;
                                                 spacing: 4px;
 
