@@ -196,8 +196,8 @@ export component ShowroomView inherits Rectangle {
                     // Brand & Model Module above landing video (4 cards on left, 4 cards on right)
                     VerticalLayout {
                         alignment: center;
-                        spacing: 4px;
-                        height: 80px;
+                        spacing: 10px;
+                        height: 84px;
 
                         // Brand: Vector Logo if available, or prominent text
                         HorizontalLayout {
@@ -205,7 +205,7 @@ export component ShowroomView inherits Rectangle {
 
                             if root.has_brand_logo: Image {
                                 source: (root.is_dark_mode || root.is_dark_bg) && root.has_brand_logo_dark ? root.brand_logo_dark : root.brand_logo;
-                                height: 42px;
+                                height: 40px;
                                 image-fit: contain;
                             }
 
@@ -222,7 +222,7 @@ export component ShowroomView inherits Rectangle {
                         // Model: Subtitle in smaller font
                         if root.model_name != "": Text {
                             text: root.model_name;
-                            font-size: 15px;
+                            font-size: 14px;
                             font-weight: 700;
                             color: root.theme_accent;
                             letter-spacing: 1.2px;
