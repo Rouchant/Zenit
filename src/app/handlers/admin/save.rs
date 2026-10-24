@@ -260,7 +260,7 @@ pub fn setup_save_handlers(
                 } else if ret_low == "ripley" {
                     cfg.store_logo_override = Some("assets/logos/ripley.svg".to_string());
                 } else if ret_low == "paris" {
-                    cfg.store_logo_override = Some("assets/logos/paris.png".to_string());
+                    cfg.store_logo_override = Some("assets/logos/paris.svg".to_string());
                 } else {
                     cfg.store_logo_override = None;
                 }

@@ -35,7 +35,7 @@ pub fn resolve_brand_logo_dark(brand: &str) -> Option<String> {
 pub fn resolve_store_logo(store_theme: &str) -> Option<String> {
     match store_theme.to_lowercase().as_str() {
         "falabella" => Some("assets/logos/falabella.svg".to_string()),
-        "paris" => Some("assets/logos/paris.png".to_string()),
+        "paris" => Some("assets/logos/paris.svg".to_string()),
         "ripley" => Some("assets/logos/ripley.svg".to_string()),
         _ => None,
     }
