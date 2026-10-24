@@ -422,6 +422,10 @@ impl SlintMpvPlayer {
         }
     }
 
+    pub fn is_playing(&self) -> bool {
+        self.is_playing.load(Ordering::SeqCst)
+    }
+
     pub fn pause(&self) {
         let cmd = CString::new("set pause yes").unwrap();
         unsafe {

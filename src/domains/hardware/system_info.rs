@@ -128,7 +128,84 @@ pub fn get_laptop_brand_and_model() -> (String, String) {
     (brand, final_model)
 }
 
+pub fn detect_os_badge(os_str: &str) -> Option<String> {
+    let low = os_str.to_lowercase();
+    if low.contains("ltsc") {
+        return Some("LTSC".to_string());
+    } else if low.contains("pro") || low.contains("professional") {
+        return Some("Pro".to_string());
+    } else if low.contains("home") || low.contains("core") {
+        return Some("Home".to_string());
+    } else if low.contains("enterprise") {
+        return Some("Enterprise".to_string());
+    } else if low.contains("education") {
+        return Some("Education".to_string());
+    } else if low.contains("workstation") {
+        return Some("Workstation".to_string());
+    } else if low.contains("server") {
+        return Some("Server".to_string());
+    }
+
+    #[cfg(target_os = "windows")]
+    if low.contains("windows") || low.contains("win") || low.trim().is_empty() {
+        use windows_sys::Win32::System::Registry::HKEY_LOCAL_MACHINE;
+        if let Some(ed) = read_reg_string(
+            HKEY_LOCAL_MACHINE,
+            r"SOFTWARE\Microsoft\Windows NT\CurrentVersion",
+            "EditionID",
+        ) {
+            let ed_low = ed.to_lowercase();
+            if ed_low.contains("ltsc") || (ed_low.contains("enterprise") && ed_low.contains('s')) {
+                return Some("LTSC".to_string());
+            } else if ed_low.contains("pro") {
+                return Some("Pro".to_string());
+            } else if ed_low.contains("home") || ed_low.contains("core") {
+                return Some("Home".to_string());
+            } else if ed_low.contains("enterprise") {
+                return Some("Enterprise".to_string());
+            } else if ed_low.contains("education") {
+                return Some("Education".to_string());
+            }
+        }
+    }
+
+    None
+}
+
 pub fn get_os_info() -> String {
+    #[cfg(target_os = "windows")]
+    {
+        use windows_sys::Win32::System::Registry::HKEY_LOCAL_MACHINE;
+        let reg_sub = r"SOFTWARE\Microsoft\Windows NT\CurrentVersion";
+        let prod_name = read_reg_string(HKEY_LOCAL_MACHINE, reg_sub, "ProductName");
+        let build_num: u32 = read_reg_string(HKEY_LOCAL_MACHINE, reg_sub, "CurrentBuild")
+            .and_then(|b| b.parse().ok())
+            .unwrap_or(0);
+
+        if let Some(mut name) = prod_name {
+            if !name.is_empty() {
+                // Windows 11 returns "Windows 10 ..." in ProductName for builds >= 22000
+                if build_num >= 22000 && name.starts_with("Windows 10") {
+                    name = name.replacen("Windows 10", "Windows 11", 1);
+                }
+                return name;
+            }
+        }
+
+        if let Some(ed) = read_reg_string(HKEY_LOCAL_MACHINE, reg_sub, "EditionID") {
+            let win_ver = if build_num >= 22000 { "11" } else { "10" };
+            let ed_clean = match ed.to_lowercase().as_str() {
+                "professional" | "pro" => "Pro",
+                "core" | "home" => "Home",
+                "enterprises" | "enterprise" => "Enterprise",
+                "enterprisesn" => "Enterprise LTSC",
+                "education" => "Education",
+                _ => ed.as_str(),
+            };
+            return format!("Windows {} {}", win_ver, ed_clean);
+        }
+    }
+
     let os_name = System::name().unwrap_or_else(|| "Windows".to_string());
     let os_version = System::os_version().unwrap_or_default();
     if os_name.contains("Windows") {
@@ -166,5 +243,14 @@ mod tests {
         assert_eq!(refine_model_name("Lenovo", "82K2"), "82K2");
         assert_eq!(refine_model_name("Lenovo", "Lenovo LOQ 15AHP10"), "LOQ 15AHP10");
         assert_eq!(refine_model_name("ASUS", "ASUS Vivobook 15 E1504GAB"), "Vivobook 15 E1504GAB");
+    }
+
+    #[test]
+    fn test_detect_os_badge() {
+        assert_eq!(detect_os_badge("Windows 11 Home"), Some("Home".to_string()));
+        assert_eq!(detect_os_badge("Windows 11 Pro"), Some("Pro".to_string()));
+        assert_eq!(detect_os_badge("Windows 10 Enterprise LTSC 2021"), Some("LTSC".to_string()));
+        assert_eq!(detect_os_badge("Windows 10 Education"), Some("Education".to_string()));
+        assert_eq!(detect_os_badge("Linux Ubuntu"), None);
     }
 }

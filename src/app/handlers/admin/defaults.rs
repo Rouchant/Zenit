@@ -1,5 +1,5 @@
 use crate::app::sync::populate_ui_state;
-use crate::domains::hardware::get_hardware_specs;
+use crate::domains::hardware::{get_hardware_specs, is_oem_placeholder, refresh_hardware_specs};
 use crate::MainWindow;
 use slint::ComponentHandle;
 
@@ -10,16 +10,14 @@ pub fn setup_defaults_handlers(main_window: &MainWindow) {
         if let Some(ui) = reset_store_handle.upgrade() {
             let hw = get_hardware_specs();
             let brand = if !hw.brand.is_empty()
-                && !hw.brand.to_lowercase().contains("to be filled")
-                && !hw.brand.to_lowercase().contains("o.e.m.")
+                && !is_oem_placeholder(&hw.brand)
             {
                 hw.brand
             } else {
                 "ASUS".to_string()
             };
             let model = if !hw.model.is_empty()
-                && !hw.model.to_lowercase().contains("to be filled")
-                && !hw.model.to_lowercase().contains("o.e.m.")
+                && !is_oem_placeholder(&hw.model)
             {
                 hw.model
             } else {
@@ -36,92 +34,93 @@ pub fn setup_defaults_handlers(main_window: &MainWindow) {
         }
     });
 
-    // 2. Reset Specs Defaults
+    // 2. Reset Specs Defaults (Re-escaneo y reescritura en tiempo real del hardware reconocido)
     let reset_specs_handle = main_window.as_weak();
     main_window.on_reset_specs_defaults(move || {
-        if let Some(ui) = reset_specs_handle.upgrade() {
-            let hw = get_hardware_specs();
-            let brand = if !hw.brand.is_empty()
-                && !hw.brand.to_lowercase().contains("to be filled")
-                && !hw.brand.to_lowercase().contains("o.e.m.")
-            {
-                hw.brand
-            } else {
-                "ASUS".to_string()
-            };
-            let model = if !hw.model.is_empty()
-                && !hw.model.to_lowercase().contains("to be filled")
-                && !hw.model.to_lowercase().contains("o.e.m.")
-            {
-                hw.model
-            } else {
-                "ROG Strix PC".to_string()
-            };
-            ui.set_cfg_brand(brand.into());
-            ui.set_cfg_model(model.into());
-            ui.set_cfg_cpu(hw.processor.clone().into());
-            ui.set_cfg_ram(hw.ram.clone().into());
-            ui.set_cfg_storage(hw.storage.clone().into());
-            ui.set_cfg_gpu(hw.gpu.clone().into());
-            ui.set_cfg_display(hw.display.clone().into());
-            ui.set_cfg_os(hw.os.clone().into());
-            ui.set_cfg_battery(if !hw.battery.is_empty() && !hw.battery.contains("Conectado AC") {
-                hw.battery.into()
-            } else {
-                "Hasta 8 horas".into()
-            });
-            let others_val = if !hw.others.is_empty() {
-                hw.others.clone()
-            } else {
-                "Wi-Fi 6 / Bluetooth 5.3 / Teclado en Español".to_string()
-            };
-            ui.set_cfg_others(others_val.into());
+        let rh = reset_specs_handle.clone();
+        std::thread::spawn(move || {
+            let hw = refresh_hardware_specs();
+            let _ = slint::invoke_from_event_loop(move || {
+                if let Some(ui) = rh.upgrade() {
+                    let brand = if !is_oem_placeholder(&hw.brand) {
+                        hw.brand.clone()
+                    } else {
+                        "ASUS".to_string()
+                    };
+                    let model = if !is_oem_placeholder(&hw.model) {
+                        hw.model.clone()
+                    } else {
+                        "ROG Strix PC".to_string()
+                    };
+                    ui.set_cfg_brand(brand.into());
+                    ui.set_cfg_model(model.into());
+                    ui.set_cfg_cpu(hw.processor.clone().into());
+                    ui.set_cfg_ram(hw.ram.clone().into());
+                    ui.set_cfg_storage(hw.storage.clone().into());
+                    ui.set_cfg_gpu(hw.gpu.clone().into());
+                    ui.set_cfg_display(hw.display.clone().into());
+                    ui.set_cfg_os(hw.os.clone().into());
+                    ui.set_cfg_battery(if !hw.battery.is_empty() && !hw.battery.contains("Conectado AC") && !hw.battery.contains("Cargando") {
+                        hw.battery.into()
+                    } else {
+                        "Hasta 8 horas".into()
+                    });
+                    let others_val = if !hw.others.is_empty() {
+                        hw.others.clone()
+                    } else {
+                        "Wi-Fi 6 / Bluetooth 5.3 / Teclado en Español".to_string()
+                    };
+                    ui.set_cfg_others(others_val.into());
 
-            // Badges por defecto detectadas insitu
-            let def_badge_cpu = if !hw.generation.is_empty() {
-                hw.generation.clone()
-            } else {
-                "GEN".to_string()
-            };
-            let def_badge_ram = if !hw.ram_type.is_empty() {
-                hw.ram_type.clone()
-            } else {
-                "RAM".to_string()
-            };
-            let def_badge_storage = if hw.storage.to_lowercase().contains("nvme") {
-                "NVMe".to_string()
-            } else {
-                "SSD".to_string()
-            };
-            let def_badge_gpu = {
-                let low = hw.gpu.to_lowercase();
-                if low.contains("rtx") {
-                    "RTX".to_string()
-                } else if low.contains("gtx") {
-                    "GTX".to_string()
-                } else if low.contains("radeon") || low.contains("rx") {
-                    "Radeon".to_string()
-                } else if low.contains("arc") {
-                    "Arc".to_string()
-                } else {
-                    "GPU".to_string()
+                    // Badges por defecto detectadas insitu
+                    let def_badge_cpu = if !hw.generation.is_empty() {
+                        hw.generation.clone()
+                    } else {
+                        "GEN".to_string()
+                    };
+                    let def_badge_ram = if !hw.ram_type.is_empty() {
+                        hw.ram_type.clone()
+                    } else {
+                        "RAM".to_string()
+                    };
+                    let def_badge_storage = if hw.storage.to_lowercase().contains("nvme") {
+                        "NVMe".to_string()
+                    } else {
+                        "SSD".to_string()
+                    };
+                    let def_badge_gpu = {
+                        let low = hw.gpu.to_lowercase();
+                        if low.contains("rtx") {
+                            "RTX".to_string()
+                        } else if low.contains("gtx") {
+                            "GTX".to_string()
+                        } else if low.contains("radeon") || low.contains("rx") {
+                            "Radeon".to_string()
+                        } else if low.contains("arc") {
+                            "Arc".to_string()
+                        } else {
+                            "GPU".to_string()
+                        }
+                    };
+                    let def_badge_display = if hw.refresh_rate > 0 {
+                        format!("{}Hz", hw.refresh_rate)
+                    } else {
+                        "165Hz".to_string()
+                    };
+
+                    let def_badge_os = crate::domains::hardware::detect_os_badge(&hw.os).unwrap_or_default();
+
+                    ui.set_cfg_badge_cpu(def_badge_cpu.into());
+                    ui.set_cfg_badge_ram(def_badge_ram.into());
+                    ui.set_cfg_badge_storage(def_badge_storage.into());
+                    ui.set_cfg_badge_gpu(def_badge_gpu.into());
+                    ui.set_cfg_badge_display(def_badge_display.into());
+                    ui.set_cfg_badge_os(def_badge_os.into());
+                    ui.set_cfg_badge_battery("".into());
+                    ui.set_cfg_badge_others("".into());
                 }
-            };
-            let def_badge_display = if hw.refresh_rate > 0 {
-                format!("{}Hz", hw.refresh_rate)
-            } else {
-                "165Hz".to_string()
-            };
-
-            ui.set_cfg_badge_cpu(def_badge_cpu.into());
-            ui.set_cfg_badge_ram(def_badge_ram.into());
-            ui.set_cfg_badge_storage(def_badge_storage.into());
-            ui.set_cfg_badge_gpu(def_badge_gpu.into());
-            ui.set_cfg_badge_display(def_badge_display.into());
-            ui.set_cfg_badge_os("OFICIAL".into());
-            ui.set_cfg_badge_battery("Autonomía".into());
-            ui.set_cfg_badge_others("".into());
-        }
+            });
+        });
     });
 
     // 3. Reset Videos Defaults

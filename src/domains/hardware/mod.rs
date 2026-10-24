@@ -20,7 +20,7 @@ pub use gpu::{get_gpu_name, rate_gpu};
 pub use memory::get_ram_info;
 pub use storage::{format_bytes_commercial, get_storage_info};
 pub use system_info::{
-    clean_brand_name, get_laptop_brand_and_model, get_os_info, is_oem_placeholder,
+    clean_brand_name, detect_os_badge, get_laptop_brand_and_model, get_os_info, is_oem_placeholder,
     refine_model_name,
 };
 pub use types::SystemSpecs;

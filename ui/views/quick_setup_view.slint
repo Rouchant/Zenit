@@ -11,74 +11,82 @@ export component QuickSetupView inherits Rectangle {
     callback auto_detect_clicked();
     callback format_currency_input(string) -> string;
     callback save_quick_setup(string, string, string, string, string, string);
+    callback close_quick_setup();
 
     width: 100%;
     height: 100%;
-    background: #00000080;
+    background: #000000d9;
 
     Rectangle {
-        width: 620px;
-        height: 560px;
-        background: #F5F5F5;
+        width: 640px;
+        height: setup_layout.preferred-height;
+        background: #0f172a;
         border-radius: 20px;
         border-width: 1px;
-        border-color: #cbd5e1;
-        drop-shadow-blur: 24px;
-        drop-shadow-color: #00000033;
-        drop-shadow-offset-y: 6px;
+        border-color: #38bdf880;
+        drop-shadow-blur: 32px;
+        drop-shadow-color: #00000080;
+        drop-shadow-offset-y: 8px;
 
-        VerticalLayout {
+        setup_layout := VerticalLayout {
             padding-left: 36px;
             padding-right: 36px;
-            padding-top: 30px;
-            padding-bottom: 30px;
+            padding-top: 28px;
+            padding-bottom: 28px;
             spacing: 16px;
 
-            Text {
-                text: "Configuración Rápida de Exhibición";
-                font-size: 22px;
-                font-weight: 800;
-                color: #0f172a;
+            // Modal Header with clean SVG close button
+            HorizontalLayout {
+                alignment: space-between;
+
+                Text {
+                    text: "Configuración Rápida de Exhibición";
+                    font-size: 21px;
+                    font-weight: 800;
+                    color: #F5F5F5;
+                    vertical-alignment: center;
+                }
+
+                Rectangle {
+                    width: 34px;
+                    height: 34px;
+                    background: touch_close.has-hover ? #ef4444 : #1e293b;
+                    border-radius: 17px;
+                    border-width: 1px;
+                    border-color: touch_close.has-hover ? #f87171 : #475569;
+
+                    touch_close := TouchArea {
+                        mouse-cursor: pointer;
+                        clicked => {
+                            root.close_quick_setup();
+                        }
+                    }
+
+                    Image {
+                        x: (parent.width - self.width) / 2;
+                        y: (parent.height - self.height) / 2;
+                        width: 16px;
+                        height: 16px;
+                        source: @image-url("../../assets/ui/close.svg");
+                    }
+                }
             }
 
             Text {
                 text: "Ingresa los datos comerciales del equipo para iniciar el showroom en tienda.";
                 font-size: 13px;
-                color: #64748b;
+                color: #94a3b8;
             }
 
-            // Auto-detect Button
-            Rectangle {
-                height: 38px;
-                background: #dcedf5;
-                border-radius: 8px;
-                border-width: 1px;
-                border-color: #b8e2f5;
-
-                detect_touch := TouchArea {
-                    mouse-cursor: pointer;
-                    clicked => {
-                        root.auto_detect_clicked();
-                    }
-                }
-
-                Text {
-                    text: "⚡ Auto-detectar Hardware del Equipo";
-                    font-size: 13px;
-                    font-weight: 700;
-                    color: #0284c7;
-                    horizontal-alignment: center;
-                    vertical-alignment: center;
-                }
-            }
-
+            // Row 1: Marca y Modelo
             HorizontalLayout {
                 spacing: 12px;
                 VerticalLayout {
                     horizontal-stretch: 1;
                     spacing: 4px;
-                    Text { text: "Marca:"; font-size: 12px; color: #475569; }
+                    Text { text: "Marca:"; font-size: 12px; font-weight: 600; color: #cbd5e1; }
                     brand_ed := LineEdit {
+                        height: 36px;
                         text: root.setup_brand;
                         placeholder-text: "Ej: ASUS, HP";
                         edited => { root.setup_brand = self.text; }
@@ -87,8 +95,9 @@ export component QuickSetupView inherits Rectangle {
                 VerticalLayout {
                     horizontal-stretch: 1;
                     spacing: 4px;
-                    Text { text: "Modelo:"; font-size: 12px; color: #475569; }
+                    Text { text: "Modelo:"; font-size: 12px; font-weight: 600; color: #cbd5e1; }
                     model_ed := LineEdit {
+                        height: 36px;
                         text: root.setup_model;
                         placeholder-text: "Ej: ROG Strix G16";
                         edited => { root.setup_model = self.text; }
@@ -96,13 +105,15 @@ export component QuickSetupView inherits Rectangle {
                 }
             }
 
+            // Row 2: Precios
             HorizontalLayout {
                 spacing: 12px;
                 VerticalLayout {
                     horizontal-stretch: 1;
                     spacing: 4px;
-                    Text { text: "Precio Tarjeta:"; font-size: 12px; color: #475569; }
+                    Text { text: "Precio Tarjeta:"; font-size: 12px; font-weight: 600; color: #cbd5e1; }
                     cprice_ed := LineEdit {
+                        height: 36px;
                         text: root.setup_card_price;
                         placeholder-text: "$000.000...";
                         font-italic: self.text == "";
@@ -118,8 +129,9 @@ export component QuickSetupView inherits Rectangle {
                 VerticalLayout {
                     horizontal-stretch: 1;
                     spacing: 4px;
-                    Text { text: "Precio Normal:"; font-size: 12px; color: #475569; }
+                    Text { text: "Precio Normal:"; font-size: 12px; font-weight: 600; color: #cbd5e1; }
                     nprice_ed := LineEdit {
+                        height: 36px;
                         text: root.setup_normal_price;
                         placeholder-text: "$000.000...";
                         font-italic: self.text == "";
@@ -134,13 +146,15 @@ export component QuickSetupView inherits Rectangle {
                 }
             }
 
+            // Row 3: SKU y Tienda
             HorizontalLayout {
                 spacing: 12px;
                 VerticalLayout {
                     horizontal-stretch: 1;
                     spacing: 4px;
-                    Text { text: "SKU Tienda:"; font-size: 12px; color: #475569; }
+                    Text { text: "SKU Tienda:"; font-size: 12px; font-weight: 600; color: #cbd5e1; }
                     sku_ed := LineEdit {
+                        height: 36px;
                         text: root.setup_sku;
                         placeholder-text: "000000...";
                         font-italic: self.text == "";
@@ -152,45 +166,82 @@ export component QuickSetupView inherits Rectangle {
                     spacing: 4px;
                     HorizontalLayout {
                         alignment: space-between;
-                        Text { text: "Tienda Retail:"; font-size: 12px; color: #475569; }
+                        Text { text: "Tienda Retail:"; font-size: 12px; font-weight: 600; color: #cbd5e1; }
                         HorizontalLayout {
-                            spacing: 4px;
+                            spacing: 6px;
+                            // Falabella
                             Rectangle {
-                                border-radius: 4px;
-                                background: root.setup_retail == "falabella" ? #e0f2fe : #f1f5f9;
+                                height: 26px;
+                                border-radius: 6px;
+                                background: (root.setup_retail == "falabella" || root.setup_retail == "Falabella") ? #0369a1 : #1e293b;
                                 border-width: 1px;
-                                border-color: root.setup_retail == "falabella" ? #0284c7 : #cbd5e1;
+                                border-color: (root.setup_retail == "falabella" || root.setup_retail == "Falabella") ? #38bdf8 : #475569;
+
                                 HorizontalLayout {
-                                    padding-left: 5px; padding-right: 5px; padding-top: 1px; padding-bottom: 1px;
-                                    Text { text: "🛍️ Falabella"; font-size: 9px; font-weight: 700; color: root.setup_retail == "falabella" ? #0369a1 : #475569; }
+                                    padding-left: 8px;
+                                    padding-right: 8px;
+                                    alignment: center;
+                                    Text {
+                                        text: "Falabella";
+                                        font-size: 11px;
+                                        font-weight: 700;
+                                        color: (root.setup_retail == "falabella" || root.setup_retail == "Falabella") ? #ffffff : #94a3b8;
+                                        vertical-alignment: center;
+                                        horizontal-alignment: center;
+                                    }
                                 }
                                 TouchArea { mouse-cursor: pointer; clicked => { root.setup_retail = "falabella"; } }
                             }
+                            // Ripley
                             Rectangle {
-                                border-radius: 4px;
-                                background: root.setup_retail == "ripley" ? #f3e8ff : #f1f5f9;
+                                height: 26px;
+                                border-radius: 6px;
+                                background: (root.setup_retail == "ripley" || root.setup_retail == "Ripley") ? #7e22ce : #1e293b;
                                 border-width: 1px;
-                                border-color: root.setup_retail == "ripley" ? #9333ea : #cbd5e1;
+                                border-color: (root.setup_retail == "ripley" || root.setup_retail == "Ripley") ? #c084fc : #475569;
+
                                 HorizontalLayout {
-                                    padding-left: 5px; padding-right: 5px; padding-top: 1px; padding-bottom: 1px;
-                                    Text { text: "🟣 Ripley"; font-size: 9px; font-weight: 700; color: root.setup_retail == "ripley" ? #7e22ce : #475569; }
+                                    padding-left: 8px;
+                                    padding-right: 8px;
+                                    alignment: center;
+                                    Text {
+                                        text: "Ripley";
+                                        font-size: 11px;
+                                        font-weight: 700;
+                                        color: (root.setup_retail == "ripley" || root.setup_retail == "Ripley") ? #ffffff : #94a3b8;
+                                        vertical-alignment: center;
+                                        horizontal-alignment: center;
+                                    }
                                 }
                                 TouchArea { mouse-cursor: pointer; clicked => { root.setup_retail = "ripley"; } }
                             }
+                            // Paris
                             Rectangle {
-                                border-radius: 4px;
-                                background: root.setup_retail == "paris" ? #eff6ff : #f1f5f9;
+                                height: 26px;
+                                border-radius: 6px;
+                                background: (root.setup_retail == "paris" || root.setup_retail == "Paris") ? #1d4ed8 : #1e293b;
                                 border-width: 1px;
-                                border-color: root.setup_retail == "paris" ? #2563eb : #cbd5e1;
+                                border-color: (root.setup_retail == "paris" || root.setup_retail == "Paris") ? #60a5fa : #475569;
+
                                 HorizontalLayout {
-                                    padding-left: 5px; padding-right: 5px; padding-top: 1px; padding-bottom: 1px;
-                                    Text { text: "🔵 Paris"; font-size: 9px; font-weight: 700; color: root.setup_retail == "paris" ? #1d4ed8 : #475569; }
+                                    padding-left: 8px;
+                                    padding-right: 8px;
+                                    alignment: center;
+                                    Text {
+                                        text: "Paris";
+                                        font-size: 11px;
+                                        font-weight: 700;
+                                        color: (root.setup_retail == "paris" || root.setup_retail == "Paris") ? #ffffff : #94a3b8;
+                                        vertical-alignment: center;
+                                        horizontal-alignment: center;
+                                    }
                                 }
                                 TouchArea { mouse-cursor: pointer; clicked => { root.setup_retail = "paris"; } }
                             }
                         }
                     }
                     retail_ed := LineEdit {
+                        height: 36px;
                         text: root.setup_retail;
                         placeholder-text: "tienda...";
                         font-italic: self.text == "";
@@ -202,10 +253,10 @@ export component QuickSetupView inherits Rectangle {
             // Submit button
             Rectangle {
                 height: 48px;
-                background: #0284c7;
+                background: touch_save.has-hover ? #0284c7.brighter(15%) : #0284c7;
                 border-radius: 10px;
 
-                TouchArea {
+                touch_save := TouchArea {
                     mouse-cursor: pointer;
                     clicked => {
                         root.save_quick_setup(

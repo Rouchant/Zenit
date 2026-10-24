@@ -53,7 +53,7 @@ export component MainWindow inherits Window {
     in-out property <bool> is_screensaver_active: false;
     in-out property <string> admin_error_msg: "";
     in-out property <bool> show_toast: false;
-    in-out property <string> toast_message: "✓ Cambios aplicados y guardados con éxito";
+    in-out property <string> toast_message: "Cambios aplicados y guardados con éxito";
 
     // Video Streams (libmpv)
     in-out property <image> video_frame;
@@ -109,8 +109,8 @@ export component MainWindow inherits Window {
     in-out property <string> placeholder_badge_storage: "SSD";
     in-out property <string> placeholder_badge_gpu: "GPU";
     in-out property <string> placeholder_badge_display: "165Hz";
-    in-out property <string> placeholder_badge_os: "OFICIAL";
-    in-out property <string> placeholder_badge_battery: "Autonomía";
+    in-out property <string> placeholder_badge_os: "";
+    in-out property <string> placeholder_badge_battery: "";
     in-out property <string> placeholder_badge_others: "";
 
     // Admin Tab Videos & Baúl
@@ -253,6 +253,7 @@ export component MainWindow inherits Window {
         save_quick_setup(brand, model, card_price, normal_price, sku, retail) => {
             root.save_quick_setup(brand, model, card_price, normal_price, sku, retail);
         }
+        close_quick_setup => { root.is_quick_setup_open = false; }
     }
 
     // 3. Admin Panel Modal
@@ -360,6 +361,14 @@ export component MainWindow inherits Window {
         video_frame: root.video_frame;
         brand_name: root.brand_name;
         model_name: root.model_name;
+        card_price: root.card_price;
+        card_label: root.card_label;
+        normal_price: root.normal_price;
+        normal_label: root.normal_label;
+        retail_name: root.retail_name;
+        sku_code: root.sku_code;
+        store_logo: root.store_logo;
+        theme_accent: root.hex_to_color(root.cfg_accent);
         dismiss_screensaver => { root.dismiss_screensaver(); }
     }
 

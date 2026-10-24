@@ -1,5 +1,5 @@
 use super::types::DisplaySpecCard;
-use crate::domains::hardware::SystemSpecs;
+use crate::domains::hardware::{detect_os_badge, SystemSpecs};
 use crate::domains::showcase::config::AppConfig;
 
 pub fn build_left_specs(specs: &SystemSpecs, cfg: &AppConfig) -> Vec<DisplaySpecCard> {
@@ -58,7 +58,7 @@ pub fn build_left_specs(specs: &SystemSpecs, cfg: &AppConfig) -> Vec<DisplaySpec
         }
     };
 
-    let os_tag = match &cfg.badge_os {
+    let gpu_tag = match &cfg.badge_gpu {
         Some(custom) => {
             let trimmed = custom.trim();
             if trimmed.is_empty() {
@@ -67,7 +67,20 @@ pub fn build_left_specs(specs: &SystemSpecs, cfg: &AppConfig) -> Vec<DisplaySpec
                 Some(trimmed.to_string())
             }
         }
-        None => Some("OFICIAL".to_string()),
+        None => {
+            let low = specs.gpu.to_lowercase();
+            if low.contains("rtx") {
+                Some("RTX".to_string())
+            } else if low.contains("gtx") {
+                Some("GTX".to_string())
+            } else if low.contains("radeon") || low.contains("rx") {
+                Some("Radeon".to_string())
+            } else if low.contains("arc") {
+                Some("Arc".to_string())
+            } else {
+                Some("GPU".to_string())
+            }
+        }
     };
 
     vec![
@@ -96,39 +109,17 @@ pub fn build_left_specs(specs: &SystemSpecs, cfg: &AppConfig) -> Vec<DisplaySpec
             icon: "assets/ui/storage.svg".to_string(),
         },
         DisplaySpecCard {
-            id: "card-os".to_string(),
-            label: "Sistema Operativo".to_string(),
-            value: specs.os.clone(),
+            id: "card-gpu".to_string(),
+            label: "Gráficos".to_string(),
+            value: specs.gpu.clone(),
             sub_value: None,
-            tag: os_tag,
-            icon: "assets/ui/software.svg".to_string(),
+            tag: gpu_tag,
+            icon: "assets/ui/gpu.svg".to_string(),
         },
     ]
 }
 
 pub fn build_right_specs(specs: &SystemSpecs, cfg: &AppConfig) -> Vec<DisplaySpecCard> {
-    let battery_tag = match &cfg.badge_battery {
-        Some(custom) => {
-            let trimmed = custom.trim();
-            if trimmed.is_empty() {
-                None
-            } else {
-                Some(trimmed.to_string())
-            }
-        }
-        None => {
-            if specs.battery.to_lowercase().contains("wh")
-                || specs.battery.to_lowercase().contains("hora")
-            {
-                Some("Autonomía".to_string())
-            } else if specs.is_charging {
-                Some("Cargando".to_string())
-            } else {
-                Some("Autonomía".to_string())
-            }
-        }
-    };
-
     let display_tag = match &cfg.badge_display {
         Some(custom) => {
             let trimmed = custom.trim();
@@ -147,7 +138,7 @@ pub fn build_right_specs(specs: &SystemSpecs, cfg: &AppConfig) -> Vec<DisplaySpe
         }
     };
 
-    let gpu_tag = match &cfg.badge_gpu {
+    let battery_tag = match &cfg.badge_battery {
         Some(custom) => {
             let trimmed = custom.trim();
             if trimmed.is_empty() {
@@ -156,20 +147,7 @@ pub fn build_right_specs(specs: &SystemSpecs, cfg: &AppConfig) -> Vec<DisplaySpe
                 Some(trimmed.to_string())
             }
         }
-        None => {
-            let low = specs.gpu.to_lowercase();
-            if low.contains("rtx") {
-                Some("RTX".to_string())
-            } else if low.contains("gtx") {
-                Some("GTX".to_string())
-            } else if low.contains("radeon") || low.contains("rx") {
-                Some("Radeon".to_string())
-            } else if low.contains("arc") {
-                Some("Arc".to_string())
-            } else {
-                Some("GPU".to_string())
-            }
-        }
+        None => None,
     };
 
     let others_tag = match &cfg.badge_others {
@@ -182,6 +160,18 @@ pub fn build_right_specs(specs: &SystemSpecs, cfg: &AppConfig) -> Vec<DisplaySpe
             }
         }
         None => None,
+    };
+
+    let os_tag = match &cfg.badge_os {
+        Some(custom) => {
+            let trimmed = custom.trim();
+            if trimmed.is_empty() {
+                None
+            } else {
+                Some(trimmed.to_string())
+            }
+        }
+        None => detect_os_badge(&specs.os),
     };
 
     let others_text = if !cfg.other_specs.trim().is_empty()
@@ -206,14 +196,6 @@ pub fn build_right_specs(specs: &SystemSpecs, cfg: &AppConfig) -> Vec<DisplaySpe
             icon: "assets/ui/screen.svg".to_string(),
         },
         DisplaySpecCard {
-            id: "card-gpu".to_string(),
-            label: "Gráficos".to_string(),
-            value: specs.gpu.clone(),
-            sub_value: None,
-            tag: gpu_tag,
-            icon: "assets/ui/gpu.svg".to_string(),
-        },
-        DisplaySpecCard {
             id: "card-battery".to_string(),
             label: "Batería".to_string(),
             value: specs.battery.clone(),
@@ -228,6 +210,14 @@ pub fn build_right_specs(specs: &SystemSpecs, cfg: &AppConfig) -> Vec<DisplaySpe
             sub_value: None,
             tag: others_tag,
             icon: "assets/ui/features.svg".to_string(),
+        },
+        DisplaySpecCard {
+            id: "card-os".to_string(),
+            label: "Sistema Operativo".to_string(),
+            value: specs.os.clone(),
+            sub_value: None,
+            tag: os_tag,
+            icon: "assets/ui/software.svg".to_string(),
         },
     ]
 }

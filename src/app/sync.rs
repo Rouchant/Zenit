@@ -272,7 +272,7 @@ pub fn populate_ui_state(window: &MainWindow) {
     window.set_cfg_storage(storage_val.into());
 
     let gpu_val = cfg.gpu_override.clone().unwrap_or_else(|| {
-        state.right_specs.iter()
+        state.left_specs.iter()
             .find(|s| s.id == "card-gpu")
             .map(|s| s.value.clone())
             .unwrap_or_else(|| hw.gpu.clone())
@@ -288,7 +288,7 @@ pub fn populate_ui_state(window: &MainWindow) {
     window.set_cfg_display(display_val.into());
 
     let os_val = cfg.os_override.clone().unwrap_or_else(|| {
-        state.left_specs.iter()
+        state.right_specs.iter()
             .find(|s| s.id == "card-os")
             .map(|s| s.value.clone())
             .unwrap_or_else(|| hw.os.clone())
@@ -368,12 +368,13 @@ pub fn populate_ui_state(window: &MainWindow) {
         });
 
     let cur_badge_os = state
-        .left_specs
+        .right_specs
         .iter()
         .find(|s| s.id == "card-os")
         .and_then(|s| s.tag.clone())
         .filter(|t| !t.trim().is_empty())
-        .unwrap_or_else(|| "OFICIAL".to_string());
+        .or_else(|| crate::domains::hardware::detect_os_badge(&hw.os))
+        .unwrap_or_default();
 
     let cur_badge_display = state
         .right_specs
@@ -391,7 +392,7 @@ pub fn populate_ui_state(window: &MainWindow) {
         .unwrap_or_else(|| "FHD".to_string());
 
     let cur_badge_gpu = state
-        .right_specs
+        .left_specs
         .iter()
         .find(|s| s.id == "card-gpu")
         .and_then(|s| s.tag.clone())
@@ -417,12 +418,12 @@ pub fn populate_ui_state(window: &MainWindow) {
         .find(|s| s.id == "card-battery")
         .and_then(|s| s.tag.clone())
         .filter(|t| !t.trim().is_empty())
-        .unwrap_or_else(|| "Autonomía".to_string());
+        .unwrap_or_default();
 
     let cur_badge_others = state
         .right_specs
         .iter()
-        .find(|s| s.id == "card-features")
+        .find(|s| s.id == "card-others" || s.id == "card-features")
         .and_then(|s| s.tag.clone())
         .unwrap_or_default();
 
@@ -558,6 +559,11 @@ pub fn populate_ui_state(window: &MainWindow) {
     window.set_is_dark_bg(is_dark_bg);
 
     populate_vault_videos(window);
+
+    // Primer Arranque: Si la configuración inicial no ha sido completada, abrir Quick Setup
+    if !cfg.setup_completed {
+        window.set_is_quick_setup_open(true);
+    }
 }
 
 pub fn is_color_dark(color: slint::Color) -> bool {

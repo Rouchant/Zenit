@@ -1,8 +1,232 @@
+component ScreensaverPriceBanner inherits Rectangle {
+    in property <string> card_price: "";
+    in property <string> card_label: "Precio Tarjeta";
+    in property <string> normal_price: "";
+    in property <string> normal_label: "Todo medio de pago";
+    in property <string> retail_name: "";
+    in property <string> sku_code: "";
+    in property <image> store_logo;
+    in property <color> theme_accent: #38bdf8;
+
+    height: 84px;
+    background: #030712e0;
+    border-radius: 20px;
+    border-width: 1.5px;
+    border-color: #38bdf84d;
+    drop-shadow-blur: 24px;
+    drop-shadow-color: #000000b3;
+
+    HorizontalLayout {
+        padding-left: 28px;
+        padding-right: 28px;
+        alignment: center;
+        spacing: 28px;
+
+        // Card Price Block (Featured Promo)
+        if root.card_price != "": HorizontalLayout {
+            alignment: center;
+            horizontal-stretch: 0;
+            spacing: 14px;
+
+            VerticalLayout {
+                alignment: center;
+                Rectangle {
+                    width: 44px;
+                    height: 44px;
+                    border-radius: 22px;
+                    background: #0f172a;
+                    border-width: 1px;
+                    border-color: #38bdf840;
+
+                    if root.retail_name == "FALABELLA": Image {
+                        x: (parent.width - self.width) / 2;
+                        y: (parent.height - self.height) / 2;
+                        source: @image-url("../../assets/images/T-FALABELLA.svg");
+                        width: 32px;
+                        height: 20px;
+                        image-fit: contain;
+                    }
+                    if root.retail_name == "RIPLEY": Image {
+                        x: (parent.width - self.width) / 2;
+                        y: (parent.height - self.height) / 2;
+                        source: @image-url("../../assets/images/T-RIPLEY.svg");
+                        width: 32px;
+                        height: 20px;
+                        image-fit: contain;
+                    }
+                    if root.retail_name == "PARIS": Image {
+                        x: (parent.width - self.width) / 2;
+                        y: (parent.height - self.height) / 2;
+                        source: @image-url("../../assets/images/T-CENCOSUD.svg");
+                        width: 32px;
+                        height: 20px;
+                        image-fit: contain;
+                    }
+                    if root.retail_name != "FALABELLA" && root.retail_name != "RIPLEY" && root.retail_name != "PARIS": Text {
+                        text: "💳";
+                        font-size: 22px;
+                        horizontal-alignment: center;
+                        vertical-alignment: center;
+                    }
+                }
+            }
+
+            VerticalLayout {
+                alignment: center;
+                spacing: 2px;
+
+                Text {
+                    text: root.card_label != "" ? root.card_label : "PRECIO TARJETA";
+                    font-size: 11px;
+                    font-weight: 800;
+                    color: root.theme_accent;
+                    letter-spacing: 0.8px;
+                }
+                Text {
+                    text: root.card_price;
+                    font-size: 32px;
+                    font-weight: 900;
+                    color: #F8FAFC;
+                }
+            }
+        }
+
+        // Divider between Card and Normal Price
+        if root.card_price != "" && root.normal_price != "": VerticalLayout {
+            alignment: center;
+            horizontal-stretch: 0;
+            Rectangle {
+                width: 1.5px;
+                height: 44px;
+                background: #38bdf833;
+            }
+        }
+
+        // Normal Price Block
+        if root.normal_price != "": VerticalLayout {
+            alignment: center;
+            horizontal-stretch: 0;
+            spacing: 2px;
+
+            Text {
+                text: root.normal_label != "" ? root.normal_label : "TODO MEDIO DE PAGO";
+                font-size: 11px;
+                font-weight: 700;
+                color: #94a3b8;
+                letter-spacing: 0.5px;
+            }
+            Text {
+                text: root.normal_price;
+                font-size: 25px;
+                font-weight: 800;
+                color: #F8FAFC;
+            }
+        }
+
+        // Divider between Prices and Store/SKU
+        if (root.card_price != "" || root.normal_price != "") && (root.sku_code != "" || root.retail_name != "" || root.store_logo.width > 0): VerticalLayout {
+            alignment: center;
+            horizontal-stretch: 0;
+            Rectangle {
+                width: 1.5px;
+                height: 44px;
+                background: #38bdf833;
+            }
+        }
+
+        // Store & SKU Block
+        if root.sku_code != "" || root.retail_name != "" || root.store_logo.width > 0: HorizontalLayout {
+            alignment: center;
+            horizontal-stretch: 0;
+            spacing: 16px;
+
+            // Store Logo
+            if root.store_logo.width > 0: VerticalLayout {
+                alignment: center;
+                Image {
+                    source: root.store_logo;
+                    height: 44px;
+                    max-width: 120px;
+                    image-fit: contain;
+                }
+            }
+            // Retail Name Badge (if no logo)
+            if root.store_logo.width <= 0 && root.retail_name != "": VerticalLayout {
+                alignment: center;
+                Rectangle {
+                    height: 34px;
+                    background: #0f172a;
+                    border-radius: 8px;
+                    border-width: 1px;
+                    border-color: #38bdf833;
+
+                    HorizontalLayout {
+                        padding-left: 12px;
+                        padding-right: 12px;
+                        alignment: center;
+                        Text {
+                            text: root.retail_name;
+                            font-size: 12px;
+                            font-weight: 800;
+                            color: #F8FAFC;
+                            letter-spacing: 1px;
+                            vertical-alignment: center;
+                        }
+                    }
+                }
+            }
+
+            // SKU Pill Badge
+            if root.sku_code != "": VerticalLayout {
+                alignment: center;
+                Rectangle {
+                    height: 34px;
+                    background: #0f172a;
+                    border-radius: 8px;
+                    border-width: 1px;
+                    border-color: #38bdf833;
+
+                    HorizontalLayout {
+                        padding-left: 12px;
+                        padding-right: 12px;
+                        alignment: center;
+                        spacing: 4px;
+
+                        Text {
+                            text: "SKU:";
+                            font-size: 11px;
+                            font-weight: 700;
+                            color: #94a3b8;
+                            vertical-alignment: center;
+                        }
+                        Text {
+                            text: root.sku_code;
+                            font-size: 12px;
+                            font-weight: 800;
+                            color: #F8FAFC;
+                            letter-spacing: 0.5px;
+                            vertical-alignment: center;
+                        }
+                    }
+                }
+            }
+        }
+    }
+}
+
 export component ScreensaverView inherits Rectangle {
     in property <bool> has_video_stream: false;
     in property <image> video_frame;
     in property <string> brand_name: "ASUS";
     in property <string> model_name: "ROG STRIX G16";
+    in property <string> card_price: "";
+    in property <string> card_label: "Precio Tarjeta";
+    in property <string> normal_price: "";
+    in property <string> normal_label: "Todo medio de pago";
+    in property <string> retail_name: "";
+    in property <string> sku_code: "";
+    in property <image> store_logo;
+    in property <color> theme_accent: #38bdf8;
 
     callback dismiss_screensaver();
 
@@ -16,13 +240,6 @@ export component ScreensaverView inherits Rectangle {
         height: 100%;
         source: root.video_frame;
         image-fit: cover;
-    }
-
-    // Cualquier toque en pantalla desactiva el salvapantallas
-    TouchArea {
-        clicked => {
-            root.dismiss_screensaver();
-        }
     }
 
     // Fallback cuando no hay stream de video disponible
@@ -54,6 +271,22 @@ export component ScreensaverView inherits Rectangle {
             horizontal-alignment: center;
         }
 
+        // Si hay precios configurados, se muestran de forma elegante
+        if root.card_price != "" || root.normal_price != "": HorizontalLayout {
+            alignment: center;
+
+            ScreensaverPriceBanner {
+                card_price: root.card_price;
+                card_label: root.card_label;
+                normal_price: root.normal_price;
+                normal_label: root.normal_label;
+                retail_name: root.retail_name;
+                sku_code: root.sku_code;
+                store_logo: root.store_logo;
+                theme_accent: root.theme_accent;
+            }
+        }
+
         Text {
             text: "Toca la pantalla o presiona cualquier tecla para interactuar";
             font-size: 16px;
@@ -63,10 +296,27 @@ export component ScreensaverView inherits Rectangle {
         }
     }
 
-    // Indicador interactivo sutil inferior
+    // Indicador interactivo y barra de precios inferior sobre video
     if root.has_video_stream: VerticalLayout {
         alignment: end;
         padding-bottom: 32px;
+        spacing: 16px;
+
+        // Barra de precios flotante sobre el video si hay precios
+        if root.card_price != "" || root.normal_price != "": HorizontalLayout {
+            alignment: center;
+
+            ScreensaverPriceBanner {
+                card_price: root.card_price;
+                card_label: root.card_label;
+                normal_price: root.normal_price;
+                normal_label: root.normal_label;
+                retail_name: root.retail_name;
+                sku_code: root.sku_code;
+                store_logo: root.store_logo;
+                theme_accent: root.theme_accent;
+            }
+        }
 
         HorizontalLayout {
             alignment: center;
@@ -101,6 +351,13 @@ export component ScreensaverView inherits Rectangle {
                     }
                 }
             }
+        }
+    }
+
+    // Cualquier toque en pantalla desactiva el salvapantallas (al final para máxima cobertura táctil)
+    TouchArea {
+        clicked => {
+            root.dismiss_screensaver();
         }
     }
 }

@@ -118,8 +118,8 @@ mod tests {
         let state = build_ui_state();
         assert!(!state.brand_name.is_empty(), "Brand name should not be empty");
         assert!(!state.model_name.is_empty(), "Model name should not be empty");
-        assert_eq!(state.left_specs.len(), 4, "Left column must have 4 core specs cards");
-        assert_eq!(state.right_specs.len(), 4, "Right column must have 4 specs cards (Display, GPU, Battery, Others)");
+        assert_eq!(state.left_specs.len(), 4, "Left column must have 4 core specs cards (CPU, RAM, Storage, GPU)");
+        assert_eq!(state.right_specs.len(), 4, "Right column must have 4 specs cards (Display, Battery, Others, OS)");
         assert!(!state.center_video.is_empty(), "Center video path should not be empty");
     }
 
@@ -143,7 +143,7 @@ mod tests {
     fn test_icons_cpu_and_software_os() {
         let state = build_ui_state();
         let cpu_card = state.left_specs.iter().find(|s| s.id == "card-processor").expect("CPU card must exist");
-        let os_card = state.left_specs.iter().find(|s| s.id == "card-os").expect("OS card must exist");
+        let os_card = state.right_specs.iter().find(|s| s.id == "card-os").expect("OS card must exist");
 
         assert_eq!(cpu_card.icon, "assets/ui/cpu.svg", "CPU must use cpu.svg");
         assert_eq!(os_card.icon, "assets/ui/software.svg", "OS must use software.svg");
@@ -157,7 +157,7 @@ mod tests {
 
         let battery_card = state.right_specs.iter().find(|s| s.id == "card-battery").expect("Battery card must exist");
         let display_card = state.right_specs.iter().find(|s| s.id == "card-display").expect("Display card must exist");
-        let gpu_card = state.right_specs.iter().find(|s| s.id == "card-gpu").expect("GPU card must exist");
+        let gpu_card = state.left_specs.iter().find(|s| s.id == "card-gpu").expect("GPU card must exist");
         let others_card = state.right_specs.iter().find(|s| s.id == "card-others").expect("Others card must exist");
 
         assert_eq!(battery_card.label, "Batería");

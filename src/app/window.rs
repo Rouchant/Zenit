@@ -233,8 +233,35 @@ pub fn position_floating_button() {
             let h = 120;
             let x = screen_w - w - 24;
             let y = (screen_h - h) / 2;
+            ShowWindow(floating_hwnd, SW_RESTORE);
             SetWindowPos(floating_hwnd, HWND_TOPMOST, x, y, w, h, SWP_SHOWWINDOW);
             SetForegroundWindow(floating_hwnd);
         }
     }
+    FB_WAS_FOREGROUND.store(true, Ordering::SeqCst);
+}
+
+static FB_WAS_FOREGROUND: AtomicBool = AtomicBool::new(true);
+
+/// Devuelve `true` si el usuario tocó el icono de Zenit en la barra de tareas
+/// mientras está en modo "Probar esta PC": la ventana flotante fue minimizada
+/// (clic estando activa) o pasó a primer plano tras haber perdido el foco.
+pub fn floating_button_taskbar_activated() -> bool {
+    #[cfg(target_os = "windows")]
+    unsafe {
+        use windows_sys::Win32::UI::WindowsAndMessaging::{GetForegroundWindow, IsIconic};
+        let fb = FLOATING_HWND.load(Ordering::SeqCst) as HWND;
+        if fb.is_null() || IsWindow(fb) == 0 {
+            return false;
+        }
+        if IsIconic(fb) != 0 {
+            FB_WAS_FOREGROUND.store(true, Ordering::SeqCst);
+            return true;
+        }
+        let is_fg = GetForegroundWindow() == fb;
+        let was_fg = FB_WAS_FOREGROUND.swap(is_fg, Ordering::SeqCst);
+        return is_fg && !was_fg;
+    }
+    #[allow(unreachable_code)]
+    false
 }

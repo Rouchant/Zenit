@@ -72,4 +72,22 @@ pub fn setup_try_pc_handlers(
             let _ = mw.hide();
         }
     });
+
+    // 3. Clic en el icono de Zenit en la barra de tareas => mismo efecto que "Ver detalles"
+    let taskbar_fb_handle = floating_btn.as_weak();
+    let taskbar_timer: &'static slint::Timer = Box::leak(Box::new(slint::Timer::default()));
+    taskbar_timer.start(
+        slint::TimerMode::Repeated,
+        std::time::Duration::from_millis(250),
+        move || {
+            if !IS_IN_TRY_PC_MODE.load(Ordering::SeqCst) {
+                return;
+            }
+            if crate::app::window::floating_button_taskbar_activated() {
+                if let Some(fb) = taskbar_fb_handle.upgrade() {
+                    fb.invoke_restore_clicked();
+                }
+            }
+        },
+    );
 }

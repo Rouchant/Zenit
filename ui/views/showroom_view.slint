@@ -42,6 +42,16 @@ export component ShowroomView inherits Rectangle {
     callback try_pc_clicked();
     callback corner_tap_clicked();
 
+    property <bool> pulse_active: false;
+
+    pulse_timer := Timer {
+        interval: 1200ms;
+        running: true;
+        triggered => {
+            root.pulse_active = !root.pulse_active;
+        }
+    }
+
     width: 100%;
     height: 100%;
     background: @linear-gradient(155deg, root.theme_bg_start 0%, root.theme_bg_mid 50%, root.theme_bg_end 100%);
@@ -343,28 +353,28 @@ export component ShowroomView inherits Rectangle {
                                             border-color: root.theme_card_border;
 
                                             if root.retail_name == "FALABELLA": Image {
+                                                x: (parent.width - self.width) / 2;
+                                                y: (parent.height - self.height) / 2;
                                                 source: @image-url("../../assets/images/T-FALABELLA.svg");
                                                 width: 32px;
                                                 height: 20px;
                                                 image-fit: contain;
-                                                horizontal-alignment: center;
-                                                vertical-alignment: center;
                                             }
                                             if root.retail_name == "RIPLEY": Image {
+                                                x: (parent.width - self.width) / 2;
+                                                y: (parent.height - self.height) / 2;
                                                 source: @image-url("../../assets/images/T-RIPLEY.svg");
                                                 width: 32px;
                                                 height: 20px;
                                                 image-fit: contain;
-                                                horizontal-alignment: center;
-                                                vertical-alignment: center;
                                             }
                                             if root.retail_name == "PARIS": Image {
+                                                x: (parent.width - self.width) / 2;
+                                                y: (parent.height - self.height) / 2;
                                                 source: @image-url("../../assets/images/T-CENCOSUD.svg");
                                                 width: 32px;
                                                 height: 20px;
                                                 image-fit: contain;
-                                                horizontal-alignment: center;
-                                                vertical-alignment: center;
                                             }
                                             if root.retail_name != "FALABELLA" && root.retail_name != "RIPLEY" && root.retail_name != "PARIS": Text {
                                                 text: "💳";
@@ -524,41 +534,55 @@ export component ShowroomView inherits Rectangle {
 
                         HorizontalLayout {
                             alignment: center;
+                            height: 78px;
 
                             Rectangle {
-                                height: 68px;
-                                width: 440px;
-                                border-radius: 12px;
-                                background: root.theme_btn_bg;
-                                border-width: 2.5px;
-                                border-color: root.theme_accent;
+                                width: 456px;
+                                height: 78px;
 
-                                btn_touch := TouchArea {
-                                    mouse-cursor: pointer;
-                                    clicked => {
-                                        root.try_pc_clicked();
-                                    }
+                                // Halo sutil de pulsación (aura que respira suavemente)
+                                Rectangle {
+                                    width: root.pulse_active ? 452px : 442px;
+                                    height: root.pulse_active ? 74px : 68px;
+                                    border-radius: 14px;
+                                    background: root.theme_accent;
+                                    opacity: btn_touch.has-hover ? 0.45 : (root.pulse_active ? 0.35 : 0.08);
+
+                                    animate width, height, opacity { duration: 1200ms; easing: ease-in-out; }
                                 }
 
-                                states [
-                                    hover when btn_touch.has-hover: {
-                                        border-color: #F5F5F5;
+                                btn_container := Rectangle {
+                                    height: btn_touch.pressed ? 64px : 68px;
+                                    width: btn_touch.pressed ? 434px : 440px;
+                                    border-radius: 12px;
+                                    background: btn_touch.pressed ? root.theme_btn_bg.darker(15%) : root.theme_btn_bg;
+                                    border-width: 2.5px;
+                                    border-color: btn_touch.has-hover ? #F5F5F5 : (root.pulse_active ? #ffffff : root.theme_accent);
+
+                                    animate border-color { duration: 1200ms; easing: ease-in-out; }
+                                    animate width, height, background { duration: 90ms; easing: ease-out; }
+
+                                    btn_touch := TouchArea {
+                                        mouse-cursor: pointer;
+                                        clicked => {
+                                            root.try_pc_clicked();
+                                        }
                                     }
-                                ]
 
-                                HorizontalLayout {
-                                    alignment: center;
-                                    padding-left: 24px;
-                                    padding-right: 24px;
+                                    HorizontalLayout {
+                                        alignment: center;
+                                        padding-left: 24px;
+                                        padding-right: 24px;
 
-                                    Text {
-                                        text: "PROBAR ESTA PC";
-                                        font-size: 22px;
-                                        font-weight: 900;
-                                        color: root.theme_btn_text;
-                                        letter-spacing: 1.5px;
-                                        vertical-alignment: center;
-                                        horizontal-alignment: center;
+                                        Text {
+                                            text: "PROBAR ESTA PC";
+                                            font-size: 22px;
+                                            font-weight: 900;
+                                            color: root.theme_btn_text;
+                                            letter-spacing: 1.5px;
+                                            vertical-alignment: center;
+                                            horizontal-alignment: center;
+                                        }
                                     }
                                 }
                             }

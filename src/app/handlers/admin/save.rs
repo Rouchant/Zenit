@@ -218,13 +218,14 @@ pub fn setup_save_handlers(
                     cfg.btn_text_color = btn_text;
                 }
                 cfg.is_dark_mode = ui.get_is_dark_mode();
+                cfg.setup_completed = true;
 
                 let _ = save_config(&cfg);
                 ui.set_is_admin_open(false);
                 ui.set_is_admin_authenticated(false);
                 populate_ui_state(&ui);
 
-                ui.set_toast_message("✓ Cambios aplicados y guardados con éxito".into());
+                ui.set_toast_message("Cambios aplicados y guardados con éxito".into());
                 ui.set_show_toast(true);
                 let toast_handle = ui.as_weak();
                 slint::Timer::single_shot(std::time::Duration::from_millis(2500), move || {
@@ -250,8 +251,19 @@ pub fn setup_save_handlers(
             cfg.price_card = crate::app::sync::format_price_input(&card_p);
             cfg.price_all_methods = crate::app::sync::format_price_input(&normal_p);
             cfg.sku = sku.to_string();
-            if !retail.trim().is_empty() {
-                cfg.store_theme = retail.to_string();
+            let ret_trimmed = retail.trim();
+            if !ret_trimmed.is_empty() {
+                let ret_low = ret_trimmed.to_lowercase();
+                cfg.store_theme = ret_low.clone();
+                if ret_low == "falabella" {
+                    cfg.store_logo_override = Some("assets/logos/falabella.svg".to_string());
+                } else if ret_low == "ripley" {
+                    cfg.store_logo_override = Some("assets/logos/ripley.svg".to_string());
+                } else if ret_low == "paris" {
+                    cfg.store_logo_override = Some("assets/logos/paris.png".to_string());
+                } else {
+                    cfg.store_logo_override = None;
+                }
             }
             cfg.setup_completed = true;
             let _ = save_config(&cfg);

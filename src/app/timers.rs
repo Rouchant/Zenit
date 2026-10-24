@@ -22,13 +22,19 @@ pub fn setup_video_timer(
             }
 
             if let Some(ui) = vh.upgrade() {
-                // Skip video rendering when Admin Panel covers the screen to preserve 100% responsiveness
-                if ui.get_is_admin_open() {
-                    return;
-                }
+                let modal_open = ui.get_is_admin_open() || ui.get_is_quick_setup_open();
 
                 if let Ok(mut guard) = player_for_timer.try_lock() {
                     if let Some(ref mut p) = *guard {
+                        if modal_open {
+                            if p.is_playing() {
+                                p.pause();
+                            }
+                            return;
+                        } else if !p.is_playing() && !ui.get_is_screensaver_active() {
+                            p.resume();
+                        }
+
                         if let Ok(Some(buffer)) = p.render_frame_buffer() {
                             ui.set_video_frame(slint::Image::from_rgba8(buffer));
                         }
