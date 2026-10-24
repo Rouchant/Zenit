@@ -223,6 +223,15 @@ pub fn setup_save_handlers(
                 ui.set_is_admin_open(false);
                 ui.set_is_admin_authenticated(false);
                 populate_ui_state(&ui);
+
+                ui.set_toast_message("✓ Cambios aplicados y guardados con éxito".into());
+                ui.set_show_toast(true);
+                let toast_handle = ui.as_weak();
+                slint::Timer::single_shot(std::time::Duration::from_millis(2500), move || {
+                    if let Some(w) = toast_handle.upgrade() {
+                        w.set_show_toast(false);
+                    }
+                });
             }
         },
     );

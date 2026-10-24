@@ -342,7 +342,31 @@ export component ShowroomView inherits Rectangle {
                                             border-width: 1px;
                                             border-color: root.theme_card_border;
 
-                                            Text {
+                                            if root.retail_name == "FALABELLA": Image {
+                                                source: @image-url("../../assets/images/T-FALABELLA.svg");
+                                                width: 32px;
+                                                height: 20px;
+                                                image-fit: contain;
+                                                horizontal-alignment: center;
+                                                vertical-alignment: center;
+                                            }
+                                            if root.retail_name == "RIPLEY": Image {
+                                                source: @image-url("../../assets/images/T-RIPLEY.svg");
+                                                width: 32px;
+                                                height: 20px;
+                                                image-fit: contain;
+                                                horizontal-alignment: center;
+                                                vertical-alignment: center;
+                                            }
+                                            if root.retail_name == "PARIS": Image {
+                                                source: @image-url("../../assets/images/T-CENCOSUD.svg");
+                                                width: 32px;
+                                                height: 20px;
+                                                image-fit: contain;
+                                                horizontal-alignment: center;
+                                                vertical-alignment: center;
+                                            }
+                                            if root.retail_name != "FALABELLA" && root.retail_name != "RIPLEY" && root.retail_name != "PARIS": Text {
                                                 text: "💳";
                                                 font-size: 22px;
                                                 horizontal-alignment: center;
@@ -494,51 +518,58 @@ export component ShowroomView inherits Rectangle {
                     }
 
                     // Botón PROBAR ESTA PC (Debajo de la barra que recibe los precios)
-                    HorizontalLayout {
+                    VerticalLayout {
                         alignment: center;
+                        spacing: 8px;
 
-                        Rectangle {
-                            height: 68px;
-                            width: 440px;
-                            border-radius: 12px;
-                            background: root.theme_btn_bg;
-                            border-width: 2.5px;
-                            border-color: root.theme_accent;
+                        HorizontalLayout {
+                            alignment: center;
 
-                            btn_touch := TouchArea {
-                                mouse-cursor: pointer;
-                                clicked => {
-                                    root.try_pc_clicked();
+                            Rectangle {
+                                height: 68px;
+                                width: 440px;
+                                border-radius: 12px;
+                                background: root.theme_btn_bg;
+                                border-width: 2.5px;
+                                border-color: root.theme_accent;
+
+                                btn_touch := TouchArea {
+                                    mouse-cursor: pointer;
+                                    clicked => {
+                                        root.try_pc_clicked();
+                                    }
+                                }
+
+                                states [
+                                    hover when btn_touch.has-hover: {
+                                        border-color: #F5F5F5;
+                                    }
+                                ]
+
+                                HorizontalLayout {
+                                    alignment: center;
+                                    padding-left: 24px;
+                                    padding-right: 24px;
+
+                                    Text {
+                                        text: "PROBAR ESTA PC";
+                                        font-size: 22px;
+                                        font-weight: 900;
+                                        color: root.theme_btn_text;
+                                        letter-spacing: 1.5px;
+                                        vertical-alignment: center;
+                                        horizontal-alignment: center;
+                                    }
                                 }
                             }
+                        }
 
-                            states [
-                                hover when btn_touch.has-hover: {
-                                    border-color: #F5F5F5;
-                                }
-                            ]
-
-                            HorizontalLayout {
-                                alignment: center;
-                                spacing: 14px;
-                                padding-left: 20px;
-                                padding-right: 20px;
-
-                                Text {
-                                    text: "⚡";
-                                    font-size: 26px;
-                                    color: root.theme_btn_text;
-                                    vertical-alignment: center;
-                                }
-                                Text {
-                                    text: "PROBAR ESTA PC";
-                                    font-size: 22px;
-                                    font-weight: 900;
-                                    color: root.theme_btn_text;
-                                    letter-spacing: 1.5px;
-                                    vertical-alignment: center;
-                                }
-                            }
+                        Text {
+                            text: "Explora Windows libremente. Toca 'Ver detalles' cuando quieras volver";
+                            font-size: 11px;
+                            font-weight: 600;
+                            color: root.theme_text_secondary;
+                            horizontal-alignment: center;
                         }
                     }
                 }

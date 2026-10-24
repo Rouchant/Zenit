@@ -52,6 +52,8 @@ export component MainWindow inherits Window {
     in-out property <bool> is_admin_authenticated: false;
     in-out property <bool> is_screensaver_active: false;
     in-out property <string> admin_error_msg: "";
+    in-out property <bool> show_toast: false;
+    in-out property <string> toast_message: "✓ Cambios aplicados y guardados con éxito";
 
     // Video Streams (libmpv)
     in-out property <image> video_frame;
@@ -359,5 +361,41 @@ export component MainWindow inherits Window {
         brand_name: root.brand_name;
         model_name: root.model_name;
         dismiss_screensaver => { root.dismiss_screensaver(); }
+    }
+
+    // 5. Toast Notification (elegante aviso flotante verde de confirmación)
+    if root.show_toast: Rectangle {
+        x: (parent.width - self.width) / 2;
+        y: 28px;
+        width: 390px;
+        height: 52px;
+        border-radius: 14px;
+        background: #022c22f2;
+        border-width: 1.5px;
+        border-color: #10b981;
+        clip: true;
+
+        HorizontalLayout {
+            padding-left: 20px;
+            padding-right: 20px;
+            spacing: 12px;
+            alignment: center;
+
+            Text {
+                text: "✓";
+                font-size: 20px;
+                font-weight: 900;
+                color: #34d399;
+                vertical-alignment: center;
+            }
+
+            Text {
+                text: root.toast_message;
+                font-size: 13px;
+                font-weight: 700;
+                color: #ecfdf5;
+                vertical-alignment: center;
+            }
+        }
     }
 }

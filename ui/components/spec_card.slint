@@ -69,21 +69,29 @@ export component SpecCard inherits Rectangle {
             wrap: word-wrap;
         }
 
-        // FOOTER: Metadata Badge (Pastilla inferior) & Subvalue
-        if root.tag != "" || root.subvalue != "": HorizontalLayout {
-            alignment: start;
-            spacing: 8px;
+        // SUBVALUE: Detalle técnico adicional (ej: 6 Núcleos / 12 Hilos)
+        if root.subvalue != "": Text {
+            text: root.subvalue;
+            font-size: 13px;
+            font-weight: 600;
+            color: root.text_secondary;
+            wrap: word-wrap;
+        }
 
-            if root.tag != "": Rectangle {
-                height: 24px;
+        // FOOTER: Metadata Badge (debajo del subvalue)
+        if root.tag != "": HorizontalLayout {
+            alignment: start;
+
+            Rectangle {
+                height: 22px;
                 background: root.card_border;
                 border-radius: 6px;
                 border-width: 1px;
                 border-color: root.accent_color;
 
                 HorizontalLayout {
-                    padding-left: 10px;
-                    padding-right: 10px;
+                    padding-left: 8px;
+                    padding-right: 8px;
                     alignment: center;
 
                     Text {
@@ -95,19 +103,6 @@ export component SpecCard inherits Rectangle {
                         vertical-alignment: center;
                         horizontal-alignment: center;
                     }
-                }
-            }
-
-            if root.subvalue != "": VerticalLayout {
-                alignment: center;
-
-                Text {
-                    text: root.subvalue;
-                    font-size: 13px;
-                    font-weight: 600;
-                    color: root.text_secondary;
-                    vertical-alignment: center;
-                    wrap: word-wrap;
                 }
             }
         }

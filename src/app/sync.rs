@@ -109,10 +109,12 @@ pub fn populate_ui_state(window: &MainWindow) {
     };
     window.set_retail_name(retail_display.clone().into());
 
-    let card_label = if !retail_display.is_empty() {
-        format!("Tarjeta {}", retail_display)
-    } else {
-        "Precio Tarjeta".to_string()
+    let card_label = match store_trim.to_lowercase().as_str() {
+        "falabella" => "CMR / Débito Falabella".to_string(),
+        "ripley" => "Tarjeta Banco Ripley".to_string(),
+        "paris" => "Tarjeta Cencosud".to_string(),
+        _ if !retail_display.is_empty() => format!("Tarjeta {}", retail_display),
+        _ => "Precio Tarjeta".to_string(),
     };
     window.set_card_label(card_label.into());
     window.set_card_price(format_clp_currency(card_trim).into());
