@@ -33,63 +33,34 @@ export component SpecCard inherits Rectangle {
         alignment: center;
         padding-left: 18px;
         padding-right: 18px;
-        padding-top: 12px;
-        padding-bottom: 12px;
-        spacing: 6px;
+        padding-top: 14px;
+        padding-bottom: 14px;
+        spacing: 8px;
 
+        // HEADER: Icon + Category (Respira libremente sin saturación)
         HorizontalLayout {
-            alignment: space-between;
+            spacing: 8px;
+            alignment: start;
 
-            HorizontalLayout {
-                spacing: 8px;
-                alignment: start;
-
-                if root.icon.width > 0: Image {
-                    source: root.icon;
-                    width: 30px;
-                    height: 30px;
-                    colorize: root.accent_color;
-                    vertical-alignment: center;
-                }
-
-                Text {
-                    text: root.category;
-                    font-size: 15px;
-                    font-weight: 800;
-                    color: root.category_color;
-                    letter-spacing: 0.8px;
-                    vertical-alignment: center;
-                }
+            if root.icon.width > 0: Image {
+                source: root.icon;
+                width: 28px;
+                height: 28px;
+                colorize: root.accent_color;
+                vertical-alignment: center;
             }
 
-            if root.tag != "": VerticalLayout {
-                alignment: center;
-
-                Rectangle {
-                    height: 24px;
-                    background: root.card_border;
-                    border-radius: 6px;
-                    border-width: 1px;
-                    border-color: root.accent_color;
-
-                    HorizontalLayout {
-                        padding-left: 10px;
-                        padding-right: 10px;
-                        alignment: center;
-
-                        Text {
-                            text: root.tag;
-                            font-size: 12px;
-                            font-weight: 800;
-                            color: root.accent_color;
-                            vertical-alignment: center;
-                            horizontal-alignment: center;
-                        }
-                    }
-                }
+            Text {
+                text: root.category;
+                font-size: 14px;
+                font-weight: 800;
+                color: root.category_color;
+                letter-spacing: 0.8px;
+                vertical-alignment: center;
             }
         }
 
+        // MAIN VALUE (Lectura rápida y prominente)
         Text {
             text: root.value;
             font-size: 19px;
@@ -98,11 +69,47 @@ export component SpecCard inherits Rectangle {
             wrap: word-wrap;
         }
 
-        if root.subvalue != "": Text {
-            text: root.subvalue;
-            font-size: 13px;
-            color: root.text_secondary;
-            wrap: word-wrap;
+        // FOOTER: Metadata Badge (Pastilla inferior) & Subvalue
+        if root.tag != "" || root.subvalue != "": HorizontalLayout {
+            alignment: start;
+            spacing: 8px;
+
+            if root.tag != "": Rectangle {
+                height: 24px;
+                background: root.card_border;
+                border-radius: 6px;
+                border-width: 1px;
+                border-color: root.accent_color;
+
+                HorizontalLayout {
+                    padding-left: 10px;
+                    padding-right: 10px;
+                    alignment: center;
+
+                    Text {
+                        text: root.tag;
+                        font-size: 11px;
+                        font-weight: 800;
+                        color: root.accent_color;
+                        letter-spacing: 0.5px;
+                        vertical-alignment: center;
+                        horizontal-alignment: center;
+                    }
+                }
+            }
+
+            if root.subvalue != "": VerticalLayout {
+                alignment: center;
+
+                Text {
+                    text: root.subvalue;
+                    font-size: 13px;
+                    font-weight: 600;
+                    color: root.text_secondary;
+                    vertical-alignment: center;
+                    wrap: word-wrap;
+                }
+            }
         }
     }
 }

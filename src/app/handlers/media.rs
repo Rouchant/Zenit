@@ -119,4 +119,20 @@ pub fn setup_media_handlers(main_window: &MainWindow) {
             }
         });
     });
+
+    // Store Logo: Pick custom image/logo file
+    let store_logo_handle = main_window.as_weak();
+    main_window.on_pick_store_logo_clicked(move || {
+        let wh = store_logo_handle.clone();
+        std::thread::spawn(move || {
+            if let Some(picked) = crate::domains::media::vault::pick_image_file() {
+                let _ = slint::invoke_from_event_loop(move || {
+                    if let Some(ui) = wh.upgrade() {
+                        ui.set_cfg_store_logo(picked.into());
+                    }
+                });
+            }
+        });
+    });
 }
+

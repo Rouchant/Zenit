@@ -40,7 +40,6 @@ export component MainWindow inherits Window {
         { category: "SISTEMA OPERATIVO", value: "Windows 11 Home", subvalue: "64-bit con licencia oficial", tag: "OFICIAL", icon: @image-url("../assets/ui/software.svg") }
     ];
     in-out property <[SpecItem]> right_specs: [
-        { category: "MARCA Y MODELO", value: "ASUS ROG STRIX G16", subvalue: "Marca: ASUS • Modelo: ROG Strix G16", tag: "ASUS", icon: @image-url("../assets/ui/laptop.svg") },
         { category: "PANTALLA", value: "16\" FHD+ 165Hz IPS", subvalue: "100% sRGB, 7ms, G-Sync", tag: "165Hz", icon: @image-url("../assets/ui/screen.svg") },
         { category: "GRÁFICOS", value: "NVIDIA GeForce RTX 4060", subvalue: "8 GB GDDR6 dedicados", tag: "RTX", icon: @image-url("../assets/ui/gpu.svg") },
         { category: "BATERÍA", value: "Batería 42 Wh", subvalue: "Batería de larga duración", tag: "Autonomía", icon: @image-url("../assets/ui/battery.svg") },
@@ -81,6 +80,7 @@ export component MainWindow inherits Window {
     in-out property <string> cfg_brand_logo: "";
     in-out property <string> cfg_model: "";
     in-out property <string> cfg_retail: "";
+    in-out property <string> cfg_store_logo: "";
     in-out property <string> cfg_card_price: "";
     in-out property <string> cfg_normal_price: "";
     in-out property <string> cfg_sku: "";
@@ -179,6 +179,7 @@ export component MainWindow inherits Window {
     callback pick_inactivity_3_clicked();
     callback pick_color_clicked(string);
     callback pick_brand_logo_clicked();
+    callback pick_store_logo_clicked();
 
     forward-focus: root_focus;
     root_focus := FocusScope {
@@ -263,6 +264,7 @@ export component MainWindow inherits Window {
         cfg_brand_logo <=> root.cfg_brand_logo;
         cfg_model <=> root.cfg_model;
         cfg_retail <=> root.cfg_retail;
+        cfg_store_logo <=> root.cfg_store_logo;
         cfg_card_price <=> root.cfg_card_price;
         cfg_normal_price <=> root.cfg_normal_price;
         cfg_sku <=> root.cfg_sku;
@@ -345,6 +347,7 @@ export component MainWindow inherits Window {
         pick_inactivity_2_clicked => { root.pick_inactivity_2_clicked(); }
         pick_inactivity_3_clicked => { root.pick_inactivity_3_clicked(); }
         pick_brand_logo_clicked => { root.pick_brand_logo_clicked(); }
+        pick_store_logo_clicked => { root.pick_store_logo_clicked(); }
         pick_color_clicked(field) => { root.pick_color_clicked(field); }
         hex_to_color(hex) => { return root.hex_to_color(hex); }
     }

@@ -107,18 +107,6 @@ pub fn build_left_specs(specs: &SystemSpecs, cfg: &AppConfig) -> Vec<DisplaySpec
 }
 
 pub fn build_right_specs(specs: &SystemSpecs, cfg: &AppConfig) -> Vec<DisplaySpecCard> {
-    let model_text = if !specs.model.is_empty() {
-        specs.model.clone()
-    } else {
-        "PC Showroom".to_string()
-    };
-
-    let brand_tag = if !specs.brand.is_empty() {
-        Some(specs.brand.clone())
-    } else {
-        None
-    };
-
     let battery_tag = match &cfg.badge_battery {
         Some(custom) => {
             let trimmed = custom.trim();
@@ -202,19 +190,13 @@ pub fn build_right_specs(specs: &SystemSpecs, cfg: &AppConfig) -> Vec<DisplaySpe
         cfg.other_specs.clone()
     } else if !specs.others.trim().is_empty() {
         specs.others.clone()
-    } else {
+    } else if !cfg.other_specs.trim().is_empty() {
         cfg.other_specs.clone()
+    } else {
+        "Wi-Fi 6 / Bluetooth / Teclado".to_string()
     };
 
-    let mut right_specs = vec![
-        DisplaySpecCard {
-            id: "card-model".to_string(),
-            label: "Marca y Modelo".to_string(),
-            value: model_text,
-            sub_value: None,
-            tag: brand_tag,
-            icon: "assets/ui/laptop.svg".to_string(),
-        },
+    vec![
         DisplaySpecCard {
             id: "card-display".to_string(),
             label: "Pantalla".to_string(),
@@ -239,18 +221,13 @@ pub fn build_right_specs(specs: &SystemSpecs, cfg: &AppConfig) -> Vec<DisplaySpe
             tag: battery_tag,
             icon: "assets/ui/battery.svg".to_string(),
         },
-    ];
-
-    if !others_text.trim().is_empty() {
-        right_specs.push(DisplaySpecCard {
+        DisplaySpecCard {
             id: "card-others".to_string(),
             label: "Otros y Conectividad".to_string(),
             value: others_text,
             sub_value: None,
             tag: others_tag,
             icon: "assets/ui/features.svg".to_string(),
-        });
-    }
-
-    right_specs
+        },
+    ]
 }

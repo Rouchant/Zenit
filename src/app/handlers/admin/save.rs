@@ -52,6 +52,12 @@ pub fn setup_save_handlers(
                     None
                 };
                 cfg.store_theme = retail.to_string();
+                let store_logo_str = ui.get_cfg_store_logo().to_string();
+                cfg.store_logo_override = if !store_logo_str.trim().is_empty() {
+                    Some(store_logo_str.trim().to_string())
+                } else {
+                    None
+                };
                 cfg.price_card = crate::app::sync::format_price_input(&card_p);
                 cfg.price_all_methods = crate::app::sync::format_price_input(&normal_p);
                 cfg.sku = sku.to_string();

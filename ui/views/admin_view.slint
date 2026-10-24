@@ -1,4 +1,4 @@
-import { Button, LineEdit, ScrollView } from "std-widgets.slint";
+import { Button, LineEdit, ScrollView, ComboBox } from "std-widgets.slint";
 import { VaultVideoItem } from "../theme.slint";
 
 component ColorPickerInput inherits VerticalLayout {
@@ -62,9 +62,18 @@ export component AdminView inherits Rectangle {
     in-out property <string> cfg_brand_logo: "";
     in-out property <string> cfg_model: "";
     in-out property <string> cfg_retail: "";
+    in-out property <string> cfg_store_logo: "";
     in-out property <string> cfg_card_price: "";
     in-out property <string> cfg_normal_price: "";
     in-out property <string> cfg_sku: "";
+    property <bool> force_show_custom_retail: false;
+    property <bool> is_custom_retail_active: (root.cfg_retail != "" && root.cfg_retail != "Falabella" && root.cfg_retail != "falabella" && root.cfg_retail != "Ripley" && root.cfg_retail != "ripley" && root.cfg_retail != "Paris" && root.cfg_retail != "paris") || (root.cfg_store_logo != "" && root.cfg_store_logo != "assets/logos/falabella.svg" && root.cfg_store_logo != "assets/logos/ripley.svg" && root.cfg_store_logo != "assets/logos/paris.png");
+    property <bool> show_custom_retail: root.force_show_custom_retail || root.is_custom_retail_active;
+    property <bool> is_preset_retail: (root.cfg_retail == "Falabella" || root.cfg_retail == "falabella" || root.cfg_retail == "Ripley" || root.cfg_retail == "ripley" || root.cfg_retail == "Paris" || root.cfg_retail == "paris");
+
+    property <bool> force_show_custom_brand_logo: false;
+    property <bool> is_custom_brand_logo_active: (root.cfg_brand_logo != "" && root.cfg_brand_logo != "assets/logos/acer.svg" && root.cfg_brand_logo != "assets/logos/asus.svg" && root.cfg_brand_logo != "assets/logos/hp.svg" && root.cfg_brand_logo != "assets/logos/lenovo.svg" && root.cfg_brand_logo != "assets/logos/samsung.svg");
+    property <bool> show_custom_brand_logo: root.force_show_custom_brand_logo || root.is_custom_brand_logo_active;
 
     // Tab Especificaciones
     in-out property <string> cfg_cpu: "";
@@ -144,6 +153,7 @@ export component AdminView inherits Rectangle {
     callback pick_inactivity_3_clicked();
     callback pick_color_clicked(string);
     callback pick_brand_logo_clicked();
+    callback pick_store_logo_clicked();
     pure callback hex_to_color(string) -> color;
 
     width: 100%;
@@ -422,146 +432,80 @@ export component AdminView inherits Rectangle {
                             HorizontalLayout {
                                 alignment: space-between;
                                 Text { text: "Logo de Marca (aparece arriba del video):"; font-size: 11px; color: #cbd5e1; }
-                                Text { text: "Lista rápida o añadir archivo personalizado:"; font-size: 11px; color: #38bdf8; }
+                                Text { text: "Selecciona una marca de la lista o añade un archivo:"; font-size: 11px; color: #38bdf8; }
                             }
 
-                            // Preset chips: Acer, ASUS, HP, Lenovo, Samsung, Auto
+                            // Selector desplegable y explorador de archivos
                             HorizontalLayout {
-                                spacing: 8px;
-                                alignment: start;
+                                spacing: 10px;
 
-                                Rectangle {
-                                    height: 26px;
-                                    background: (root.cfg_brand_logo == "assets/logos/acer.svg" || (root.cfg_brand_logo == "" && root.cfg_brand == "Acer")) ? #0284c7 : #1e293b;
-                                    border-radius: 6px;
-                                    border-width: 1px;
-                                    border-color: (root.cfg_brand_logo == "assets/logos/acer.svg" || (root.cfg_brand_logo == "" && root.cfg_brand == "Acer")) ? #38bdf8 : #475569;
-                                    TouchArea {
-                                        mouse-cursor: pointer;
-                                        clicked => {
-                                            root.cfg_brand_logo = "assets/logos/acer.svg";
-                                        }
-                                    }
-                                    HorizontalLayout {
-                                        padding-left: 10px;
-                                        padding-right: 10px;
-                                        alignment: center;
-                                        Text { text: "Acer"; font-size: 11px; font-weight: 700; color: #F5F5F5; vertical-alignment: center; }
-                                    }
-                                }
-
-                                Rectangle {
-                                    height: 26px;
-                                    background: (root.cfg_brand_logo == "assets/logos/asus.svg" || (root.cfg_brand_logo == "" && root.cfg_brand == "ASUS")) ? #0284c7 : #1e293b;
-                                    border-radius: 6px;
-                                    border-width: 1px;
-                                    border-color: (root.cfg_brand_logo == "assets/logos/asus.svg" || (root.cfg_brand_logo == "" && root.cfg_brand == "ASUS")) ? #38bdf8 : #475569;
-                                    TouchArea {
-                                        mouse-cursor: pointer;
-                                        clicked => {
-                                            root.cfg_brand_logo = "assets/logos/asus.svg";
-                                        }
-                                    }
-                                    HorizontalLayout {
-                                        padding-left: 10px;
-                                        padding-right: 10px;
-                                        alignment: center;
-                                        Text { text: "ASUS"; font-size: 11px; font-weight: 700; color: #F5F5F5; vertical-alignment: center; }
-                                    }
-                                }
-
-                                Rectangle {
-                                    height: 26px;
-                                    background: (root.cfg_brand_logo == "assets/logos/hp.svg" || (root.cfg_brand_logo == "" && root.cfg_brand == "HP")) ? #0284c7 : #1e293b;
-                                    border-radius: 6px;
-                                    border-width: 1px;
-                                    border-color: (root.cfg_brand_logo == "assets/logos/hp.svg" || (root.cfg_brand_logo == "" && root.cfg_brand == "HP")) ? #38bdf8 : #475569;
-                                    TouchArea {
-                                        mouse-cursor: pointer;
-                                        clicked => {
-                                            root.cfg_brand_logo = "assets/logos/hp.svg";
-                                        }
-                                    }
-                                    HorizontalLayout {
-                                        padding-left: 10px;
-                                        padding-right: 10px;
-                                        alignment: center;
-                                        Text { text: "HP"; font-size: 11px; font-weight: 700; color: #F5F5F5; vertical-alignment: center; }
-                                    }
-                                }
-
-                                Rectangle {
-                                    height: 26px;
-                                    background: (root.cfg_brand_logo == "assets/logos/lenovo.svg" || (root.cfg_brand_logo == "" && root.cfg_brand == "Lenovo")) ? #0284c7 : #1e293b;
-                                    border-radius: 6px;
-                                    border-width: 1px;
-                                    border-color: (root.cfg_brand_logo == "assets/logos/lenovo.svg" || (root.cfg_brand_logo == "" && root.cfg_brand == "Lenovo")) ? #38bdf8 : #475569;
-                                    TouchArea {
-                                        mouse-cursor: pointer;
-                                        clicked => {
-                                            root.cfg_brand_logo = "assets/logos/lenovo.svg";
-                                        }
-                                    }
-                                    HorizontalLayout {
-                                        padding-left: 10px;
-                                        padding-right: 10px;
-                                        alignment: center;
-                                        Text { text: "Lenovo"; font-size: 11px; font-weight: 700; color: #F5F5F5; vertical-alignment: center; }
-                                    }
-                                }
-
-                                Rectangle {
-                                    height: 26px;
-                                    background: (root.cfg_brand_logo == "assets/logos/samsung.svg" || (root.cfg_brand_logo == "" && root.cfg_brand == "Samsung")) ? #0284c7 : #1e293b;
-                                    border-radius: 6px;
-                                    border-width: 1px;
-                                    border-color: (root.cfg_brand_logo == "assets/logos/samsung.svg" || (root.cfg_brand_logo == "" && root.cfg_brand == "Samsung")) ? #38bdf8 : #475569;
-                                    TouchArea {
-                                        mouse-cursor: pointer;
-                                        clicked => {
-                                            root.cfg_brand_logo = "assets/logos/samsung.svg";
-                                        }
-                                    }
-                                    HorizontalLayout {
-                                        padding-left: 10px;
-                                        padding-right: 10px;
-                                        alignment: center;
-                                        Text { text: "Samsung"; font-size: 11px; font-weight: 700; color: #F5F5F5; vertical-alignment: center; }
-                                    }
-                                }
-
-                                Rectangle {
-                                    height: 26px;
-                                    background: (root.cfg_brand_logo == "" && root.cfg_brand != "Acer" && root.cfg_brand != "ASUS" && root.cfg_brand != "HP" && root.cfg_brand != "Lenovo" && root.cfg_brand != "Samsung") ? #0284c7 : #1e293b;
-                                    border-radius: 6px;
-                                    border-width: 1px;
-                                    border-color: (root.cfg_brand_logo == "" && root.cfg_brand != "Acer" && root.cfg_brand != "ASUS" && root.cfg_brand != "HP" && root.cfg_brand != "Lenovo" && root.cfg_brand != "Samsung") ? #38bdf8 : #475569;
-                                    TouchArea {
-                                        mouse-cursor: pointer;
-                                        clicked => {
+                                ComboBox {
+                                    width: root.show_custom_brand_logo ? 190px : 260px;
+                                    height: 32px;
+                                    model: [
+                                        "Auto (Hardware)",
+                                        "Acer",
+                                        "ASUS",
+                                        "HP",
+                                        "Lenovo",
+                                        "Samsung",
+                                        "Personalizado..."
+                                    ];
+                                    current-value: (root.cfg_brand_logo == "assets/logos/acer.svg" || (root.cfg_brand_logo == "" && root.cfg_brand == "Acer")) ? "Acer" :
+                                                   (root.cfg_brand_logo == "assets/logos/asus.svg" || (root.cfg_brand_logo == "" && root.cfg_brand == "ASUS")) ? "ASUS" :
+                                                   (root.cfg_brand_logo == "assets/logos/hp.svg" || (root.cfg_brand_logo == "" && root.cfg_brand == "HP")) ? "HP" :
+                                                   (root.cfg_brand_logo == "assets/logos/lenovo.svg" || (root.cfg_brand_logo == "" && root.cfg_brand == "Lenovo")) ? "Lenovo" :
+                                                   (root.cfg_brand_logo == "assets/logos/samsung.svg" || (root.cfg_brand_logo == "" && root.cfg_brand == "Samsung")) ? "Samsung" :
+                                                   (root.cfg_brand_logo == "") ? "Auto (Hardware)" :
+                                                   "Personalizado...";
+                                    selected(val) => {
+                                        if val == "Auto (Hardware)" {
                                             root.cfg_brand_logo = "";
+                                            root.force_show_custom_brand_logo = false;
+                                        } else if val == "Acer" {
+                                            root.cfg_brand_logo = "assets/logos/acer.svg";
+                                            root.force_show_custom_brand_logo = false;
+                                        } else if val == "ASUS" {
+                                            root.cfg_brand_logo = "assets/logos/asus.svg";
+                                            root.force_show_custom_brand_logo = false;
+                                        } else if val == "HP" {
+                                            root.cfg_brand_logo = "assets/logos/hp.svg";
+                                            root.force_show_custom_brand_logo = false;
+                                        } else if val == "Lenovo" {
+                                            root.cfg_brand_logo = "assets/logos/lenovo.svg";
+                                            root.force_show_custom_brand_logo = false;
+                                        } else if val == "Samsung" {
+                                            root.cfg_brand_logo = "assets/logos/samsung.svg";
+                                            root.force_show_custom_brand_logo = false;
+                                        } else if val == "Personalizado..." {
+                                            root.force_show_custom_brand_logo = true;
+                                            root.pick_brand_logo_clicked();
                                         }
                                     }
-                                    HorizontalLayout {
-                                        padding-left: 10px;
-                                        padding-right: 10px;
-                                        alignment: center;
-                                        Text { text: "Auto"; font-size: 11px; font-weight: 700; color: #cbd5e1; vertical-alignment: center; }
+                                }
+
+                                if !root.show_custom_brand_logo: HorizontalLayout {
+                                    horizontal-stretch: 1;
+                                    alignment: start;
+                                    spacing: 8px;
+                                    Text {
+                                        text: (root.cfg_brand_logo == "" ? "✓ Logo detectado automáticamente por hardware" : "✓ Logo oficial aplicado");
+                                        font-size: 11px;
+                                        color: #38bdf8;
+                                        vertical-alignment: center;
                                     }
                                 }
-                            }
 
-                            // Path input and file picker button
-                            HorizontalLayout {
-                                spacing: 8px;
-                                LineEdit {
+                                if root.show_custom_brand_logo: LineEdit {
                                     horizontal-stretch: 1;
+                                    height: 32px;
                                     text: root.cfg_brand_logo;
-                                    placeholder-text: "assets/logos/lenovo.svg o archivo personalizado SVG/PNG";
+                                    placeholder-text: "assets/logos/... o ruta de imagen personalizada (SVG, PNG)";
                                     edited => { root.cfg_brand_logo = self.text; }
                                 }
-                                Rectangle {
-                                    width: 125px;
+
+                                if root.show_custom_brand_logo: Rectangle {
+                                    width: 130px;
                                     height: 32px;
                                     background: #1e293b;
                                     border-radius: 6px;
@@ -625,28 +569,170 @@ export component AdminView inherits Rectangle {
                             }
                         }
 
-                        HorizontalLayout {
-                            spacing: 12px;
-                            VerticalLayout {
-                                horizontal-stretch: 1;
-                                spacing: 4px;
-                                Text { text: "Código SKU:"; font-size: 12px; color: #cbd5e1; }
-                                LineEdit {
-                                    text: root.cfg_sku;
-                                    placeholder-text: "000000...";
-                                    font-italic: self.text == "";
-                                    edited => { root.cfg_sku = self.text; }
+                        // Tienda / Retail y Logo de Tienda
+                        VerticalLayout {
+                            spacing: 8px;
+
+                            HorizontalLayout {
+                                alignment: space-between;
+                                Text {
+                                    text: "Tienda / Retail y Logo:";
+                                    font-size: 12px;
+                                    font-weight: 700;
+                                    color: #cbd5e1;
+                                }
+                                Text {
+                                    text: "Selecciona una tienda de la lista desplegable o personaliza:";
+                                    font-size: 11px;
+                                    color: #38bdf8;
                                 }
                             }
-                            VerticalLayout {
-                                horizontal-stretch: 1;
-                                spacing: 4px;
-                                Text { text: "Tienda / Retail:"; font-size: 12px; color: #cbd5e1; }
+
+                            // Fila 1: Selector Tienda + (si preset: badge confirmación / si custom: Nombre Tienda) + Código SKU
+                            HorizontalLayout {
+                                spacing: 10px;
+
+                                VerticalLayout {
+                                    width: root.show_custom_retail ? 180px : 260px;
+                                    spacing: 4px;
+                                    Text { text: "Seleccionar Tienda:"; font-size: 11px; color: #94a3b8; }
+                                    ComboBox {
+                                        height: 32px;
+                                        model: [
+                                            "Predeterminada",
+                                            "Falabella",
+                                            "Ripley",
+                                            "Paris",
+                                            "Otra Tienda..."
+                                        ];
+                                        current-value: (root.cfg_retail == "falabella" || root.cfg_retail == "Falabella" || root.cfg_store_logo == "assets/logos/falabella.svg") ? "Falabella" :
+                                                       (root.cfg_retail == "ripley" || root.cfg_retail == "Ripley" || root.cfg_store_logo == "assets/logos/ripley.svg") ? "Ripley" :
+                                                       (root.cfg_retail == "paris" || root.cfg_retail == "Paris" || root.cfg_store_logo == "assets/logos/paris.png" || root.cfg_store_logo == "assets/logos/paris.svg") ? "Paris" :
+                                                       (root.cfg_retail == "" && root.cfg_store_logo == "") ? "Predeterminada" :
+                                                       "Otra Tienda...";
+                                        selected(val) => {
+                                            if val == "Predeterminada" {
+                                                root.cfg_retail = "";
+                                                root.cfg_store_logo = "";
+                                                root.force_show_custom_retail = false;
+                                            } else if val == "Falabella" {
+                                                root.cfg_retail = "Falabella";
+                                                root.cfg_store_logo = "assets/logos/falabella.svg";
+                                                root.force_show_custom_retail = false;
+                                            } else if val == "Ripley" {
+                                                root.cfg_retail = "Ripley";
+                                                root.cfg_store_logo = "assets/logos/ripley.svg";
+                                                root.force_show_custom_retail = false;
+                                            } else if val == "Paris" {
+                                                root.cfg_retail = "Paris";
+                                                root.cfg_store_logo = "assets/logos/paris.png";
+                                                root.force_show_custom_retail = false;
+                                            } else if val == "Otra Tienda..." {
+                                                root.force_show_custom_retail = true;
+                                                if root.is_preset_retail {
+                                                    root.cfg_retail = "";
+                                                    root.cfg_store_logo = "";
+                                                }
+                                                root.pick_store_logo_clicked();
+                                            }
+                                        }
+                                    }
+                                }
+
+                                if !root.show_custom_retail: VerticalLayout {
+                                    horizontal-stretch: 1;
+                                    alignment: center;
+                                    spacing: 4px;
+                                    if root.is_preset_retail: HorizontalLayout {
+                                        spacing: 6px;
+                                        Text {
+                                            text: "✓ Logotipo oficial de " + root.cfg_retail + " aplicado automáticamente";
+                                            font-size: 11px;
+                                            font-weight: 600;
+                                            color: #38bdf8;
+                                            vertical-alignment: center;
+                                        }
+                                        TouchArea {
+                                            mouse-cursor: pointer;
+                                            clicked => {
+                                                root.force_show_custom_retail = true;
+                                            }
+                                            Text {
+                                                text: "(Personalizar logo...)";
+                                                font-size: 10px;
+                                                color: #94a3b8;
+                                                vertical-alignment: center;
+                                            }
+                                        }
+                                    }
+                                    if !root.is_preset_retail: Text {
+                                        text: "Sin retail asignado (showroom estándar)";
+                                        font-size: 11px;
+                                        color: #64748b;
+                                        vertical-alignment: center;
+                                    }
+                                }
+
+                                if root.show_custom_retail: VerticalLayout {
+                                    horizontal-stretch: 1;
+                                    spacing: 4px;
+                                    Text { text: "Nombre de Tienda (Personalizado):"; font-size: 11px; color: #94a3b8; }
+                                    LineEdit {
+                                        height: 32px;
+                                        text: root.cfg_retail;
+                                        placeholder-text: "Ej. PC Factory, Lider...";
+                                        font-italic: self.text == "";
+                                        edited => { root.cfg_retail = self.text; }
+                                    }
+                                }
+
+                                VerticalLayout {
+                                    width: 180px;
+                                    spacing: 4px;
+                                    Text { text: "Código SKU:"; font-size: 11px; color: #94a3b8; }
+                                    LineEdit {
+                                        height: 32px;
+                                        text: root.cfg_sku;
+                                        placeholder-text: "000000...";
+                                        font-italic: self.text == "";
+                                        edited => { root.cfg_sku = self.text; }
+                                    }
+                                }
+                            }
+
+                            // Fila 2: Logo de Tienda (solo cuando está en modo personalizado)
+                            if root.show_custom_retail: HorizontalLayout {
+                                spacing: 8px;
                                 LineEdit {
-                                    text: root.cfg_retail;
-                                    placeholder-text: "tienda...";
-                                    font-italic: self.text == "";
-                                    edited => { root.cfg_retail = self.text; }
+                                    horizontal-stretch: 1;
+                                    height: 32px;
+                                    text: root.cfg_store_logo;
+                                    placeholder-text: "Ruta de logo SVG/PNG personalizado...";
+                                    edited => { root.cfg_store_logo = self.text; }
+                                }
+                                Rectangle {
+                                    width: 165px;
+                                    height: 32px;
+                                    background: #1e293b;
+                                    border-radius: 6px;
+                                    border-width: 1px;
+                                    border-color: #475569;
+                                    touch_pick_store_logo := TouchArea {
+                                        mouse-cursor: pointer;
+                                        clicked => { root.pick_store_logo_clicked(); }
+                                    }
+                                    states [
+                                        hover when touch_pick_store_logo.has-hover: {
+                                            background: #0284c7;
+                                            border-color: #38bdf8;
+                                        }
+                                    ]
+                                    HorizontalLayout {
+                                        alignment: center;
+                                        spacing: 6px;
+                                        Text { text: "📁"; font-size: 13px; vertical-alignment: center; }
+                                        Text { text: "Subir Logo Tienda..."; font-size: 11px; font-weight: 700; color: #F5F5F5; vertical-alignment: center; }
+                                    }
                                 }
                             }
                         }
@@ -729,7 +815,7 @@ export component AdminView inherits Rectangle {
                                 spacing: 3px;
                                 HorizontalLayout {
                                     Text { text: "Procesador (CPU):"; font-size: 11px; color: #cbd5e1; horizontal-stretch: 1; }
-                                    Text { text: "Badge:"; font-size: 11px; color: #94a3b8; width: 80px; }
+                                    Text { text: "Badge:"; font-size: 11px; color: #94a3b8; width: 130px; }
                                 }
                                 HorizontalLayout {
                                     spacing: 6px;
@@ -741,8 +827,9 @@ export component AdminView inherits Rectangle {
                                         edited => { root.cfg_cpu = self.text; }
                                     }
                                     LineEdit {
-                                        width: 80px;
+                                        width: 130px;
                                         text: root.cfg_badge_cpu;
+                                        placeholder-text: "Ej: 13va Gen";
                                         font-italic: self.text == "";
                                         edited => { root.cfg_badge_cpu = self.text; }
                                     }
@@ -753,7 +840,7 @@ export component AdminView inherits Rectangle {
                                 spacing: 3px;
                                 HorizontalLayout {
                                     Text { text: "Memoria RAM:"; font-size: 11px; color: #cbd5e1; horizontal-stretch: 1; }
-                                    Text { text: "Badge:"; font-size: 11px; color: #94a3b8; width: 80px; }
+                                    Text { text: "Badge:"; font-size: 11px; color: #94a3b8; width: 130px; }
                                 }
                                 HorizontalLayout {
                                     spacing: 6px;
@@ -765,8 +852,9 @@ export component AdminView inherits Rectangle {
                                         edited => { root.cfg_ram = self.text; }
                                     }
                                     LineEdit {
-                                        width: 80px;
+                                        width: 130px;
                                         text: root.cfg_badge_ram;
+                                        placeholder-text: "Ej: DDR5";
                                         font-italic: self.text == "";
                                         edited => { root.cfg_badge_ram = self.text; }
                                     }
@@ -781,7 +869,7 @@ export component AdminView inherits Rectangle {
                                 spacing: 3px;
                                 HorizontalLayout {
                                     Text { text: "Almacenamiento (SSD):"; font-size: 11px; color: #cbd5e1; horizontal-stretch: 1; }
-                                    Text { text: "Badge:"; font-size: 11px; color: #94a3b8; width: 80px; }
+                                    Text { text: "Badge:"; font-size: 11px; color: #94a3b8; width: 130px; }
                                 }
                                 HorizontalLayout {
                                     spacing: 6px;
@@ -793,8 +881,9 @@ export component AdminView inherits Rectangle {
                                         edited => { root.cfg_storage = self.text; }
                                     }
                                     LineEdit {
-                                        width: 80px;
+                                        width: 130px;
                                         text: root.cfg_badge_storage;
+                                        placeholder-text: "Ej: NVMe";
                                         font-italic: self.text == "";
                                         edited => { root.cfg_badge_storage = self.text; }
                                     }
@@ -805,7 +894,7 @@ export component AdminView inherits Rectangle {
                                 spacing: 3px;
                                 HorizontalLayout {
                                     Text { text: "Tarjeta Gráfica (GPU):"; font-size: 11px; color: #cbd5e1; horizontal-stretch: 1; }
-                                    Text { text: "Badge:"; font-size: 11px; color: #94a3b8; width: 80px; }
+                                    Text { text: "Badge:"; font-size: 11px; color: #94a3b8; width: 130px; }
                                 }
                                 HorizontalLayout {
                                     spacing: 6px;
@@ -817,8 +906,9 @@ export component AdminView inherits Rectangle {
                                         edited => { root.cfg_gpu = self.text; }
                                     }
                                     LineEdit {
-                                        width: 80px;
+                                        width: 130px;
                                         text: root.cfg_badge_gpu;
+                                        placeholder-text: "Ej: RTX / 140W";
                                         font-italic: self.text == "";
                                         edited => { root.cfg_badge_gpu = self.text; }
                                     }
@@ -833,7 +923,7 @@ export component AdminView inherits Rectangle {
                                 spacing: 3px;
                                 HorizontalLayout {
                                     Text { text: "Pantalla:"; font-size: 11px; color: #cbd5e1; horizontal-stretch: 1; }
-                                    Text { text: "Badge:"; font-size: 11px; color: #94a3b8; width: 80px; }
+                                    Text { text: "Badge:"; font-size: 11px; color: #94a3b8; width: 130px; }
                                 }
                                 HorizontalLayout {
                                     spacing: 6px;
@@ -845,8 +935,9 @@ export component AdminView inherits Rectangle {
                                         edited => { root.cfg_display = self.text; }
                                     }
                                     LineEdit {
-                                        width: 80px;
+                                        width: 130px;
                                         text: root.cfg_badge_display;
+                                        placeholder-text: "Ej: OLED 120Hz";
                                         font-italic: self.text == "";
                                         edited => { root.cfg_badge_display = self.text; }
                                     }
@@ -857,7 +948,7 @@ export component AdminView inherits Rectangle {
                                 spacing: 3px;
                                 HorizontalLayout {
                                     Text { text: "Sistema Operativo:"; font-size: 11px; color: #cbd5e1; horizontal-stretch: 1; }
-                                    Text { text: "Badge:"; font-size: 11px; color: #94a3b8; width: 80px; }
+                                    Text { text: "Badge:"; font-size: 11px; color: #94a3b8; width: 130px; }
                                 }
                                 HorizontalLayout {
                                     spacing: 6px;
@@ -869,8 +960,9 @@ export component AdminView inherits Rectangle {
                                         edited => { root.cfg_os = self.text; }
                                     }
                                     LineEdit {
-                                        width: 80px;
+                                        width: 130px;
                                         text: root.cfg_badge_os;
+                                        placeholder-text: "Ej: OFICIAL";
                                         font-italic: self.text == "";
                                         edited => { root.cfg_badge_os = self.text; }
                                     }
@@ -885,7 +977,7 @@ export component AdminView inherits Rectangle {
                                 spacing: 3px;
                                 HorizontalLayout {
                                     Text { text: "Duración Batería (Horas):"; font-size: 11px; color: #cbd5e1; horizontal-stretch: 1; }
-                                    Text { text: "Badge:"; font-size: 11px; color: #94a3b8; width: 80px; }
+                                    Text { text: "Badge:"; font-size: 11px; color: #94a3b8; width: 130px; }
                                 }
                                 HorizontalLayout {
                                     spacing: 6px;
@@ -897,8 +989,9 @@ export component AdminView inherits Rectangle {
                                         edited => { root.cfg_battery = self.text; }
                                     }
                                     LineEdit {
-                                        width: 80px;
+                                        width: 130px;
                                         text: root.cfg_badge_battery;
+                                        placeholder-text: "Ej: Autonomía";
                                         font-italic: self.text == "";
                                         edited => { root.cfg_badge_battery = self.text; }
                                     }
@@ -909,7 +1002,7 @@ export component AdminView inherits Rectangle {
                                 spacing: 3px;
                                 HorizontalLayout {
                                     Text { text: "Otros / Conectividad:"; font-size: 11px; color: #cbd5e1; horizontal-stretch: 1; }
-                                    Text { text: "Badge:"; font-size: 11px; color: #94a3b8; width: 80px; }
+                                    Text { text: "Badge:"; font-size: 11px; color: #94a3b8; width: 130px; }
                                 }
                                 HorizontalLayout {
                                     spacing: 6px;
@@ -921,8 +1014,9 @@ export component AdminView inherits Rectangle {
                                         edited => { root.cfg_others = self.text; }
                                     }
                                     LineEdit {
-                                        width: 80px;
+                                        width: 130px;
                                         text: root.cfg_badge_others;
+                                        placeholder-text: "Ej: Wi-Fi 6E";
                                         font-italic: self.text == "";
                                         edited => { root.cfg_badge_others = self.text; }
                                     }
@@ -983,7 +1077,6 @@ export component AdminView inherits Rectangle {
                             VerticalLayout {
                                 horizontal-stretch: 1;
                                 spacing: 4px;
-                                alignment: start;
                                 Text { text: "Video Central Landing:"; font-size: 11px; color: #cbd5e1; }
                                 HorizontalLayout {
                                     spacing: 6px;
@@ -995,6 +1088,7 @@ export component AdminView inherits Rectangle {
                                         border-radius: 6px;
                                         border-width: 1px;
                                         border-color: touch_slot_central.has-hover ? #38bdf8 : #475569;
+                                        clip: true;
 
                                         touch_slot_central := TouchArea {
                                             mouse-cursor: pointer;
@@ -1007,31 +1101,27 @@ export component AdminView inherits Rectangle {
                                             padding-left: 10px;
                                             padding-right: 8px;
                                             spacing: 6px;
-                                            alignment: space-between;
 
-                                            HorizontalLayout {
-                                                spacing: 6px;
-                                                alignment: start;
+                                            Text {
+                                                text: "🎬";
+                                                font-size: 12px;
+                                                vertical-alignment: center;
+                                                horizontal-stretch: 0;
+                                            }
+                                            Text {
+                                                text: root.cfg_central_video != "" ? root.cfg_central_video : "assets/videos/generic/landing-generic.mp4";
+                                                font-size: 11px;
+                                                color: root.cfg_central_video != "" ? #F5F5F5 : #64748b;
+                                                overflow: elide;
+                                                vertical-alignment: center;
                                                 horizontal-stretch: 1;
-
-                                                Text {
-                                                    text: "🎬";
-                                                    font-size: 12px;
-                                                    vertical-alignment: center;
-                                                }
-                                                Text {
-                                                    text: root.cfg_central_video != "" ? root.cfg_central_video : "assets/videos/landing2.mp4";
-                                                    font-size: 11px;
-                                                    color: root.cfg_central_video != "" ? #F5F5F5 : #64748b;
-                                                    overflow: elide;
-                                                    vertical-alignment: center;
-                                                }
                                             }
 
                                             if root.cfg_central_video != "": Rectangle {
                                                 width: 20px;
                                                 height: 20px;
                                                 border-radius: 10px;
+                                                horizontal-stretch: 0;
                                                 background: touch_clear_central.has-hover ? #ef444433 : #00000000;
 
                                                 touch_clear_central := TouchArea {
@@ -1055,6 +1145,7 @@ export component AdminView inherits Rectangle {
                                     Rectangle {
                                         width: 36px;
                                         height: 34px;
+                                        horizontal-stretch: 0;
                                         background: #1e293b;
                                         border-radius: 6px;
                                         border-width: 1px;
@@ -1102,10 +1193,11 @@ export component AdminView inherits Rectangle {
 
                         HorizontalLayout {
                             spacing: 10px;
+
+                            // Slot 1
                             VerticalLayout {
                                 horizontal-stretch: 1;
                                 spacing: 4px;
-                                alignment: start;
                                 Text { text: "Video Inactividad #1:"; font-size: 10px; color: #94a3b8; }
                                 HorizontalLayout {
                                     spacing: 6px;
@@ -1117,6 +1209,7 @@ export component AdminView inherits Rectangle {
                                         border-radius: 6px;
                                         border-width: 1px;
                                         border-color: touch_slot1.has-hover ? #38bdf8 : #475569;
+                                        clip: true;
 
                                         touch_slot1 := TouchArea {
                                             mouse-cursor: pointer;
@@ -1129,31 +1222,27 @@ export component AdminView inherits Rectangle {
                                             padding-left: 10px;
                                             padding-right: 6px;
                                             spacing: 6px;
-                                            alignment: space-between;
 
-                                            HorizontalLayout {
-                                                spacing: 6px;
-                                                alignment: start;
+                                            Text {
+                                                text: "🎬";
+                                                font-size: 11px;
+                                                vertical-alignment: center;
+                                                horizontal-stretch: 0;
+                                            }
+                                            Text {
+                                                text: root.cfg_inactivity_video_1 != "" ? root.cfg_inactivity_video_1 : "Toca para elegir video...";
+                                                font-size: 11px;
+                                                color: root.cfg_inactivity_video_1 != "" ? #F5F5F5 : #64748b;
+                                                overflow: elide;
+                                                vertical-alignment: center;
                                                 horizontal-stretch: 1;
-
-                                                Text {
-                                                    text: "🎬";
-                                                    font-size: 11px;
-                                                    vertical-alignment: center;
-                                                }
-                                                Text {
-                                                    text: root.cfg_inactivity_video_1 != "" ? root.cfg_inactivity_video_1 : "Toca para elegir video...";
-                                                    font-size: 11px;
-                                                    color: root.cfg_inactivity_video_1 != "" ? #F5F5F5 : #64748b;
-                                                    overflow: elide;
-                                                    vertical-alignment: center;
-                                                }
                                             }
 
                                             if root.cfg_inactivity_video_1 != "": Rectangle {
                                                 width: 20px;
                                                 height: 20px;
                                                 border-radius: 10px;
+                                                horizontal-stretch: 0;
                                                 background: touch_clear1.has-hover ? #ef444433 : #00000000;
 
                                                 touch_clear1 := TouchArea {
@@ -1177,6 +1266,7 @@ export component AdminView inherits Rectangle {
                                     Rectangle {
                                         width: 34px;
                                         height: 34px;
+                                        horizontal-stretch: 0;
                                         background: #1e293b;
                                         border-radius: 6px;
                                         border-width: 1px;
@@ -1200,10 +1290,11 @@ export component AdminView inherits Rectangle {
                                     }
                                 }
                             }
+
+                            // Slot 2
                             VerticalLayout {
                                 horizontal-stretch: 1;
                                 spacing: 4px;
-                                alignment: start;
                                 Text { text: "Video Inactividad #2:"; font-size: 10px; color: #94a3b8; }
                                 HorizontalLayout {
                                     spacing: 6px;
@@ -1215,6 +1306,7 @@ export component AdminView inherits Rectangle {
                                         border-radius: 6px;
                                         border-width: 1px;
                                         border-color: touch_slot2.has-hover ? #38bdf8 : #475569;
+                                        clip: true;
 
                                         touch_slot2 := TouchArea {
                                             mouse-cursor: pointer;
@@ -1227,31 +1319,27 @@ export component AdminView inherits Rectangle {
                                             padding-left: 10px;
                                             padding-right: 6px;
                                             spacing: 6px;
-                                            alignment: space-between;
 
-                                            HorizontalLayout {
-                                                spacing: 6px;
-                                                alignment: start;
+                                            Text {
+                                                text: "🎬";
+                                                font-size: 11px;
+                                                vertical-alignment: center;
+                                                horizontal-stretch: 0;
+                                            }
+                                            Text {
+                                                text: root.cfg_inactivity_video_2 != "" ? root.cfg_inactivity_video_2 : "Toca para elegir video...";
+                                                font-size: 11px;
+                                                color: root.cfg_inactivity_video_2 != "" ? #F5F5F5 : #64748b;
+                                                overflow: elide;
+                                                vertical-alignment: center;
                                                 horizontal-stretch: 1;
-
-                                                Text {
-                                                    text: "🎬";
-                                                    font-size: 11px;
-                                                    vertical-alignment: center;
-                                                }
-                                                Text {
-                                                    text: root.cfg_inactivity_video_2 != "" ? root.cfg_inactivity_video_2 : "Toca para elegir video...";
-                                                    font-size: 11px;
-                                                    color: root.cfg_inactivity_video_2 != "" ? #F5F5F5 : #64748b;
-                                                    overflow: elide;
-                                                    vertical-alignment: center;
-                                                }
                                             }
 
                                             if root.cfg_inactivity_video_2 != "": Rectangle {
                                                 width: 20px;
                                                 height: 20px;
                                                 border-radius: 10px;
+                                                horizontal-stretch: 0;
                                                 background: touch_clear2.has-hover ? #ef444433 : #00000000;
 
                                                 touch_clear2 := TouchArea {
@@ -1275,6 +1363,7 @@ export component AdminView inherits Rectangle {
                                     Rectangle {
                                         width: 34px;
                                         height: 34px;
+                                        horizontal-stretch: 0;
                                         background: #1e293b;
                                         border-radius: 6px;
                                         border-width: 1px;
@@ -1298,10 +1387,11 @@ export component AdminView inherits Rectangle {
                                     }
                                 }
                             }
+
+                            // Slot 3
                             VerticalLayout {
                                 horizontal-stretch: 1;
                                 spacing: 4px;
-                                alignment: start;
                                 Text { text: "Video Inactividad #3:"; font-size: 10px; color: #94a3b8; }
                                 HorizontalLayout {
                                     spacing: 6px;
@@ -1313,6 +1403,7 @@ export component AdminView inherits Rectangle {
                                         border-radius: 6px;
                                         border-width: 1px;
                                         border-color: touch_slot3.has-hover ? #38bdf8 : #475569;
+                                        clip: true;
 
                                         touch_slot3 := TouchArea {
                                             mouse-cursor: pointer;
@@ -1325,31 +1416,27 @@ export component AdminView inherits Rectangle {
                                             padding-left: 10px;
                                             padding-right: 6px;
                                             spacing: 6px;
-                                            alignment: space-between;
 
-                                            HorizontalLayout {
-                                                spacing: 6px;
-                                                alignment: start;
+                                            Text {
+                                                text: "🎬";
+                                                font-size: 11px;
+                                                vertical-alignment: center;
+                                                horizontal-stretch: 0;
+                                            }
+                                            Text {
+                                                text: root.cfg_inactivity_video_3 != "" ? root.cfg_inactivity_video_3 : "Opcional / Vacío";
+                                                font-size: 11px;
+                                                color: root.cfg_inactivity_video_3 != "" ? #F5F5F5 : #64748b;
+                                                overflow: elide;
+                                                vertical-alignment: center;
                                                 horizontal-stretch: 1;
-
-                                                Text {
-                                                    text: "🎬";
-                                                    font-size: 11px;
-                                                    vertical-alignment: center;
-                                                }
-                                                Text {
-                                                    text: root.cfg_inactivity_video_3 != "" ? root.cfg_inactivity_video_3 : "Opcional / Vacío";
-                                                    font-size: 11px;
-                                                    color: root.cfg_inactivity_video_3 != "" ? #F5F5F5 : #64748b;
-                                                    overflow: elide;
-                                                    vertical-alignment: center;
-                                                }
                                             }
 
                                             if root.cfg_inactivity_video_3 != "": Rectangle {
                                                 width: 20px;
                                                 height: 20px;
                                                 border-radius: 10px;
+                                                horizontal-stretch: 0;
                                                 background: touch_clear3.has-hover ? #ef444433 : #00000000;
 
                                                 touch_clear3 := TouchArea {
@@ -1373,6 +1460,7 @@ export component AdminView inherits Rectangle {
                                     Rectangle {
                                         width: 34px;
                                         height: 34px;
+                                        horizontal-stretch: 0;
                                         background: #1e293b;
                                         border-radius: 6px;
                                         border-width: 1px;
@@ -1555,10 +1643,10 @@ export component AdminView inherits Rectangle {
 
                                                     // Botón "Asignar"
                                                     Rectangle {
-                                                        width: 78px;
-                                                        height: 24px;
+                                                        width: 92px;
+                                                        height: 26px;
                                                         background: root.assigning_video_path == item.path ? #0284c7 : #0f172a;
-                                                        border-radius: 4px;
+                                                        border-radius: 5px;
                                                         border-width: 1px;
                                                         border-color: root.assigning_video_path == item.path ? #38bdf8 : #0284c7;
 
@@ -1575,17 +1663,26 @@ export component AdminView inherits Rectangle {
 
                                                         HorizontalLayout {
                                                             alignment: center;
-                                                            spacing: 4px;
+                                                            spacing: 5px;
+                                                            padding-left: 6px;
+                                                            padding-right: 6px;
+
+                                                            Text {
+                                                                text: "📌";
+                                                                font-size: 11px;
+                                                                vertical-alignment: center;
+                                                            }
                                                             Text {
                                                                 text: "Asignar";
-                                                                font-size: 10px;
+                                                                font-size: 11px;
                                                                 font-weight: 700;
                                                                 color: #F5F5F5;
                                                                 vertical-alignment: center;
                                                             }
                                                             Text {
-                                                                text: root.assigning_video_path == item.path ? "▴" : "▾";
-                                                                font-size: 8px;
+                                                                text: root.assigning_video_path == item.path ? "▲" : "▼";
+                                                                font-size: 10px;
+                                                                font-weight: 800;
                                                                 color: #38bdf8;
                                                                 vertical-alignment: center;
                                                             }
@@ -1595,9 +1692,9 @@ export component AdminView inherits Rectangle {
                                                     // Botón Eliminar (SOLO para videos que NO son del sistema / precargados)
                                                     if !item.is_preloaded: Rectangle {
                                                         width: 28px;
-                                                        height: 24px;
+                                                        height: 26px;
                                                         background: touch_del.has-hover ? #ef444466 : #ef444433;
-                                                        border-radius: 4px;
+                                                        border-radius: 5px;
 
                                                         touch_del := TouchArea {
                                                             mouse-cursor: pointer;
@@ -1615,33 +1712,51 @@ export component AdminView inherits Rectangle {
                                                 }
                                             }
 
-                                            // Menú desplegable de slots: Slot 1, Slot 2, Slot 3
+                                            // Menú desplegable de slots: Landing, Slot 1, Slot 2, Slot 3
                                             if root.assigning_video_path == item.path: Rectangle {
                                                 background: #0f172a;
-                                                border-radius: 4px;
+                                                border-radius: 6px;
                                                 border-width: 1px;
                                                 border-color: #0284c788;
 
                                                 HorizontalLayout {
-                                                    padding-left: 8px;
-                                                    padding-right: 8px;
-                                                    padding-top: 4px;
-                                                    padding-bottom: 4px;
+                                                    padding-left: 10px;
+                                                    padding-right: 10px;
+                                                    padding-top: 6px;
+                                                    padding-bottom: 6px;
                                                     spacing: 8px;
                                                     alignment: end;
 
                                                     Text {
-                                                        text: "Asignar a inactividad:";
-                                                        font-size: 10px;
+                                                        text: "Asignar a:";
+                                                        font-size: 11px;
                                                         font-weight: 600;
                                                         color: #94a3b8;
                                                         vertical-alignment: center;
                                                     }
 
+                                                    // Landing Video
+                                                    Rectangle {
+                                                        width: 66px;
+                                                        height: 24px;
+                                                        background: touch_landing.has-hover ? #0284c7 : #1e293b;
+                                                        border-radius: 4px;
+                                                        border-width: 1px;
+                                                        border-color: #0284c7;
+                                                        touch_landing := TouchArea {
+                                                            mouse-cursor: pointer;
+                                                            clicked => {
+                                                                root.cfg_central_video = item.path;
+                                                                root.assigning_video_path = "";
+                                                            }
+                                                        }
+                                                        Text { text: "Landing"; font-size: 10px; font-weight: 700; color: #F5F5F5; horizontal-alignment: center; vertical-alignment: center; }
+                                                    }
+
                                                     // Slot 1
                                                     Rectangle {
                                                         width: 58px;
-                                                        height: 22px;
+                                                        height: 24px;
                                                         background: touch_s1.has-hover ? #0284c7 : #1e293b;
                                                         border-radius: 4px;
                                                         border-width: 1px;
@@ -1659,7 +1774,7 @@ export component AdminView inherits Rectangle {
                                                     // Slot 2
                                                     Rectangle {
                                                         width: 58px;
-                                                        height: 22px;
+                                                        height: 24px;
                                                         background: touch_s2.has-hover ? #0284c7 : #1e293b;
                                                         border-radius: 4px;
                                                         border-width: 1px;
@@ -1677,7 +1792,7 @@ export component AdminView inherits Rectangle {
                                                     // Slot 3
                                                     Rectangle {
                                                         width: 58px;
-                                                        height: 22px;
+                                                        height: 24px;
                                                         background: touch_s3.has-hover ? #0284c7 : #1e293b;
                                                         border-radius: 4px;
                                                         border-width: 1px;

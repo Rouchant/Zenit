@@ -29,6 +29,7 @@ pub fn setup_defaults_handlers(main_window: &MainWindow) {
             ui.set_cfg_brand_logo("".into());
             ui.set_cfg_model(model.into());
             ui.set_cfg_retail("".into());
+            ui.set_cfg_store_logo("".into());
             ui.set_cfg_card_price("".into());
             ui.set_cfg_normal_price("".into());
             ui.set_cfg_sku("".into());
@@ -127,10 +128,19 @@ pub fn setup_defaults_handlers(main_window: &MainWindow) {
     let reset_videos_handle = main_window.as_weak();
     main_window.on_reset_videos_defaults(move || {
         if let Some(ui) = reset_videos_handle.upgrade() {
-            ui.set_cfg_central_video("assets/videos/landing2.mp4".into());
-            ui.set_cfg_bg_video("assets/videos/bg.mp4".into());
-            ui.set_cfg_inactivity_video_1("assets/videos/promo2.mp4".into());
-            ui.set_cfg_inactivity_video_2("".into());
+            let hw = get_hardware_specs();
+            let brand_str = ui.get_cfg_brand().to_string();
+            let gpu_str = ui.get_cfg_gpu().to_string();
+            let effective_brand = if !brand_str.trim().is_empty() { brand_str } else { hw.brand.clone() };
+            let effective_gpu = if !gpu_str.trim().is_empty() { gpu_str } else { hw.gpu.clone() };
+
+            let (def_central, def_inact_1, def_inact_2) =
+                crate::domains::showcase::config::compute_default_video_paths(&effective_brand, &effective_gpu);
+
+            ui.set_cfg_central_video(def_central.clone().into());
+            ui.set_cfg_bg_video(def_central.into());
+            ui.set_cfg_inactivity_video_1(def_inact_1.into());
+            ui.set_cfg_inactivity_video_2(def_inact_2.into());
             ui.set_cfg_inactivity_video_3("".into());
             ui.set_cfg_inactivity_timeout("120".into());
         }

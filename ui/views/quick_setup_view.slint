@@ -150,7 +150,46 @@ export component QuickSetupView inherits Rectangle {
                 VerticalLayout {
                     horizontal-stretch: 1;
                     spacing: 4px;
-                    Text { text: "Tienda Retail:"; font-size: 12px; color: #475569; }
+                    HorizontalLayout {
+                        alignment: space-between;
+                        Text { text: "Tienda Retail:"; font-size: 12px; color: #475569; }
+                        HorizontalLayout {
+                            spacing: 4px;
+                            Rectangle {
+                                border-radius: 4px;
+                                background: root.setup_retail == "falabella" ? #e0f2fe : #f1f5f9;
+                                border-width: 1px;
+                                border-color: root.setup_retail == "falabella" ? #0284c7 : #cbd5e1;
+                                HorizontalLayout {
+                                    padding-left: 5px; padding-right: 5px; padding-top: 1px; padding-bottom: 1px;
+                                    Text { text: "🛍️ Falabella"; font-size: 9px; font-weight: 700; color: root.setup_retail == "falabella" ? #0369a1 : #475569; }
+                                }
+                                TouchArea { mouse-cursor: pointer; clicked => { root.setup_retail = "falabella"; } }
+                            }
+                            Rectangle {
+                                border-radius: 4px;
+                                background: root.setup_retail == "ripley" ? #f3e8ff : #f1f5f9;
+                                border-width: 1px;
+                                border-color: root.setup_retail == "ripley" ? #9333ea : #cbd5e1;
+                                HorizontalLayout {
+                                    padding-left: 5px; padding-right: 5px; padding-top: 1px; padding-bottom: 1px;
+                                    Text { text: "🟣 Ripley"; font-size: 9px; font-weight: 700; color: root.setup_retail == "ripley" ? #7e22ce : #475569; }
+                                }
+                                TouchArea { mouse-cursor: pointer; clicked => { root.setup_retail = "ripley"; } }
+                            }
+                            Rectangle {
+                                border-radius: 4px;
+                                background: root.setup_retail == "paris" ? #eff6ff : #f1f5f9;
+                                border-width: 1px;
+                                border-color: root.setup_retail == "paris" ? #2563eb : #cbd5e1;
+                                HorizontalLayout {
+                                    padding-left: 5px; padding-right: 5px; padding-top: 1px; padding-bottom: 1px;
+                                    Text { text: "🔵 Paris"; font-size: 9px; font-weight: 700; color: root.setup_retail == "paris" ? #1d4ed8 : #475569; }
+                                }
+                                TouchArea { mouse-cursor: pointer; clicked => { root.setup_retail = "paris"; } }
+                            }
+                        }
+                    }
                     retail_ed := LineEdit {
                         text: root.setup_retail;
                         placeholder-text: "tienda...";

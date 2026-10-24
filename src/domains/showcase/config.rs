@@ -78,6 +78,8 @@ pub struct AppConfig {
     pub brand_override: Option<String>,
     #[serde(default)]
     pub brand_logo_override: Option<String>,
+    #[serde(default)]
+    pub store_logo_override: Option<String>,
     pub model_override: Option<String>,
     pub processor_override: Option<String>,
     pub ram_override: Option<String>,
@@ -132,7 +134,7 @@ impl AppConfig {
             list.push(self.inactivity_video_path_3.clone());
         }
         if list.is_empty() {
-            list.push("assets/videos/promo2.mp4".to_string());
+            list.push("assets/videos/generic/promo-generic.mp4".to_string());
         }
         list
     }
@@ -165,6 +167,7 @@ impl Default for AppConfig {
 
             brand_override: None,
             brand_logo_override: None,
+            store_logo_override: None,
             model_override: None,
             processor_override: None,
             ram_override: None,
@@ -183,9 +186,9 @@ impl Default for AppConfig {
             badge_battery: None,
             badge_others: None,
 
-            central_video_path: "assets/videos/landing2.mp4".to_string(),
-            bg_video_path: "assets/videos/bg.mp4".to_string(),
-            inactivity_video_path: "assets/videos/promo2.mp4".to_string(),
+            central_video_path: "assets/videos/generic/landing-generic.mp4".to_string(),
+            bg_video_path: "assets/videos/generic/landing-generic.mp4".to_string(),
+            inactivity_video_path: "assets/videos/generic/promo-generic.mp4".to_string(),
             inactivity_video_path_2: "".to_string(),
             inactivity_video_path_3: "".to_string(),
             inactivity_timeout_sec: 120,
@@ -222,22 +225,70 @@ pub fn load_config() -> AppConfig {
     cfg
 }
 
+/// Calcula los videos por defecto basados en el hardware detectado:
+/// - Slot 1 Promo: assets/videos/generic/promo-generic.mp4 (en cualquier equipo)
+/// - Slot 2 Promo: assets/videos/brand_a/v_a_p.mp4 (si el equipo es ASUS)
+/// - Landing por defecto:
+///     - Si detecta RTX: assets/videos/generic/gaming_xbox_game_pass.mp4
+///     - En cualquier otro caso: assets/videos/generic/landing-generic.mp4
+pub fn compute_default_video_paths(brand: &str, gpu: &str) -> (String, String, String) {
+    let is_rtx = gpu.to_lowercase().contains("rtx");
+    let is_asus = brand.to_lowercase().contains("asus");
+
+    let central_video = if is_rtx {
+        "assets/videos/generic/gaming_xbox_game_pass.mp4".to_string()
+    } else {
+        "assets/videos/generic/landing-generic.mp4".to_string()
+    };
+
+    let inactivity_1 = "assets/videos/generic/promo-generic.mp4".to_string();
+
+    let inactivity_2 = if is_asus {
+        "assets/videos/brand_a/v_a_p.mp4".to_string()
+    } else {
+        "".to_string()
+    };
+
+    (central_video, inactivity_1, inactivity_2)
+}
+
 fn load_config_from_disk() -> AppConfig {
     let path = get_config_file_path();
     if path.exists() {
         if let Ok(content) = fs::read_to_string(&path) {
             if let Ok(mut cfg) = serde_json::from_str::<AppConfig>(&content) {
                 let mut modified = false;
-                if cfg.central_video_path == "assets/videos/landing.mp4" || cfg.central_video_path.is_empty() {
-                    cfg.central_video_path = "assets/videos/landing2.mp4".to_string();
+
+                let hw = crate::domains::hardware::get_hardware_specs();
+                let effective_brand = cfg.brand_override.as_deref().unwrap_or(&hw.brand);
+                let effective_gpu = cfg.gpu_override.as_deref().unwrap_or(&hw.gpu);
+                let (def_central, def_inact_1, def_inact_2) = compute_default_video_paths(effective_brand, effective_gpu);
+
+                if cfg.central_video_path == "assets/videos/landing.mp4"
+                    || cfg.central_video_path == "assets/videos/landing2.mp4"
+                    || cfg.central_video_path.is_empty()
+                {
+                    cfg.central_video_path = def_central.clone();
                     modified = true;
                 }
-                if cfg.inactivity_video_path == "assets/videos/promo.mp4" {
-                    cfg.inactivity_video_path = "assets/videos/promo2.mp4".to_string();
+                if cfg.inactivity_video_path == "assets/videos/promo.mp4"
+                    || cfg.inactivity_video_path == "assets/videos/promo2.mp4"
+                    || cfg.inactivity_video_path.is_empty()
+                {
+                    cfg.inactivity_video_path = def_inact_1;
                     modified = true;
                 }
-                if cfg.bg_video_path == "assets/images/fallback-bg/bg.mp4" || cfg.bg_video_path.is_empty() {
-                    cfg.bg_video_path = "assets/videos/bg.mp4".to_string();
+                if effective_brand.to_lowercase().contains("asus")
+                    && (cfg.inactivity_video_path_2.is_empty() || cfg.inactivity_video_path_2 == "assets/videos/promo2.mp4")
+                {
+                    cfg.inactivity_video_path_2 = def_inact_2;
+                    modified = true;
+                }
+                if cfg.bg_video_path == "assets/images/fallback-bg/bg.mp4"
+                    || cfg.bg_video_path == "assets/videos/bg.mp4"
+                    || cfg.bg_video_path.is_empty()
+                {
+                    cfg.bg_video_path = def_central;
                     modified = true;
                 }
                 let is_oem_placeholder = |s: &str| -> bool {
@@ -314,7 +365,13 @@ fn load_config_from_disk() -> AppConfig {
             }
         }
     }
-    let default_cfg = AppConfig::default();
+    let mut default_cfg = AppConfig::default();
+    let hw = crate::domains::hardware::get_hardware_specs();
+    let (def_central, def_inact_1, def_inact_2) = compute_default_video_paths(&hw.brand, &hw.gpu);
+    default_cfg.central_video_path = def_central.clone();
+    default_cfg.bg_video_path = def_central;
+    default_cfg.inactivity_video_path = def_inact_1;
+    default_cfg.inactivity_video_path_2 = def_inact_2;
     let _ = save_config(&default_cfg);
     default_cfg
 }
@@ -368,9 +425,9 @@ mod tests {
         let cfg = AppConfig::default();
         assert_eq!(cfg.primary_color, "#00f2ff");
         assert_eq!(cfg.store_theme, "default");
-        assert_eq!(cfg.central_video_path, "assets/videos/landing2.mp4");
-        assert_eq!(cfg.bg_video_path, "assets/videos/bg.mp4");
-        assert_eq!(cfg.inactivity_video_path, "assets/videos/promo2.mp4");
+        assert_eq!(cfg.central_video_path, "assets/videos/generic/landing-generic.mp4");
+        assert_eq!(cfg.bg_video_path, "assets/videos/generic/landing-generic.mp4");
+        assert_eq!(cfg.inactivity_video_path, "assets/videos/generic/promo-generic.mp4");
         assert_eq!(cfg.inactivity_video_path_2, "");
         assert_eq!(cfg.inactivity_video_path_3, "");
         assert_eq!(cfg.inactivity_timeout_sec, 120);
@@ -421,5 +478,32 @@ mod tests {
         let cfg = AppConfig::default();
         assert_eq!(cfg.store_theme, "default");
         assert!(cfg.inactivity_timeout_sec >= 30, "Timeout should be at least 30s");
+    }
+
+    #[test]
+    fn test_compute_default_video_paths() {
+        // Case 1: ASUS + RTX
+        let (central, inact_1, inact_2) = compute_default_video_paths("ASUS", "NVIDIA GeForce RTX 4060 Laptop GPU");
+        assert_eq!(central, "assets/videos/generic/gaming_xbox_game_pass.mp4");
+        assert_eq!(inact_1, "assets/videos/generic/promo-generic.mp4");
+        assert_eq!(inact_2, "assets/videos/brand_a/v_a_p.mp4");
+
+        // Case 2: ASUS + Non-RTX (e.g. Intel Iris Xe or AMD Radeon Graphics)
+        let (central, inact_1, inact_2) = compute_default_video_paths("ASUS", "Intel Iris Xe Graphics");
+        assert_eq!(central, "assets/videos/generic/landing-generic.mp4");
+        assert_eq!(inact_1, "assets/videos/generic/promo-generic.mp4");
+        assert_eq!(inact_2, "assets/videos/brand_a/v_a_p.mp4");
+
+        // Case 3: Non-ASUS (e.g. HP) + RTX
+        let (central, inact_1, inact_2) = compute_default_video_paths("HP", "NVIDIA GeForce RTX 3050 Laptop GPU");
+        assert_eq!(central, "assets/videos/generic/gaming_xbox_game_pass.mp4");
+        assert_eq!(inact_1, "assets/videos/generic/promo-generic.mp4");
+        assert_eq!(inact_2, "");
+
+        // Case 4: Non-ASUS (e.g. Lenovo) + Non-RTX
+        let (central, inact_1, inact_2) = compute_default_video_paths("Lenovo", "AMD Radeon Graphics");
+        assert_eq!(central, "assets/videos/generic/landing-generic.mp4");
+        assert_eq!(inact_1, "assets/videos/generic/promo-generic.mp4");
+        assert_eq!(inact_2, "");
     }
 }

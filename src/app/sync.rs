@@ -89,13 +89,8 @@ pub fn populate_ui_state(window: &MainWindow) {
 
     window.set_brand_name(state.brand_name.clone().into());
     let model_display = cfg.model_override.clone().unwrap_or_else(|| {
-        if !state.right_specs.is_empty() {
-            state
-                .right_specs
-                .iter()
-                .find(|s| s.id == "card-model")
-                .map(|s| s.value.clone())
-                .unwrap_or_else(|| "PC Showroom".to_string())
+        if !state.model_name.is_empty() {
+            state.model_name.clone()
         } else {
             "PC Showroom".to_string()
         }
@@ -241,6 +236,10 @@ pub fn populate_ui_state(window: &MainWindow) {
     } else {
         "".into()
     });
+    let store_logo_val = cfg.store_logo_override.clone().unwrap_or_else(|| {
+        state.store_logo.clone().unwrap_or_default()
+    });
+    window.set_cfg_store_logo(store_logo_val.into());
     window.set_cfg_card_price(card_trim.into());
     window.set_cfg_normal_price(normal_trim.into());
     window.set_cfg_sku(sku_trim.into());

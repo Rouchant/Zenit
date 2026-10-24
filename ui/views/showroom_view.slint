@@ -193,15 +193,40 @@ export component ShowroomView inherits Rectangle {
                     alignment: center;
                     spacing: 14px;
 
-                    // Brand Logo above landing video
-                    if root.has_brand_logo: HorizontalLayout {
+                    // Brand & Model Module above landing video (4 cards on left, 4 cards on right)
+                    VerticalLayout {
                         alignment: center;
-                        height: 112px;
+                        spacing: 4px;
+                        height: 80px;
 
-                        Image {
-                            source: (root.is_dark_mode || root.is_dark_bg) && root.has_brand_logo_dark ? root.brand_logo_dark : root.brand_logo;
-                            height: 64px;
-                            image-fit: contain;
+                        // Brand: Vector Logo if available, or prominent text
+                        HorizontalLayout {
+                            alignment: center;
+
+                            if root.has_brand_logo: Image {
+                                source: (root.is_dark_mode || root.is_dark_bg) && root.has_brand_logo_dark ? root.brand_logo_dark : root.brand_logo;
+                                height: 42px;
+                                image-fit: contain;
+                            }
+
+                            if !root.has_brand_logo: Text {
+                                text: root.brand_name;
+                                font-size: 32px;
+                                font-weight: 900;
+                                color: root.theme_text_primary;
+                                letter-spacing: 2.5px;
+                                horizontal-alignment: center;
+                            }
+                        }
+
+                        // Model: Subtitle in smaller font
+                        if root.model_name != "": Text {
+                            text: root.model_name;
+                            font-size: 15px;
+                            font-weight: 700;
+                            color: root.theme_accent;
+                            letter-spacing: 1.2px;
+                            horizontal-alignment: center;
                         }
                     }
 

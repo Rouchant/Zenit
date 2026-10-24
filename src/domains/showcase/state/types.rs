@@ -29,6 +29,7 @@ pub struct ThemeColors {
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct ZenitUiState {
     pub brand_name: String,
+    pub model_name: String,
     pub brand_logo: Option<String>,
     pub brand_logo_dark: Option<String>,
     pub store_logo: Option<String>,

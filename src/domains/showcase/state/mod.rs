@@ -37,7 +37,15 @@ pub fn build_ui_state() -> ZenitUiState {
     } else {
         resolve_brand_logo_dark(&specs.brand)
     };
-    let store_logo = resolve_store_logo(&cfg.store_theme);
+    let store_logo = if let Some(ref custom_logo) = cfg.store_logo_override {
+        if !custom_logo.trim().is_empty() {
+            Some(custom_logo.trim().to_string())
+        } else {
+            resolve_store_logo(&cfg.store_theme)
+        }
+    } else {
+        resolve_store_logo(&cfg.store_theme)
+    };
 
     // 3. Build Column Cards
     let left_specs = build_left_specs(&specs, &cfg);
@@ -61,8 +69,15 @@ pub fn build_ui_state() -> ZenitUiState {
     };
     let has_pricing = price_card.is_some() || price_all.is_some() || sku.is_some();
 
+    let model_name = if !specs.model.is_empty() {
+        specs.model.clone()
+    } else {
+        "PC Showroom".to_string()
+    };
+
     ZenitUiState {
         brand_name: specs.brand,
+        model_name,
         brand_logo,
         brand_logo_dark,
         store_logo,
@@ -102,8 +117,9 @@ mod tests {
     fn test_ui_state_structure() {
         let state = build_ui_state();
         assert!(!state.brand_name.is_empty(), "Brand name should not be empty");
+        assert!(!state.model_name.is_empty(), "Model name should not be empty");
         assert_eq!(state.left_specs.len(), 4, "Left column must have 4 core specs cards");
-        assert!(state.right_specs.len() >= 4, "Right column must have at least Display, GPU, Battery, Model");
+        assert_eq!(state.right_specs.len(), 4, "Right column must have 4 specs cards (Display, GPU, Battery, Others)");
         assert!(!state.center_video.is_empty(), "Center video path should not be empty");
     }
 
@@ -136,19 +152,21 @@ mod tests {
     #[test]
     fn test_brand_model_and_battery() {
         let state = build_ui_state();
-        let model_card = state.right_specs.iter().find(|s| s.id == "card-model").expect("Model card must exist");
-        let battery_card = state.right_specs.iter().find(|s| s.id == "card-battery").expect("Battery card must exist");
+        assert!(!state.brand_name.is_empty(), "Brand name must not be empty");
+        assert!(!state.model_name.is_empty(), "Model name must not be empty");
 
-        assert_eq!(model_card.label, "Marca y Modelo");
+        let battery_card = state.right_specs.iter().find(|s| s.id == "card-battery").expect("Battery card must exist");
+        let display_card = state.right_specs.iter().find(|s| s.id == "card-display").expect("Display card must exist");
+        let gpu_card = state.right_specs.iter().find(|s| s.id == "card-gpu").expect("GPU card must exist");
+        let others_card = state.right_specs.iter().find(|s| s.id == "card-others").expect("Others card must exist");
+
         assert_eq!(battery_card.label, "Batería");
-        assert!(!model_card.value.is_empty());
+        assert_eq!(display_card.label, "Pantalla");
+        assert_eq!(gpu_card.label, "Gráficos");
+        assert_eq!(others_card.label, "Otros y Conectividad");
+
         assert!(!battery_card.value.is_empty());
-        assert!(model_card.sub_value.is_none(), "Model card should not have sub_value");
         assert!(battery_card.sub_value.is_none(), "Battery card should not have 'Batería de larga duración'");
         assert!(battery_card.value.to_lowercase().contains("hora") || battery_card.value.to_lowercase().contains("wh"));
-
-        if let Some(others_card) = state.right_specs.iter().find(|s| s.id == "card-others") {
-            assert_eq!(others_card.label, "Otros y Conectividad");
-        }
     }
 }

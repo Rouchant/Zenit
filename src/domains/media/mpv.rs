@@ -461,13 +461,26 @@ pub fn resolve_showroom_video_path() -> PathBuf {
         }
     }
 
-    let candidate_paths = [
-        PathBuf::from("assets/videos/landing2.mp4"),
-        PathBuf::from("assets/videos/landing.mp4"),
-        PathBuf::from("assets/videos/promo2.mp4"),
-        PathBuf::from("assets/videos/promo.mp4"),
-        PathBuf::from("assets/videos/bg.mp4"),
-    ];
+    let specs = crate::domains::hardware::get_hardware_specs();
+    let is_rtx = specs.gpu.to_lowercase().contains("rtx");
+
+    let candidate_paths = if is_rtx {
+        vec![
+            PathBuf::from("assets/videos/generic/gaming_xbox_game_pass.mp4"),
+            PathBuf::from("assets/videos/generic/landing-generic.mp4"),
+            PathBuf::from("assets/videos/generic/promo-generic.mp4"),
+            PathBuf::from("assets/videos/landing2.mp4"),
+            PathBuf::from("assets/videos/promo2.mp4"),
+        ]
+    } else {
+        vec![
+            PathBuf::from("assets/videos/generic/landing-generic.mp4"),
+            PathBuf::from("assets/videos/generic/promo-generic.mp4"),
+            PathBuf::from("assets/videos/generic/gaming_xbox_game_pass.mp4"),
+            PathBuf::from("assets/videos/landing2.mp4"),
+            PathBuf::from("assets/videos/promo2.mp4"),
+        ]
+    };
 
     let base = std::env::current_dir().unwrap_or_else(|_| PathBuf::from("."));
 
@@ -479,20 +492,36 @@ pub fn resolve_showroom_video_path() -> PathBuf {
         if path.exists() {
             return path.clone();
         }
+        if let Ok(exe) = std::env::current_exe() {
+            if let Some(parent) = exe.parent() {
+                let exe_full = parent.join(path);
+                if exe_full.exists() {
+                    return exe_full;
+                }
+            }
+        }
     }
 
-    base.join("assets/videos/landing2.mp4")
+    base.join("assets/videos/generic/landing-generic.mp4")
 }
 
 pub fn resolve_video_path(configured_path: &str) -> PathBuf {
     let candidate = PathBuf::from(configured_path);
+    if candidate.exists() {
+        return candidate;
+    }
     let base = std::env::current_dir().unwrap_or_else(|_| PathBuf::from("."));
     let full = base.join(&candidate);
     if full.exists() {
         return full;
     }
-    if candidate.exists() {
-        return candidate;
+    if let Ok(exe) = std::env::current_exe() {
+        if let Some(parent) = exe.parent() {
+            let exe_full = parent.join(&candidate);
+            if exe_full.exists() {
+                return exe_full;
+            }
+        }
     }
     base.join(configured_path)
 }
