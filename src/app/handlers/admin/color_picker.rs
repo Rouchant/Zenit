@@ -34,9 +34,11 @@ pub fn pick_color_dialog(initial_hex: &str) -> Option<String> {
 
     let mut custom = CUSTOM_COLORS.lock().unwrap();
 
+    let owner_hwnd = crate::app::state::MAIN_HWND.load(std::sync::atomic::Ordering::SeqCst) as *mut std::ffi::c_void;
+
     let mut cc = CHOOSECOLORW {
         l_struct_size: std::mem::size_of::<CHOOSECOLORW>() as u32,
-        hwnd_owner: std::ptr::null_mut(),
+        hwnd_owner: owner_hwnd,
         h_instance: std::ptr::null_mut(),
         rgb_result: initial_rgb,
         lp_cust_colors: custom.as_mut_ptr(),
@@ -76,8 +78,8 @@ pub fn setup_color_picker_handlers(main_window: &MainWindow) {
     let handle = main_window.as_weak();
     main_window.on_pick_color_clicked(move |field| {
         if let Some(ui) = handle.upgrade() {
-            let field_str = field.as_str();
-            let current = match field_str {
+            let field_str = field.as_str().to_string();
+            let current = match field_str.as_str() {
                 "bg_base" => ui.get_cfg_bg_base().to_string(),
                 "bg_start" => ui.get_cfg_bg_start().to_string(),
                 "bg_end" => ui.get_cfg_bg_end().to_string(),
@@ -91,70 +93,77 @@ pub fn setup_color_picker_handlers(main_window: &MainWindow) {
                 _ => String::new(),
             };
 
-            if let Some(picked) = pick_color_dialog(&current) {
-                match field_str {
-                    "bg_base" => {
-                        let (c1, c2, c3) = crate::app::sync::generate_analogous_gradient(&picked);
-                        let s_c1 = crate::app::sync::parse_hex_color(&c1, slint::Color::from_rgb_u8(220, 237, 245));
-                        let s_c2 = crate::app::sync::parse_hex_color(&c2, slint::Color::from_rgb_u8(227, 232, 245));
-                        let s_c3 = crate::app::sync::parse_hex_color(&c3, slint::Color::from_rgb_u8(234, 228, 245));
-                        ui.set_cfg_bg_base(picked.into());
-                        ui.set_cfg_bg_start(c1.into());
-                        ui.set_cfg_bg_mid(c2.into());
-                        ui.set_cfg_bg_end(c3.into());
-                        ui.set_theme_bg_start(s_c1);
-                        ui.set_theme_bg_mid(s_c2);
-                        ui.set_theme_bg_end(s_c3);
-                        ui.set_is_dark_bg(ui.get_is_dark_mode() || crate::app::sync::is_color_dark(s_c1));
-                    }
-                    "bg_start" => {
-                        let c = crate::app::sync::parse_hex_color(&picked, slint::Color::from_rgb_u8(220, 237, 245));
-                        ui.set_cfg_bg_start(picked.into());
-                        ui.set_theme_bg_start(c);
-                    }
-                    "bg_end" => {
-                        let c = crate::app::sync::parse_hex_color(&picked, slint::Color::from_rgb_u8(234, 228, 245));
-                        ui.set_cfg_bg_end(picked.into());
-                        ui.set_theme_bg_end(c);
-                    }
-                    "card_bg" => {
-                        let c = crate::app::sync::parse_hex_color(&picked, slint::Color::from_rgb_u8(245, 245, 245));
-                        ui.set_cfg_card_bg(picked.into());
-                        ui.set_theme_card_bg(c);
-                    }
-                    "card_border" => {
-                        let c = crate::app::sync::parse_hex_color(&picked, slint::Color::from_rgb_u8(186, 230, 253));
-                        ui.set_cfg_card_border(picked.into());
-                        ui.set_theme_card_border(c);
-                    }
-                    "text_primary" => {
-                        let c = crate::app::sync::parse_hex_color(&picked, slint::Color::from_rgb_u8(15, 23, 42));
-                        ui.set_cfg_text_primary(picked.into());
-                        ui.set_theme_text_primary(c);
-                    }
-                    "text_secondary" => {
-                        let c = crate::app::sync::parse_hex_color(&picked, slint::Color::from_rgb_u8(71, 85, 105));
-                        ui.set_cfg_text_secondary(picked.into());
-                        ui.set_theme_text_secondary(c);
-                    }
-                    "accent" => {
-                        let c = crate::app::sync::parse_hex_color(&picked, slint::Color::from_rgb_u8(2, 132, 199));
-                        ui.set_cfg_accent(picked.into());
-                        ui.set_theme_accent(c);
-                    }
-                    "btn_bg" => {
-                        let c = crate::app::sync::parse_hex_color(&picked, slint::Color::from_rgb_u8(2, 132, 199));
-                        ui.set_cfg_btn_bg(picked.into());
-                        ui.set_theme_btn_bg(c);
-                    }
-                    "btn_text" => {
-                        let c = crate::app::sync::parse_hex_color(&picked, slint::Color::from_rgb_u8(245, 245, 245));
-                        ui.set_cfg_btn_text(picked.into());
-                        ui.set_theme_btn_text(c);
-                    }
-                    _ => {},
+            let ui_weak = handle.clone();
+            std::thread::spawn(move || {
+                if let Some(picked) = pick_color_dialog(&current) {
+                    let _ = slint::invoke_from_event_loop(move || {
+                        if let Some(ui) = ui_weak.upgrade() {
+                            match field_str.as_str() {
+                                "bg_base" => {
+                                    let (c1, c2, c3) = crate::app::sync::generate_analogous_gradient(&picked);
+                                    let s_c1 = crate::app::sync::parse_hex_color(&c1, slint::Color::from_rgb_u8(220, 237, 245));
+                                    let s_c2 = crate::app::sync::parse_hex_color(&c2, slint::Color::from_rgb_u8(227, 232, 245));
+                                    let s_c3 = crate::app::sync::parse_hex_color(&c3, slint::Color::from_rgb_u8(234, 228, 245));
+                                    ui.set_cfg_bg_base(picked.into());
+                                    ui.set_cfg_bg_start(c1.into());
+                                    ui.set_cfg_bg_mid(c2.into());
+                                    ui.set_cfg_bg_end(c3.into());
+                                    ui.set_theme_bg_start(s_c1);
+                                    ui.set_theme_bg_mid(s_c2);
+                                    ui.set_theme_bg_end(s_c3);
+                                    ui.set_is_dark_bg(ui.get_is_dark_mode() || crate::app::sync::is_color_dark(s_c1));
+                                }
+                                "bg_start" => {
+                                    let c = crate::app::sync::parse_hex_color(&picked, slint::Color::from_rgb_u8(220, 237, 245));
+                                    ui.set_cfg_bg_start(picked.into());
+                                    ui.set_theme_bg_start(c);
+                                }
+                                "bg_end" => {
+                                    let c = crate::app::sync::parse_hex_color(&picked, slint::Color::from_rgb_u8(234, 228, 245));
+                                    ui.set_cfg_bg_end(picked.into());
+                                    ui.set_theme_bg_end(c);
+                                }
+                                "card_bg" => {
+                                    let c = crate::app::sync::parse_hex_color(&picked, slint::Color::from_rgb_u8(245, 245, 245));
+                                    ui.set_cfg_card_bg(picked.into());
+                                    ui.set_theme_card_bg(c);
+                                }
+                                "card_border" => {
+                                    let c = crate::app::sync::parse_hex_color(&picked, slint::Color::from_rgb_u8(186, 230, 253));
+                                    ui.set_cfg_card_border(picked.into());
+                                    ui.set_theme_card_border(c);
+                                }
+                                "text_primary" => {
+                                    let c = crate::app::sync::parse_hex_color(&picked, slint::Color::from_rgb_u8(15, 23, 42));
+                                    ui.set_cfg_text_primary(picked.into());
+                                    ui.set_theme_text_primary(c);
+                                }
+                                "text_secondary" => {
+                                    let c = crate::app::sync::parse_hex_color(&picked, slint::Color::from_rgb_u8(71, 85, 105));
+                                    ui.set_cfg_text_secondary(picked.into());
+                                    ui.set_theme_text_secondary(c);
+                                }
+                                "accent" => {
+                                    let c = crate::app::sync::parse_hex_color(&picked, slint::Color::from_rgb_u8(2, 132, 199));
+                                    ui.set_cfg_accent(picked.into());
+                                    ui.set_theme_accent(c);
+                                }
+                                "btn_bg" => {
+                                    let c = crate::app::sync::parse_hex_color(&picked, slint::Color::from_rgb_u8(2, 132, 199));
+                                    ui.set_cfg_btn_bg(picked.into());
+                                    ui.set_theme_btn_bg(c);
+                                }
+                                "btn_text" => {
+                                    let c = crate::app::sync::parse_hex_color(&picked, slint::Color::from_rgb_u8(245, 245, 245));
+                                    ui.set_cfg_btn_text(picked.into());
+                                    ui.set_theme_btn_text(c);
+                                }
+                                _ => {},
+                            }
+                        }
+                    });
                 }
-            }
+            });
         }
     });
 
