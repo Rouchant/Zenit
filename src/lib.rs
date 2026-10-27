@@ -30,12 +30,26 @@ pub fn run() {
     // 2. Populate UI State & Vault Data
     app::sync::populate_ui_state(&main_window);
 
-    // 3. Initialize libmpv Player
+    // 3. Initialize libmpv Player matching screen resolution and aspect ratio (16:9 or 16:10)
     let initial_video = domains::media::resolve_showroom_video_path();
     let video_path_str = initial_video.to_string_lossy().to_string();
     let player_shared: Arc<Mutex<Option<domains::media::SlintMpvPlayer>>> = Arc::new(Mutex::new(None));
 
-    match domains::media::SlintMpvPlayer::new(&video_path_str, 1280, 720) {
+    let (raw_w, raw_h) = domains::hardware::get_display_raw_resolution();
+    let (video_w, video_h) = if domains::hardware::is_display_16_10() {
+        // 16:10 display (e.g. 1920x1200, 2560x1600, 2880x1800)
+        let w = (raw_w.min(1920) / 16) * 16;
+        let h = (w * 10) / 16;
+        (w.max(1280), h.max(800))
+    } else {
+        // 16:9 display (e.g. 1920x1080, 2560x1440, 3840x2160)
+        let w = (raw_w.min(1920) / 16) * 16;
+        let h = (w * 9) / 16;
+        (w.max(1280), h.max(720))
+    };
+    println!("[libmpv] Configurando buffer de video: {}x{} para pantalla {}x{}", video_w, video_h, raw_w, raw_h);
+
+    match domains::media::SlintMpvPlayer::new(&video_path_str, video_w, video_h) {
         Ok(player) => {
             println!("[libmpv] Reproductor landing inicializado con video: {}", video_path_str);
             main_window.set_has_video_stream(true);

@@ -24,6 +24,29 @@ pub fn approximate_refresh_rate(hz: u32) -> u32 {
     }
 }
 
+/// Obtiene la resolución nativa de la pantalla primaria (ancho, alto).
+pub fn get_display_raw_resolution() -> (u32, u32) {
+    unsafe {
+        let mut devmode: DEVMODEW = std::mem::zeroed();
+        devmode.dmSize = std::mem::size_of::<DEVMODEW>() as u16;
+        if EnumDisplaySettingsW(std::ptr::null(), ENUM_CURRENT_SETTINGS, &mut devmode) != 0 {
+            return (devmode.dmPelsWidth, devmode.dmPelsHeight);
+        }
+    }
+    (1920, 1080)
+}
+
+/// Determina si la relación de aspecto de la pantalla es cercana a 16:10 (>= 1.55 y <= 1.68)
+pub fn is_display_16_10() -> bool {
+    let (w, h) = get_display_raw_resolution();
+    if h == 0 {
+        return false;
+    }
+    let ratio = w as f32 / h as f32;
+    // 16:10 = 1.6, 16:9 = 1.777
+    (ratio - 1.6).abs() < (ratio - 1.7777).abs()
+}
+
 pub fn get_display_and_hz() -> (String, u32) {
     unsafe {
         let mut devmode: DEVMODEW = std::mem::zeroed();
@@ -111,5 +134,12 @@ mod tests {
         assert_eq!(approximate_refresh_rate(360), 360);
         assert_eq!(approximate_refresh_rate(0), 0);
         assert_eq!(approximate_refresh_rate(13), 13);
+    }
+
+    #[test]
+    fn test_display_raw_resolution_non_zero() {
+        let (w, h) = get_display_raw_resolution();
+        assert!(w > 0);
+        assert!(h > 0);
     }
 }

@@ -22,6 +22,7 @@ pub fn spawn_inactivity_watcher(
     std::thread::spawn(move || {
         let mut playlist_slot = 0usize;
         let mut screensaver_start_time = Instant::now();
+        let mut was_dimmed = false;
 
         loop {
             std::thread::sleep(std::time::Duration::from_millis(500));
@@ -36,6 +37,18 @@ pub fn spawn_inactivity_watcher(
 
             let was_screensaver = IS_SCREENSAVER_ACTIVE.load(Ordering::SeqCst);
             let in_try_pc = IS_IN_TRY_PC_MODE.load(Ordering::SeqCst);
+
+            // OLED Protection: Dim static content when idle for >= 40s (or >= timeout / 2) while in showroom
+            let should_dim = !in_try_pc && !was_screensaver && idle_seconds >= 40.min(timeout / 2);
+            if should_dim != was_dimmed {
+                was_dimmed = should_dim;
+                let wh = watcher_handle.clone();
+                let _ = slint::invoke_from_event_loop(move || {
+                    if let Some(ui) = wh.upgrade() {
+                        ui.set_is_dimmed(should_dim);
+                    }
+                });
+            }
 
             // 1. In Try-PC Mode and Idle >= Timeout: Auto-restore Main Window AND trigger Inactivity Screensaver
             if in_try_pc && idle_seconds >= timeout {
@@ -66,6 +79,7 @@ pub fn spawn_inactivity_watcher(
                         let _ = ui.show();
                         ui.window().set_fullscreen(true);
                         ui.set_is_screensaver_active(true);
+                        ui.set_is_dimmed(false);
                         restore_main_window();
                     }
                     crate::domains::hardware::display::set_max_brightness();
@@ -76,7 +90,7 @@ pub fn spawn_inactivity_watcher(
             // 2. On Main Window (Not in Try-PC, Not in Screensaver): Trigger Inactivity Screensaver
             if !in_try_pc && !was_screensaver {
                 if idle_seconds >= timeout && time_since_dismiss >= timeout {
-                    playlist_slot = 0;
+                    let mut has_promo_video = false;
                     let video_list = cfg.get_inactivity_video_list();
                     if !video_list.is_empty() {
                         let promo_video = crate::domains::media::resolve_video_path(&video_list[0]);
@@ -90,6 +104,7 @@ pub fn spawn_inactivity_watcher(
                                     p.change_video_looping(&promo_video.to_string_lossy(), false);
                                 }
                             }
+                            has_promo_video = true;
                         }
                     }
 
@@ -100,9 +115,12 @@ pub fn spawn_inactivity_watcher(
                     let _ = slint::invoke_from_event_loop(move || {
                         if let Some(ui) = wh.upgrade() {
                             ui.set_is_screensaver_active(true);
+                            ui.set_is_dimmed(false);
                         }
                     });
-                    crate::domains::hardware::display::set_max_brightness();
+                    if has_promo_video {
+                        crate::domains::hardware::display::set_max_brightness();
+                    }
                 }
             } else if was_screensaver {
                 // 3. Currently in Screensaver:
@@ -126,6 +144,7 @@ pub fn spawn_inactivity_watcher(
                     let _ = slint::invoke_from_event_loop(move || {
                         if let Some(ui) = wh.upgrade() {
                             ui.set_is_screensaver_active(false);
+                            ui.set_is_dimmed(false);
                         }
                     });
                     crate::domains::hardware::display::set_max_brightness();

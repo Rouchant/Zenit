@@ -38,11 +38,15 @@ export component ShowroomView inherits Rectangle {
     in property <color> theme_accent: #0284c7;
     in property <color> theme_btn_bg: #0284c7;
     in property <color> theme_btn_text: #F5F5F5;
+    in property <bool> is_dimmed: false;
 
     callback try_pc_clicked();
     callback corner_tap_clicked();
 
     property <bool> pulse_active: false;
+    property <int> shift_step: 0;
+    property <length> oled_offset_x: 0px;
+    property <length> oled_offset_y: 0px;
 
     pulse_timer := Timer {
         interval: 1200ms;
@@ -51,6 +55,43 @@ export component ShowroomView inherits Rectangle {
             root.pulse_active = !root.pulse_active;
         }
     }
+
+    // OLED Pixel Shifting Timer: Cycles position every 60s in an orbit (-2px to +2px)
+    oled_shift_timer := Timer {
+        interval: 60s;
+        running: true;
+        triggered => {
+            root.shift_step = (root.shift_step + 1) >= 8 ? 0 : (root.shift_step + 1);
+            if root.shift_step == 0 {
+                root.oled_offset_x = 0px;
+                root.oled_offset_y = 0px;
+            } else if root.shift_step == 1 {
+                root.oled_offset_x = 1.5px;
+                root.oled_offset_y = 1px;
+            } else if root.shift_step == 2 {
+                root.oled_offset_x = 2px;
+                root.oled_offset_y = 0px;
+            } else if root.shift_step == 3 {
+                root.oled_offset_x = 1.5px;
+                root.oled_offset_y = -1px;
+            } else if root.shift_step == 4 {
+                root.oled_offset_x = 0px;
+                root.oled_offset_y = -1.5px;
+            } else if root.shift_step == 5 {
+                root.oled_offset_x = -1.5px;
+                root.oled_offset_y = -1px;
+            } else if root.shift_step == 6 {
+                root.oled_offset_x = -2px;
+                root.oled_offset_y = 0px;
+            } else {
+                root.oled_offset_x = -1.5px;
+                root.oled_offset_y = 1px;
+            }
+        }
+    }
+
+    animate oled_offset_x { duration: 1200ms; easing: ease-in-out; }
+    animate oled_offset_y { duration: 1200ms; easing: ease-in-out; }
 
     width: 100%;
     height: 100%;
@@ -96,8 +137,10 @@ export component ShowroomView inherits Rectangle {
         background: @linear-gradient(180deg, #0284c708 0%, #00000000 85%);
     }
 
-    // MAIN CONTENT
+    // MAIN CONTENT (Protected by OLED pixel shifting)
     VerticalLayout {
+        x: root.oled_offset_x;
+        y: root.oled_offset_y;
         padding-left: 28px;
         padding-right: 28px;
         padding-top: 20px;
@@ -190,7 +233,7 @@ export component ShowroomView inherits Rectangle {
                         card_border: root.theme_card_border;
                         text_primary: root.theme_text_primary;
                         text_secondary: root.theme_text_secondary;
-                        category_color: root.theme_text_secondary;
+                        category_color: root.theme_accent;
                     }
                 }
             }
@@ -617,10 +660,19 @@ export component ShowroomView inherits Rectangle {
                         card_border: root.theme_card_border;
                         text_primary: root.theme_text_primary;
                         text_secondary: root.theme_text_secondary;
-                        category_color: root.theme_text_secondary;
+                        category_color: root.theme_accent;
                     }
                 }
             }
         }
+    }
+
+    // OLED Static Content Inactivity Dimming Overlay
+    Rectangle {
+        width: 100%;
+        height: 100%;
+        background: #000000;
+        opacity: root.is_dimmed ? 0.20 : 0.0;
+        animate opacity { duration: 800ms; easing: ease-in-out; }
     }
 }

@@ -51,6 +51,7 @@ export component MainWindow inherits Window {
     in-out property <bool> is_admin_open: false;
     in-out property <bool> is_admin_authenticated: false;
     in-out property <bool> is_screensaver_active: false;
+    in-out property <bool> is_dimmed: false;
     in-out property <string> admin_error_msg: "";
     in-out property <bool> show_toast: false;
     in-out property <string> toast_message: "Cambios aplicados y guardados con éxito";
@@ -235,6 +236,7 @@ export component MainWindow inherits Window {
         theme_accent: root.hex_to_color(root.cfg_accent);
         theme_btn_bg: root.hex_to_color(root.cfg_btn_bg);
         theme_btn_text: root.hex_to_color(root.cfg_btn_text);
+        is_dimmed: root.is_dimmed;
 
         try_pc_clicked => { root.try_pc_clicked(); }
         corner_tap_clicked => { root.corner_tap_clicked(); }
