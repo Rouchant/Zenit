@@ -217,10 +217,10 @@ export component ShowroomView inherits Rectangle {
 
             // LEFT COLUMN (Specs 1 to 4)
             Rectangle {
-                width: 340px;
+                width: min(340px, root.screen_width * 21%);
 
                 VerticalLayout {
-                    spacing: 12px;
+                    spacing: root.screen_height < 900px ? 8px : 12px;
 
                     for item in root.left_specs: SpecCard {
                         category: item.category;
@@ -240,7 +240,7 @@ export component ShowroomView inherits Rectangle {
 
             // CENTER HERO (Media & Pricing)
             Rectangle {
-                width: max(680px, root.screen_width - 784px);
+                width: max(500px, root.screen_width - min(680px, root.screen_width * 42%) - 100px);
 
                 VerticalLayout {
                     alignment: center;
@@ -283,10 +283,10 @@ export component ShowroomView inherits Rectangle {
                         }
                     }
 
-                    // 16:9 Video Frame (mismo ancho que la barra inferior)
+                    // Video Frame (proporcional, adaptado dinámicamente a la altura disponible para 16:9 y 16:10)
                     Rectangle {
                         width: parent.width;
-                        height: self.width * 9 / 16;
+                        height: min(self.width * 9 / 16, root.screen_height * 48%);
                         background: #000000;
                         border-radius: 18px;
                         border-width: 2px;
@@ -644,10 +644,10 @@ export component ShowroomView inherits Rectangle {
 
             // RIGHT COLUMN (Specs 5 to 8)
             Rectangle {
-                width: 340px;
+                width: min(340px, root.screen_width * 21%);
 
                 VerticalLayout {
-                    spacing: 12px;
+                    spacing: root.screen_height < 900px ? 8px : 12px;
 
                     for item in root.right_specs: SpecCard {
                         category: item.category;

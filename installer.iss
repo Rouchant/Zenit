@@ -28,8 +28,6 @@ Name: "spanish"; MessagesFile: "compiler:Languages\Spanish.isl"
 
 [Tasks]
 Name: "desktopicon"; Description: "{cm:CreateDesktopIcon}"; GroupDescription: "{cm:AdditionalIcons}"; Flags: unchecked
-Name: "autostart"; Description: "Iniciar Zenit Showroom automáticamente al encender Windows (Modo Kiosco)"; GroupDescription: "Configuración de Showroom:"; Flags: checkedonce
-Name: "powersettings"; Description: "Ajustar energía: brillo al 100%, desactivar suspensión y mantener pantalla encendida"; GroupDescription: "Configuración de Showroom:"; Flags: checkedonce
 
 [Files]
 ; Ejecutable principal compilado en release
@@ -43,17 +41,18 @@ Source: "system-setup.ps1"; DestDir: "{app}"; Flags: ignoreversion
 Source: "get-specs.ps1"; DestDir: "{app}"; Flags: ignoreversion
 
 [Registry]
-Root: HKLM; Subkey: "Software\Microsoft\Windows\CurrentVersion\Run"; ValueType: string; ValueName: "{#MyAppName}"; ValueData: """{app}\{#MyAppExeName}"""; Flags: uninsdeletevalue; Tasks: autostart
+; Inicio automático en el Registro de Windows (HKLM Run) obligatorio para modo Kiosco
+Root: HKLM; Subkey: "Software\Microsoft\Windows\CurrentVersion\Run"; ValueType: string; ValueName: "{#MyAppName}"; ValueData: """{app}\{#MyAppExeName}"""; Flags: uninsdeletevalue
 
 [Icons]
 Name: "{group}\{#MyAppName}"; Filename: "{app}\{#MyAppExeName}"; WorkingDir: "{app}"
 Name: "{group}\{cm:UninstallProgram,{#MyAppName}}"; Filename: "{uninstallexe}"
 Name: "{autodesktop}\{#MyAppName}"; Filename: "{app}\{#MyAppExeName}"; WorkingDir: "{app}"; Tasks: desktopicon
-; Acceso directo en la carpeta de Inicio de Windows
-Name: "{commonstartup}\{#MyAppName}"; Filename: "{app}\{#MyAppExeName}"; WorkingDir: "{app}"; Tasks: autostart
+; Acceso directo en la carpeta de Inicio de Windows (Startup común) automático
+Name: "{commonstartup}\{#MyAppName}"; Filename: "{app}\{#MyAppExeName}"; WorkingDir: "{app}"
 
 [Run]
-; Ejecutar script de energía y brillo durante la instalación
-Filename: "powershell.exe"; Parameters: "-ExecutionPolicy Bypass -NoProfile -WindowStyle Hidden -File ""{app}\system-setup.ps1"""; StatusMsg: "Configurando energía, batería, suspensión y brillo máximo..."; Flags: runhidden waituntilterminated; Tasks: powersettings
-; Opción para iniciar Zenit al finalizar la instalación
-Filename: "{app}\{#MyAppExeName}"; Description: "{cm:LaunchProgram,{#StringChange(MyAppName, '&', '&&')}}"; Flags: nowait postinstall skipifsilent
+; Ejecución obligatoria y automática de configuración de energía, batería, suspensión y brillo máximo
+Filename: "powershell.exe"; Parameters: "-ExecutionPolicy Bypass -NoProfile -WindowStyle Hidden -File ""{app}\system-setup.ps1"""; StatusMsg: "Configurando energía, batería, suspensión y brillo máximo al 100%..."; Flags: runhidden waituntilterminated
+; Iniciar Zenit automáticamente al terminar de instalar sin checkboxes ni preguntas
+Filename: "{app}\{#MyAppExeName}"; Flags: nowait

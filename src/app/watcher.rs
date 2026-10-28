@@ -1,4 +1,4 @@
-use super::state::{get_last_dismiss_tracker, IS_IN_TRY_PC_MODE, IS_SCREENSAVER_ACTIVE};
+use super::state::{get_last_dismiss_tracker, get_try_pc_start_tracker, IS_IN_TRY_PC_MODE, IS_SCREENSAVER_ACTIVE};
 use super::window::restore_main_window;
 use crate::domains::kiosk::get_system_idle_seconds;
 use crate::domains::media::SlintMpvPlayer;
@@ -18,6 +18,7 @@ pub fn spawn_inactivity_watcher(
     let watcher_fb_handle = floating_btn.as_weak();
     let player_watcher = player_shared.clone();
     let last_dismiss_watcher = get_last_dismiss_tracker();
+    let try_pc_tracker = get_try_pc_start_tracker();
 
     std::thread::spawn(move || {
         let mut playlist_slot = 0usize;
@@ -35,6 +36,11 @@ pub fn spawn_inactivity_watcher(
                 .map(|t| t.elapsed().as_secs())
                 .unwrap_or(u64::MAX);
 
+            let time_in_try_pc = try_pc_tracker
+                .lock()
+                .map(|t| t.elapsed().as_secs())
+                .unwrap_or(0);
+
             let was_screensaver = IS_SCREENSAVER_ACTIVE.load(Ordering::SeqCst);
             let in_try_pc = IS_IN_TRY_PC_MODE.load(Ordering::SeqCst);
 
@@ -51,7 +57,9 @@ pub fn spawn_inactivity_watcher(
             }
 
             // 1. In Try-PC Mode and Idle >= Timeout: Auto-restore Main Window AND trigger Inactivity Screensaver
-            if in_try_pc && idle_seconds >= timeout {
+            // Requiere tanto que el sistema esté inactivo (idle_seconds >= timeout)
+            // COMO que hayan transcurrido al menos `timeout` segundos completos desde que se entró a Probar esta PC.
+            if in_try_pc && idle_seconds >= timeout && time_in_try_pc >= timeout {
                 IS_IN_TRY_PC_MODE.store(false, Ordering::SeqCst);
                 IS_SCREENSAVER_ACTIVE.store(true, Ordering::SeqCst);
                 screensaver_start_time = Instant::now();

@@ -15,8 +15,12 @@ use windows_sys::Win32::System::Power::{
 use windows_sys::Win32::UI::WindowsAndMessaging::{
     CallWindowProcW, EnumThreadWindows, GetParent, GetSystemMetrics, IsWindow, SetForegroundWindow,
     SetWindowLongPtrW, SetWindowPos, ShowWindow, GWLP_WNDPROC, HWND_TOP, HWND_TOPMOST, SC_CLOSE,
-    SM_CXSCREEN, SM_CYSCREEN, SWP_SHOWWINDOW, SW_HIDE, SW_MINIMIZE, SW_RESTORE, SW_SHOW,
+    SM_CXSCREEN, SM_CYSCREEN, SWP_SHOWWINDOW, SW_HIDE, SW_RESTORE, SW_SHOW,
     WM_CLOSE, WM_CONTEXTMENU, WM_INITMENUPOPUP, WM_SYSCOMMAND, WNDPROC,
+};
+#[cfg(target_os = "windows")]
+use windows_sys::Win32::UI::HiDpi::{
+    SetProcessDpiAwarenessContext, DPI_AWARENESS_CONTEXT_PER_MONITOR_AWARE_V2,
 };
 
 static OLD_MAIN_WNDPROC: AtomicIsize = AtomicIsize::new(0);
@@ -26,6 +30,18 @@ const WM_POWERBROADCAST: u32 = 0x0218;
 const PBT_APMRESUMEAUTOMATIC: u32 = 0x0012;
 const PBT_APMRESUMESUSPEND: u32 = 0x0007;
 const SC_KEYMENU: u32 = 0xF100;
+
+/// Configura la aplicación como DPI-Aware Per-Monitor v2 para que Windows no escale artificialmente
+/// ni deforme los elementos visuales sin importar si el usuario tiene 125%, 150% o resoluciones 16:10.
+pub fn enable_dpi_awareness_v2() {
+    #[cfg(target_os = "windows")]
+    unsafe {
+        let res = SetProcessDpiAwarenessContext(DPI_AWARENESS_CONTEXT_PER_MONITOR_AWARE_V2);
+        if res != 0 {
+            println!("[DPI] Windows Per-Monitor DPI Awareness v2 activado con éxito.");
+        }
+    }
+}
 
 /// Permite el cierre de la ventana cuando se solicita conscientemente (ej: salir de emergencia).
 pub fn allow_app_close() {
@@ -183,7 +199,8 @@ pub fn minimize_main_window() {
     unsafe {
         let main_hwnd = MAIN_HWND.load(Ordering::SeqCst) as HWND;
         if !main_hwnd.is_null() {
-            ShowWindow(main_hwnd, SW_MINIMIZE);
+            // Ocultamos directamente sin SW_MINIMIZE para evitar que Windows ejecute la animación
+            // de colapso de pantalla completa que produce el pantallazo negro de 1 segundo
             ShowWindow(main_hwnd, SW_HIDE);
         }
     }

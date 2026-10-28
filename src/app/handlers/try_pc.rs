@@ -50,6 +50,9 @@ pub fn setup_try_pc_handlers(
     main_window.on_try_pc_clicked(move || {
         println!("[TryPC] Botón 'Probar esta PC' activado. Minimizando showroom...");
         IS_IN_TRY_PC_MODE.store(true, Ordering::SeqCst);
+        if let Ok(mut t) = crate::app::state::get_try_pc_start_tracker().lock() {
+            *t = std::time::Instant::now();
+        }
 
         if let Ok(mut guard) = player_try.lock() {
             if let Some(ref mut p) = *guard {

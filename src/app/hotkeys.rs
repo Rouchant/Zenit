@@ -199,10 +199,10 @@ unsafe extern "system" fn low_level_keyboard_proc(
         let should_block =
             // Alt + F4 (cerrar), Alt + Tab (cambiar app), Alt + Esc, Alt + Espacio (menú de sistema)
             (alt && matches!(key_u16, VK_F4 | VK_ESCAPE | VK_SPACE | VK_TAB))
-            // Win + L (bloquear), Win + I (config), Win + X (menú técnico), Win + D / M (escritorio), Win + R (ejecutar), Win + E (explorador)
-            || (win && matches!(key, VK_L | VK_I | VK_X | VK_D | VK_M | VK_R | VK_E | VK_A | VK_S))
-            // Menú Inicio con tecla Win o Ctrl+Esc
-            || matches!(key_u16, VK_LWIN | VK_RWIN | VK_APPS)
+            // Win + atajos del sistema (Win + L, Win + I, Win + X, Win + D/M, Win + R, etc.)
+            || (win && !matches!(key_u16, VK_LWIN | VK_RWIN) && matches!(key, VK_L | VK_I | VK_X | VK_D | VK_M | VK_R | VK_E | VK_A | VK_S))
+            // Tecla de menú contextual de aplicaciones o Ctrl+Esc
+            || (key_u16 == VK_APPS)
             || (ctrl && key_u16 == VK_ESCAPE && !shift)
             // DevTools o herramientas de depuración (F12, Ctrl+Shift+I/J/C/K)
             || (key_u16 == VK_F12)

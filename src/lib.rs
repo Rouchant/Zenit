@@ -13,6 +13,9 @@ pub fn run() {
         None => return,
     };
 
+    // Configurar DPI-Awareness Per-Monitor v2 antes de crear ventanas para renderizado 1:1 en 16:9 y 16:10
+    app::window::enable_dpi_awareness_v2();
+
     let main_window = MainWindow::new().expect("Failed to initialize Slint MainWindow");
 
     // Register pure callback hex_to_color immediately so bindings evaluate properly

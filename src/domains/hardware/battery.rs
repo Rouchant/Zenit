@@ -100,9 +100,12 @@ pub fn detect_battery_capacity_wh() -> Option<u32> {
     None
 }
 
+static CACHED_BATTERY_WH: std::sync::OnceLock<Option<u32>> = std::sync::OnceLock::new();
+
 pub fn get_battery_info() -> (String, u8, bool) {
-    // 1. Detect physical battery capacity in Wh via powercfg /batteryreport
-    if let Some(wh) = detect_battery_capacity_wh() {
+    // 1. Detect physical battery capacity in Wh via powercfg /batteryreport (Cached via OnceLock)
+    let wh_opt = *CACHED_BATTERY_WH.get_or_init(detect_battery_capacity_wh);
+    if let Some(wh) = wh_opt {
         let mut percent = 100;
         let mut is_charging = true;
         unsafe {
