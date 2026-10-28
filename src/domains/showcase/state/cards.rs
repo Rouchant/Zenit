@@ -204,20 +204,20 @@ pub fn build_right_specs(specs: &SystemSpecs, cfg: &AppConfig) -> Vec<DisplaySpe
             icon: "assets/ui/battery.svg".to_string(),
         },
         DisplaySpecCard {
-            id: "card-others".to_string(),
-            label: "Otros y Conectividad".to_string(),
-            value: others_text,
-            sub_value: None,
-            tag: others_tag,
-            icon: "assets/ui/features.svg".to_string(),
-        },
-        DisplaySpecCard {
             id: "card-os".to_string(),
             label: "Sistema Operativo".to_string(),
             value: specs.os.clone(),
             sub_value: None,
             tag: os_tag,
             icon: "assets/ui/software.svg".to_string(),
+        },
+        DisplaySpecCard {
+            id: "card-others".to_string(),
+            label: "Otros y Conectividad".to_string(),
+            value: others_text,
+            sub_value: None,
+            tag: others_tag,
+            icon: "assets/ui/features.svg".to_string(),
         },
     ]
 }

@@ -295,7 +295,7 @@ pub fn populate_ui_state(window: &MainWindow) {
     });
     window.set_cfg_os(os_val.into());
 
-    let battery_val = cfg.battery_override.clone().unwrap_or_else(|| {
+    let battery_val = cfg.battery_override.clone().filter(|b| !b.trim().is_empty() && !b.eq_ignore_ascii_case("Hasta 8 horas")).unwrap_or_else(|| {
         let b = state.right_specs.iter()
             .find(|s| s.id == "card-battery")
             .map(|s| s.value.clone())
@@ -303,7 +303,7 @@ pub fn populate_ui_state(window: &MainWindow) {
         if !b.is_empty() && !b.contains("Conectado AC") {
             b
         } else {
-            "Hasta 8 horas".to_string()
+            "Batería 50 Wh".to_string()
         }
     });
     window.set_cfg_battery(battery_val.into());

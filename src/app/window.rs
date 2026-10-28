@@ -178,9 +178,10 @@ pub fn init_main_window(window: &MainWindow) {
         EnumThreadWindows(thread_id, Some(enum_main_win), 0);
 
         let hwnd = MAIN_HWND.load(Ordering::SeqCst) as HWND;
-        let screen_w = GetSystemMetrics(SM_CXSCREEN);
-        let screen_h = GetSystemMetrics(SM_CYSCREEN);
-        println!("[Showroom] Resolucion detectada: {}x{}, HWND: {:?}", screen_w, screen_h, hwnd);
+        let (raw_w, raw_h) = crate::domains::hardware::get_display_raw_resolution();
+        let screen_w = if raw_w > 0 { raw_w as i32 } else { GetSystemMetrics(SM_CXSCREEN) };
+        let screen_h = if raw_h > 0 { raw_h as i32 } else { GetSystemMetrics(SM_CYSCREEN) };
+        println!("[Showroom] Resolucion fisica nativa: {}x{}, HWND: {:?}", screen_w, screen_h, hwnd);
         window.set_screen_width(screen_w as f32);
         window.set_screen_height(screen_h as f32);
 
@@ -253,16 +254,73 @@ pub fn position_floating_button() {
             ShowWindow(floating_hwnd, SW_RESTORE);
             SetWindowPos(floating_hwnd, HWND_TOPMOST, x, y, w, h, SWP_SHOWWINDOW);
             SetForegroundWindow(floating_hwnd);
+            protect_floating_window_proc(floating_hwnd);
         }
     }
     FB_WAS_FOREGROUND.store(true, Ordering::SeqCst);
 }
 
+static OLD_FLOATING_WNDPROC: AtomicIsize = AtomicIsize::new(0);
+
+#[cfg(target_os = "windows")]
+fn protect_floating_window_proc(hwnd: HWND) {
+    if OLD_FLOATING_WNDPROC.load(Ordering::SeqCst) != 0 {
+        return;
+    }
+    unsafe {
+        let old = SetWindowLongPtrW(hwnd, GWLP_WNDPROC, floating_wndproc_subclass as *const () as isize);
+        OLD_FLOATING_WNDPROC.store(old, Ordering::SeqCst);
+    }
+}
+
+#[cfg(target_os = "windows")]
+unsafe extern "system" fn floating_wndproc_subclass(
+    hwnd: HWND,
+    msg: u32,
+    wparam: WPARAM,
+    lparam: LPARAM,
+) -> LRESULT {
+    let old_proc = OLD_FLOATING_WNDPROC.load(Ordering::Relaxed);
+
+    if ALLOW_CLOSE.load(Ordering::Relaxed) {
+        if old_proc != 0 {
+            unsafe {
+                let old_proc_fn: WNDPROC = std::mem::transmute(old_proc);
+                return CallWindowProcW(old_proc_fn, hwnd, msg, wparam, lparam);
+            }
+        }
+        return 0;
+    }
+
+    // Bloquear intentos de cerrar la ventana flotante
+    if msg == WM_CLOSE {
+        return 0;
+    }
+
+    if msg == WM_SYSCOMMAND {
+        let cmd = (wparam & 0xFFF0) as u32;
+        if cmd == SC_CLOSE || cmd == SC_KEYMENU {
+            return 0;
+        }
+    }
+
+    if msg == WM_INITMENUPOPUP || msg == WM_CONTEXTMENU {
+        return 0;
+    }
+
+    if old_proc != 0 {
+        unsafe {
+            let old_proc_fn: WNDPROC = std::mem::transmute(old_proc);
+            return CallWindowProcW(old_proc_fn, hwnd, msg, wparam, lparam);
+        }
+    }
+    0
+}
+
 static FB_WAS_FOREGROUND: AtomicBool = AtomicBool::new(true);
 
 /// Devuelve `true` si el usuario tocó el icono de Zenit en la barra de tareas
-/// mientras está en modo "Probar esta PC": la ventana flotante fue minimizada
-/// (clic estando activa) o pasó a primer plano tras haber perdido el foco.
+/// mientras está en modo "Probar esta PC".
 pub fn floating_button_taskbar_activated() -> bool {
     #[cfg(target_os = "windows")]
     unsafe {
@@ -271,12 +329,17 @@ pub fn floating_button_taskbar_activated() -> bool {
         if fb.is_null() || IsWindow(fb) == 0 {
             return false;
         }
+
+        // Si la ventana del botón fue minimizada por el usuario en la barra de tareas
         if IsIconic(fb) != 0 {
-            FB_WAS_FOREGROUND.store(true, Ordering::SeqCst);
+            FB_WAS_FOREGROUND.store(false, Ordering::SeqCst);
             return true;
         }
+
         let is_fg = GetForegroundWindow() == fb;
         let was_fg = FB_WAS_FOREGROUND.swap(is_fg, Ordering::SeqCst);
+        // Solo considerar activación si previamente NO estaba en primer plano
+        // Y el usuario expresamente hizo clic en la barra de tareas trayéndola al frente
         return is_fg && !was_fg;
     }
     #[allow(unreachable_code)]

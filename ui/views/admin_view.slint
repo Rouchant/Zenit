@@ -1290,7 +1290,7 @@ export component AdminView inherits Rectangle {
                                     height: 16px;
                                     spacing: 6px;
                                     Text {
-                                        text: "Duración Batería (Horas):";
+                                        text: "Capacidad Batería (Wh):";
                                         font-size: 11px;
                                         font-weight: 600;
                                         color: #cbd5e1;
@@ -1315,7 +1315,7 @@ export component AdminView inherits Rectangle {
                                         horizontal-stretch: 1;
                                         height: 34px;
                                         text <=> root.cfg_battery;
-                                        placeholder-text: "Ej: Hasta 8 horas o 8";
+                                        placeholder-text: "Ej: Batería 56 Wh o 56";
                                         font-italic: self.text == "";
                                         edited => {
                                             root.is_dirty = true;

@@ -181,9 +181,9 @@ impl SlintMpvPlayer {
             let opt_libmpv = CString::new("libmpv").unwrap();
             (lib.mpv_set_option_string)(mpv, opt_vo.as_ptr(), opt_libmpv.as_ptr());
 
-            // Video scaling & fill to prevent fixed black bars (letterboxing / pillarboxing)
+            // Preservar aspect ratio exacto del video (panscan 0.0 evita zoom y deformación)
             let opt_panscan_key = CString::new("panscan").unwrap();
-            let opt_panscan_val = CString::new("1.0").unwrap();
+            let opt_panscan_val = CString::new("0.0").unwrap();
             (lib.mpv_set_option_string)(mpv, opt_panscan_key.as_ptr(), opt_panscan_val.as_ptr());
 
             let opt_no = CString::new("no").unwrap();

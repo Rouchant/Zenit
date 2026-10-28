@@ -13,6 +13,12 @@ pub fn run() {
         None => return,
     };
 
+    // Fijar el factor de escala de Slint a 1.0 para que el diseño UI siempre se renderice
+    // en píxeles nativos 1:1, evitando que Windows al 125%, 150% o 175% agrande y desborde los elementos
+    unsafe {
+        std::env::set_var("SLINT_SCALE_FACTOR", "1");
+    }
+
     // Configurar DPI-Awareness Per-Monitor v2 antes de crear ventanas para renderizado 1:1 en 16:9 y 16:10
     app::window::enable_dpi_awareness_v2();
 
@@ -33,24 +39,17 @@ pub fn run() {
     // 2. Populate UI State & Vault Data
     app::sync::populate_ui_state(&main_window);
 
-    // 3. Initialize libmpv Player matching screen resolution and aspect ratio (16:9 or 16:10)
+    // 3. Initialize libmpv Player in native 16:9 standard resolution
     let initial_video = domains::media::resolve_showroom_video_path();
     let video_path_str = initial_video.to_string_lossy().to_string();
     let player_shared: Arc<Mutex<Option<domains::media::SlintMpvPlayer>>> = Arc::new(Mutex::new(None));
 
     let (raw_w, raw_h) = domains::hardware::get_display_raw_resolution();
-    let (video_w, video_h) = if domains::hardware::is_display_16_10() {
-        // 16:10 display (e.g. 1920x1200, 2560x1600, 2880x1800)
-        let w = (raw_w.min(1920) / 16) * 16;
-        let h = (w * 10) / 16;
-        (w.max(1280), h.max(800))
-    } else {
-        // 16:9 display (e.g. 1920x1080, 2560x1440, 3840x2160)
-        let w = (raw_w.min(1920) / 16) * 16;
-        let h = (w * 9) / 16;
-        (w.max(1280), h.max(720))
-    };
-    println!("[libmpv] Configurando buffer de video: {}x{} para pantalla {}x{}", video_w, video_h, raw_w, raw_h);
+    // Los videos promocionales son nativos en 16:9. Usamos buffer 16:9 para evitar estiramiento
+    let w = (raw_w.min(1920) / 16) * 16;
+    let h = (w * 9) / 16;
+    let (video_w, video_h) = (w.max(1280), h.max(720));
+    println!("[libmpv] Configurando buffer de video 16:9: {}x{} para pantalla {}x{}", video_w, video_h, raw_w, raw_h);
 
     match domains::media::SlintMpvPlayer::new(&video_path_str, video_w, video_h) {
         Ok(player) => {

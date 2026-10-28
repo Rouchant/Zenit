@@ -36,7 +36,7 @@ pub fn setup_detect_handlers(main_window: &MainWindow) {
 
                     if hw.battery.contains("Conectado AC") || hw.battery.contains("Cargando") {
                         if ui.get_cfg_battery().trim().is_empty() {
-                            ui.set_cfg_battery("Hasta 8 horas".into());
+                            ui.set_cfg_battery("Batería 50 Wh".into());
                         }
                     } else {
                         ui.set_cfg_battery(hw.battery.into());

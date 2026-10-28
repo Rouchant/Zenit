@@ -1,6 +1,6 @@
 [package]
 name = "zenit-showroom"
-version = "1.0.0"
+version = "1.0.1"
 description = "Zenit PC Showroom - 100% Rust Native with Slint UI & libmpv"
 authors = ["Zenit"]
 edition = "2024"

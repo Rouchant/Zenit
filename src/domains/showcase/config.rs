@@ -326,7 +326,7 @@ fn load_config_from_disk() -> AppConfig {
                     cfg.sku = "".to_string();
                     modified = true;
                 }
-                if cfg.store_theme.eq_ignore_ascii_case("ripley") {
+                if cfg.store_theme.eq_ignore_ascii_case("ripley") { cfg.store_theme = "".to_string(); modified = true; } if cfg.battery_override.as_deref() == Some("Hasta 8 horas") { cfg.battery_override = None; modified = true; } if false {
                     cfg.store_theme = "".to_string();
                     modified = true;
                 }

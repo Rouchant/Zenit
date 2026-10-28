@@ -6,15 +6,22 @@ component ScreensaverPriceBanner inherits Rectangle {
     in property <string> retail_name: "";
     in property <string> sku_code: "";
     in property <image> store_logo;
-    in property <color> theme_accent: #38bdf8;
+    in property <bool> is_dark_mode: false;
+    in property <bool> is_dark_bg: false;
+    in property <color> theme_bg_end: #eae4f5;
+    in property <color> theme_card_bg: #F5F5F5;
+    in property <color> theme_card_border: #e2e8f0;
+    in property <color> theme_text_primary: #0f172a;
+    in property <color> theme_text_secondary: #64748b;
+    in property <color> theme_accent: #0284c7;
 
     height: 84px;
-    background: #030712e0;
+    background: root.theme_card_bg;
     border-radius: 20px;
     border-width: 1.5px;
-    border-color: #38bdf84d;
-    drop-shadow-blur: 24px;
-    drop-shadow-color: #000000b3;
+    border-color: root.theme_card_border;
+    drop-shadow-blur: 8px;
+    drop-shadow-color: #00000040;
 
     HorizontalLayout {
         padding-left: 28px;
@@ -34,9 +41,9 @@ component ScreensaverPriceBanner inherits Rectangle {
                     width: 44px;
                     height: 44px;
                     border-radius: 22px;
-                    background: #0f172a;
+                    background: root.theme_bg_end;
                     border-width: 1px;
-                    border-color: #38bdf840;
+                    border-color: root.theme_card_border;
 
                     if root.retail_name == "FALABELLA": Image {
                         x: (parent.width - self.width) / 2;
@@ -79,14 +86,14 @@ component ScreensaverPriceBanner inherits Rectangle {
                     text: root.card_label != "" ? root.card_label : "PRECIO TARJETA";
                     font-size: 11px;
                     font-weight: 800;
-                    color: root.theme_accent;
+                    color: root.retail_name == "FALABELLA" ? ((root.is_dark_mode || root.is_dark_bg) ? #84cc16 : #65a30d) : root.retail_name == "PARIS" ? #0284c7 : root.retail_name == "RIPLEY" ? ((root.is_dark_mode || root.is_dark_bg) ? #a855f7 : #7c3aed) : root.theme_accent;
                     letter-spacing: 0.8px;
                 }
                 Text {
                     text: root.card_price;
                     font-size: 32px;
                     font-weight: 900;
-                    color: #F8FAFC;
+                    color: root.retail_name == "FALABELLA" ? ((root.is_dark_mode || root.is_dark_bg) ? #84cc16 : #65a30d) : root.retail_name == "PARIS" ? #0284c7 : root.retail_name == "RIPLEY" ? ((root.is_dark_mode || root.is_dark_bg) ? #a855f7 : #7c3aed) : root.theme_accent;
                 }
             }
         }
@@ -98,7 +105,7 @@ component ScreensaverPriceBanner inherits Rectangle {
             Rectangle {
                 width: 1.5px;
                 height: 44px;
-                background: #38bdf833;
+                background: root.theme_card_border;
             }
         }
 
@@ -112,14 +119,14 @@ component ScreensaverPriceBanner inherits Rectangle {
                 text: root.normal_label != "" ? root.normal_label : "TODO MEDIO DE PAGO";
                 font-size: 11px;
                 font-weight: 700;
-                color: #94a3b8;
+                color: root.theme_text_secondary;
                 letter-spacing: 0.5px;
             }
             Text {
                 text: root.normal_price;
                 font-size: 25px;
                 font-weight: 800;
-                color: #F8FAFC;
+                color: root.theme_text_primary;
             }
         }
 
@@ -130,7 +137,7 @@ component ScreensaverPriceBanner inherits Rectangle {
             Rectangle {
                 width: 1.5px;
                 height: 44px;
-                background: #38bdf833;
+                background: root.theme_card_border;
             }
         }
 
@@ -155,10 +162,10 @@ component ScreensaverPriceBanner inherits Rectangle {
                 alignment: center;
                 Rectangle {
                     height: 34px;
-                    background: #0f172a;
+                    background: root.theme_bg_end;
                     border-radius: 8px;
                     border-width: 1px;
-                    border-color: #38bdf833;
+                    border-color: root.theme_card_border;
 
                     HorizontalLayout {
                         padding-left: 12px;
@@ -168,7 +175,7 @@ component ScreensaverPriceBanner inherits Rectangle {
                             text: root.retail_name;
                             font-size: 12px;
                             font-weight: 800;
-                            color: #F8FAFC;
+                            color: root.theme_text_primary;
                             letter-spacing: 1px;
                             vertical-alignment: center;
                         }
@@ -181,10 +188,10 @@ component ScreensaverPriceBanner inherits Rectangle {
                 alignment: center;
                 Rectangle {
                     height: 34px;
-                    background: #0f172a;
+                    background: root.theme_bg_end;
                     border-radius: 8px;
                     border-width: 1px;
-                    border-color: #38bdf833;
+                    border-color: root.theme_card_border;
 
                     HorizontalLayout {
                         padding-left: 12px;
@@ -196,14 +203,14 @@ component ScreensaverPriceBanner inherits Rectangle {
                             text: "SKU:";
                             font-size: 11px;
                             font-weight: 700;
-                            color: #94a3b8;
+                            color: root.theme_text_secondary;
                             vertical-alignment: center;
                         }
                         Text {
                             text: root.sku_code;
                             font-size: 12px;
                             font-weight: 800;
-                            color: #F8FAFC;
+                            color: root.theme_text_primary;
                             letter-spacing: 0.5px;
                             vertical-alignment: center;
                         }
@@ -226,7 +233,14 @@ export component ScreensaverView inherits Rectangle {
     in property <string> retail_name: "";
     in property <string> sku_code: "";
     in property <image> store_logo;
-    in property <color> theme_accent: #38bdf8;
+    in property <bool> is_dark_mode: false;
+    in property <bool> is_dark_bg: false;
+    in property <color> theme_bg_end: #eae4f5;
+    in property <color> theme_card_bg: #F5F5F5;
+    in property <color> theme_card_border: #e2e8f0;
+    in property <color> theme_text_primary: #0f172a;
+    in property <color> theme_text_secondary: #64748b;
+    in property <color> theme_accent: #0284c7;
 
     callback dismiss_screensaver();
 
@@ -283,6 +297,13 @@ export component ScreensaverView inherits Rectangle {
                 retail_name: root.retail_name;
                 sku_code: root.sku_code;
                 store_logo: root.store_logo;
+                is_dark_mode: root.is_dark_mode;
+                is_dark_bg: root.is_dark_bg;
+                theme_bg_end: root.theme_bg_end;
+                theme_card_bg: root.theme_card_bg;
+                theme_card_border: root.theme_card_border;
+                theme_text_primary: root.theme_text_primary;
+                theme_text_secondary: root.theme_text_secondary;
                 theme_accent: root.theme_accent;
             }
         }
@@ -314,6 +335,13 @@ export component ScreensaverView inherits Rectangle {
                 retail_name: root.retail_name;
                 sku_code: root.sku_code;
                 store_logo: root.store_logo;
+                is_dark_mode: root.is_dark_mode;
+                is_dark_bg: root.is_dark_bg;
+                theme_bg_end: root.theme_bg_end;
+                theme_card_bg: root.theme_card_bg;
+                theme_card_border: root.theme_card_border;
+                theme_text_primary: root.theme_text_primary;
+                theme_text_secondary: root.theme_text_secondary;
                 theme_accent: root.theme_accent;
             }
         }
@@ -322,12 +350,12 @@ export component ScreensaverView inherits Rectangle {
             alignment: center;
 
             Rectangle {
-                background: #030712b3;
+                background: root.theme_card_bg;
                 border-radius: 20px;
-                border-width: 1px;
-                border-color: #38bdf840;
-                drop-shadow-blur: 16px;
-                drop-shadow-color: #00000080;
+                border-width: 1.5px;
+                border-color: root.theme_card_border;
+                drop-shadow-blur: 6px;
+                drop-shadow-color: #00000040;
                 height: 40px;
 
                 HorizontalLayout {
@@ -346,7 +374,7 @@ export component ScreensaverView inherits Rectangle {
                         text: "Toca la pantalla o presiona cualquier tecla para interactuar";
                         font-size: 14px;
                         font-weight: 700;
-                        color: #F5F5F5;
+                        color: root.theme_text_primary;
                         vertical-alignment: center;
                     }
                 }

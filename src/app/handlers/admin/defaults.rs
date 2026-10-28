@@ -63,7 +63,7 @@ pub fn setup_defaults_handlers(main_window: &MainWindow) {
                     ui.set_cfg_battery(if !hw.battery.is_empty() && !hw.battery.contains("Conectado AC") && !hw.battery.contains("Cargando") {
                         hw.battery.into()
                     } else {
-                        "Hasta 8 horas".into()
+                        "Batería 50 Wh".into()
                     });
                     let others_val = if !hw.others.is_empty() {
                         hw.others.clone()

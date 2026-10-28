@@ -92,18 +92,46 @@ pub fn detect_battery_capacity_wh() -> Option<u32> {
         if res.status.success() && report_path.exists() {
             if let Ok(xml) = std::fs::read_to_string(&report_path) {
                 let _ = std::fs::remove_file(&report_path);
-                return parse_battery_wh_from_xml(&xml);
+                if let Some(wh) = parse_battery_wh_from_xml(&xml) {
+                    return Some(wh);
+                }
+            } else {
+                let _ = std::fs::remove_file(&report_path);
             }
-            let _ = std::fs::remove_file(&report_path);
         }
     }
+
+    // Fallback: WMI BatteryStaticData / BatteryFullChargedCapacity
+    let mut ps = std::process::Command::new("powershell");
+    ps.args([
+        "-NoProfile",
+        "-NonInteractive",
+        "-Command",
+        "$d = (Get-CimInstance -Namespace root\\WMI -ClassName BatteryStaticData -ErrorAction SilentlyContinue | Measure-Object -Property DesignedCapacity -Sum).Sum; if (-not $d -or $d -eq 0) { $d = (Get-CimInstance -Namespace root\\WMI -ClassName BatteryFullChargedCapacity -ErrorAction SilentlyContinue | Measure-Object -Property FullChargedCapacity -Sum).Sum }; if ($d) { [int]$d }",
+    ]);
+    #[cfg(windows)]
+    {
+        use std::os::windows::process::CommandExt;
+        ps.creation_flags(0x08000000); // CREATE_NO_WINDOW
+    }
+    if let Ok(out) = ps.output() {
+        if out.status.success() {
+            let txt = String::from_utf8_lossy(&out.stdout);
+            if let Ok(mwh) = txt.trim().parse::<u64>() {
+                if mwh > 0 {
+                    return Some(mwh_to_wh(mwh));
+                }
+            }
+        }
+    }
+
     None
 }
 
 static CACHED_BATTERY_WH: std::sync::OnceLock<Option<u32>> = std::sync::OnceLock::new();
 
 pub fn get_battery_info() -> (String, u8, bool) {
-    // 1. Detect physical battery capacity in Wh via powercfg /batteryreport (Cached via OnceLock)
+    // 1. Detect physical battery capacity in Wh via powercfg /batteryreport or WMI (Cached via OnceLock)
     let wh_opt = *CACHED_BATTERY_WH.get_or_init(detect_battery_capacity_wh);
     if let Some(wh) = wh_opt {
         let mut percent = 100;
@@ -122,40 +150,20 @@ pub fn get_battery_info() -> (String, u8, bool) {
         return (format!("Batería {} Wh", wh), percent, is_charging);
     }
 
-    // 2. Fallback to Win32 power status API
+    // 2. Fallback to Win32 power status API (defaulting to Wh display)
     unsafe {
         let mut power_status: SYSTEM_POWER_STATUS = std::mem::zeroed();
         if GetSystemPowerStatus(&mut power_status) != 0 {
-            // BatteryFlag 128 indicates no system battery installed (Desktop PC)
-            if power_status.BatteryFlag & 128 != 0 {
-                return ("Hasta 8 horas".to_string(), 100, true);
-            }
-
             let percent = if power_status.BatteryLifePercent <= 100 {
                 power_status.BatteryLifePercent
             } else {
                 100
             };
             let is_charging = power_status.ACLineStatus == 1;
-
-            let status_str = if power_status.BatteryLifeTime != 0xFFFFFFFF {
-                let hours = power_status.BatteryLifeTime / 3600;
-                let mins = (power_status.BatteryLifeTime % 3600) / 60;
-                if hours > 0 {
-                    format!("Hasta {} horas", hours)
-                } else {
-                    format!("{}% (~{}m)", percent, mins)
-                }
-            } else if is_charging {
-                "Hasta 8 horas".to_string()
-            } else {
-                format!("{}%", percent)
-            };
-
-            return (status_str, percent, is_charging);
+            return ("Batería 50 Wh".to_string(), percent, is_charging);
         }
     }
-    ("Hasta 8 horas".to_string(), 100, true)
+    ("Batería 50 Wh".to_string(), 100, true)
 }
 
 #[cfg(test)]

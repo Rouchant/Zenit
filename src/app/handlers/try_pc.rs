@@ -48,7 +48,7 @@ pub fn setup_try_pc_handlers(
     let player_try = player_shared.clone();
 
     main_window.on_try_pc_clicked(move || {
-        println!("[TryPC] Botón 'Probar esta PC' activado. Minimizando showroom...");
+        println!("[TryPC] Botón 'Probar esta PC' activado. Ocultando showroom...");
         IS_IN_TRY_PC_MODE.store(true, Ordering::SeqCst);
         if let Ok(mut t) = crate::app::state::get_try_pc_start_tracker().lock() {
             *t = std::time::Instant::now();
@@ -60,7 +60,8 @@ pub fn setup_try_pc_handlers(
             }
         }
 
-        // Show floating restore button first
+        // 1. Mostrar y posicionar el botón flotante PRIMERO para que el event loop de Slint
+        // nunca se quede con 0 ventanas visibles (si llega a 0, Slint interpreta que la app debe cerrarse)
         if let Some(fb) = try_pc_fb_handle.upgrade() {
             let cfg = crate::domains::showcase::load_config();
             crate::app::sync::sync_floating_button_theme(&fb, &cfg);
@@ -68,9 +69,8 @@ pub fn setup_try_pc_handlers(
             position_floating_button();
         }
 
-        // Minimize and hide main window
+        // 2. Ocultar la ventana principal a nivel Win32 (sin animación y sin cerrar el proceso)
         minimize_main_window();
-
         if let Some(mw) = try_pc_mw_handle.upgrade() {
             let _ = mw.hide();
         }
@@ -86,6 +86,16 @@ pub fn setup_try_pc_handlers(
             if !IS_IN_TRY_PC_MODE.load(Ordering::SeqCst) {
                 return;
             }
+            // Período de gracia de 1.5s tras entrar a Probar PC para evitar falsos positivos
+            // generados por el traspaso de foco entre la ventana principal y la flotante
+            let elapsed_ms = crate::app::state::get_try_pc_start_tracker()
+                .lock()
+                .map(|t| t.elapsed().as_millis())
+                .unwrap_or(0);
+            if elapsed_ms < 1500 {
+                return;
+            }
+
             if crate::app::window::floating_button_taskbar_activated() {
                 if let Some(fb) = taskbar_fb_handle.upgrade() {
                     fb.invoke_restore_clicked();

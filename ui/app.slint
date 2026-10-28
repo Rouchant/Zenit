@@ -37,12 +37,15 @@ export component MainWindow inherits Window {
         { category: "PROCESADOR", value: "Intel Core i7-13650HX", subvalue: "14 núcleos, 20 hilos", tag: "GEN 13", icon: @image-url("../assets/ui/cpu.svg") },
         { category: "MEMORIA RAM", value: "16 GB DDR5 4800MHz", subvalue: "Expandible a 32 GB", tag: "DDR5", icon: @image-url("../assets/ui/ram.svg") },
         { category: "ALMACENAMIENTO", value: "512 GB SSD NVMe M.2", subvalue: "PCIe 4.0 de alta velocidad", tag: "NVMe", icon: @image-url("../assets/ui/storage.svg") },
-        { category: "SISTEMA OPERATIVO", value: "Windows 11 Home", subvalue: "64-bit con licencia oficial", tag: "OFICIAL", icon: @image-url("../assets/ui/software.svg") }
+        { category: "GRÁFICOS", value: "NVIDIA GeForce RTX 4060", subvalue: "8 GB GDDR6 dedicados", tag: "RTX", icon: @image-url("../assets/ui/gpu.svg") }
     ];
     in-out property <[SpecItem]> right_specs: [
         { category: "PANTALLA", value: "16\" FHD+ 165Hz IPS", subvalue: "100% sRGB, 7ms, G-Sync", tag: "165Hz", icon: @image-url("../assets/ui/screen.svg") },
-        { category: "GRÁFICOS", value: "NVIDIA GeForce RTX 4060", subvalue: "8 GB GDDR6 dedicados", tag: "RTX", icon: @image-url("../assets/ui/gpu.svg") },
+
+
+
         { category: "BATERÍA", value: "Batería 42 Wh", subvalue: "Batería de larga duración", tag: "Autonomía", icon: @image-url("../assets/ui/battery.svg") },
+        { category: "SISTEMA OPERATIVO", value: "Windows 11 Home", subvalue: "64-bit con licencia oficial", tag: "OFICIAL", icon: @image-url("../assets/ui/software.svg") },
         { category: "OTROS Y CONECTIVIDAD", value: "Wi-Fi 6E / Bluetooth 5.4 / Teclado en Español", subvalue: "", tag: "", icon: @image-url("../assets/ui/features.svg") }
     ];
 
@@ -371,6 +374,13 @@ export component MainWindow inherits Window {
         sku_code: root.sku_code;
         store_logo: root.store_logo;
         theme_accent: root.hex_to_color(root.cfg_accent);
+        is_dark_mode: root.is_dark_mode;
+        is_dark_bg: root.is_dark_mode || root.is_dark_bg;
+        theme_bg_end: root.hex_to_color(root.cfg_bg_end);
+        theme_card_bg: root.hex_to_color(root.cfg_card_bg);
+        theme_card_border: root.hex_to_color(root.cfg_card_border);
+        theme_text_primary: root.hex_to_color(root.cfg_text_primary);
+        theme_text_secondary: root.hex_to_color(root.cfg_text_secondary);
         dismiss_screensaver => { root.dismiss_screensaver(); }
     }
 
